@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+/*
+  ==========================================
+  ARCHIVOS QUE TAILWIND DEBE REVISAR
+  ==========================================
+
+  Tailwind v4 detecta las clases del proyecto
+  automaticamente, pero en un monorepo hay que
+  indicarle tambien las carpetas de los paquetes
+  internos. Sin esto, las clases que solo se
+  usan dentro de packages/ no se generarian.
+*/
+
+@source "../../../packages/ui/src";
+@source "../../../packages/modulo-clientes/src";
+
+/*
+  ==========================================
+  ESTILOS GENERALES
+  SISTEMA DE GESTION PARA GIMNASIO
+  ==========================================
+*/
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background-color: #f1f5f9;
+}

@@ -1,0 +1,10 @@
+# =====================================================
+# WORKSPACES DEL MONOREPO
+# =====================================================
+#
+#   apps/*      → aplicaciones ejecutables (Next.js)
+#   packages/*  → código compartido entre aplicaciones
+#
+packages:
+  - "apps/*"
+  - "packages/*"

@@ -1,0 +1,32 @@
+{
+  "name": "@apexg/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Aplicacion web (Next.js) del sistema APEX GYM",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "oxlint app components lib",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@apexg/core": "workspace:*",
+    "@apexg/modulo-clientes": "workspace:*",
+    "@apexg/ui": "workspace:*",
+    "lucide-react": "^1.32.0",
+    "next": "^16.3.2",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@apexg/typescript-config": "workspace:*",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "oxlint": "^1.75.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.3"
+  }
+}

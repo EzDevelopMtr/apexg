@@ -1,0 +1,7 @@
+{
+  "name": "@apexg/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Configuraciones de TypeScript compartidas del monorepo",
+  "files": ["base.json", "nextjs.json", "react-library.json"]
+}

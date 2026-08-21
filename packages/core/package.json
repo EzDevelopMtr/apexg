@@ -1,0 +1,21 @@
+{
+  "name": "@apexg/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tipos de dominio, catalogo de modulos y datos de APEX GYM",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@apexg/typescript-config": "workspace:*",
+    "oxlint": "^1.75.0",
+    "typescript": "~6.0.3"
+  }
+}

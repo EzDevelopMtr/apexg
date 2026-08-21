@@ -7,9 +7,24 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencias
 node_modules
+
+# Builds
 dist
 dist-ssr
+build
+out
+.next
+next-env.d.ts
+
+# Cache de herramientas
+.turbo
+*.tsbuildinfo
+
+# Variables de entorno
+.env
+.env*.local
 *.local
 
 # Editor directories and files
