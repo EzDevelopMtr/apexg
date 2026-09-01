@@ -104,8 +104,8 @@ export const modulos: Modulo[] = [
     nombre: "Membresias",
     descripcion: "Planes y membresias",
     icono: "tarjeta",
-    disponible: false,
-    ruta: null,
+    disponible: true,
+    ruta: "/modulos/membresias/todos",
   },
 
   {
@@ -113,8 +113,8 @@ export const modulos: Modulo[] = [
     nombre: "Pagos",
     descripcion: "Control de pagos",
     icono: "billetera",
-    disponible: false,
-    ruta: null,
+    disponible: true,
+    ruta: "/modulos/pagos/todos",
   },
 
   {
@@ -122,8 +122,8 @@ export const modulos: Modulo[] = [
     nombre: "Inventario",
     descripcion: "Productos y existencias",
     icono: "paquete",
-    disponible: false,
-    ruta: null,
+    disponible: true,
+    ruta: "/modulos/inventario/todos",
   },
 
   {
@@ -264,4 +264,57 @@ export function tituloSeccionClientes(
   );
 
   return seccion?.titulo ?? "Clientes";
+}
+
+
+export interface SeccionMembresias {
+  id: string;
+  nombre: string;
+  titulo: string;
+  icono: NombreIcono;
+}
+
+
+export const seccionesMembresias: SeccionMembresias[] = [
+  {
+    id: "todos",
+    nombre: "Todos los planes",
+    titulo: "Todos los planes",
+    icono: "lista",
+  },
+  {
+    id: "activos",
+    nombre: "Planes activos",
+    titulo: "Planes activos",
+    icono: "usuario-ok",
+  },
+  {
+    id: "inactivos",
+    nombre: "Planes inactivos",
+    titulo: "Planes inactivos",
+    icono: "usuario-x",
+  },
+];
+
+
+export const seccionMembresiasPorDefecto = "todos";
+
+
+export function esSeccionMembresias(
+  valor: string
+): boolean {
+  return seccionesMembresias.some(
+    (seccion) => seccion.id === valor
+  );
+}
+
+
+export function tituloSeccionMembresias(
+  id: string
+): string {
+  const seccion = seccionesMembresias.find(
+    (item) => item.id === id
+  );
+
+  return seccion?.titulo ?? "Membresias";
 }

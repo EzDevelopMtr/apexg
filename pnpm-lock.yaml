@@ -26,6 +26,15 @@ importers:
       '@apexg/modulo-clientes':
         specifier: workspace:*
         version: link:../../packages/modulo-clientes
+      '@apexg/modulo-inventario':
+        specifier: workspace:*
+        version: link:../../packages/modulo-inventario
+      '@apexg/modulo-membresias':
+        specifier: workspace:*
+        version: link:../../packages/modulo-membresias
+      '@apexg/modulo-pagos':
+        specifier: workspace:*
+        version: link:../../packages/modulo-pagos
       '@apexg/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -103,6 +112,81 @@ importers:
       oxlint:
         specifier: ^1.75.0
         version: 1.79.0
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/modulo-inventario:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/modulo-membresias:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/modulo-pagos:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

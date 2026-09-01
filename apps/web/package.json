@@ -12,7 +12,10 @@
   },
   "dependencies": {
     "@apexg/core": "workspace:*",
+    "@apexg/modulo-membresias": "workspace:*",
     "@apexg/modulo-clientes": "workspace:*",
+    "@apexg/modulo-pagos": "workspace:*",
+    "@apexg/modulo-inventario": "workspace:*",
     "@apexg/ui": "workspace:*",
     "lucide-react": "^1.32.0",
     "next": "^16.3.2",

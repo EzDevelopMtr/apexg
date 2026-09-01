@@ -16,4 +16,7 @@
 */
 
 export * from "./clientes";
+export * from "./membresias";
+export * from "./pagos";
+export * from "./inventario";
 export * from "./modulos";

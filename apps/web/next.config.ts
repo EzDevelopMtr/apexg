@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     "@apexg/core",
     "@apexg/ui",
     "@apexg/modulo-clientes",
+    "@apexg/modulo-membresias",
+    "@apexg/modulo-pagos",
+    "@apexg/modulo-inventario",
   ],
 };
 

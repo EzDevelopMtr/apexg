@@ -113,21 +113,13 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
+    <main className="flex min-h-screen items-center justify-center bg-[#eef1f3] px-4 py-6">
 
-      {/* =================================
-          CONTENEDOR PRINCIPAL
-      ================================= */}
+      <div className="w-full max-w-[520px]">
 
-      <div className="w-full max-w-md">
+        <div className="mb-6 text-center">
 
-        {/* =================================
-            LOGO
-        ================================= */}
-
-        <div className="mb-8 text-center">
-
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1d2a39] shadow-[0_8px_24px_rgba(15,23,42,0.15)]">
 
             <Dumbbell
               size={32}
@@ -137,29 +129,25 @@ export default function LoginForm() {
 
           </div>
 
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-[2.15rem] font-bold tracking-tight text-[#1f2937]">
             Sistema Gimnasio
           </h1>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-base text-slate-500">
             Sistema de gestión
           </p>
 
         </div>
 
-        {/* =================================
-            TARJETA DEL LOGIN
-        ================================= */}
+        <section className="rounded-[1.5rem] bg-[#f5f5f5] p-6 shadow-[0_8px_24px_rgba(148,163,184,0.18)] ring-1 ring-slate-200/80">
 
-        <section className="rounded-2xl bg-white p-7 shadow-xl shadow-slate-200/60">
+          <div className="mb-6">
 
-          <div className="mb-7">
-
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-[2rem] font-semibold leading-tight text-[#1f2937]">
               Iniciar sesión
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-base text-slate-500">
               Ingresa tus credenciales para continuar
             </p>
 
@@ -171,7 +159,7 @@ export default function LoginForm() {
 
           <form
             onSubmit={handleSubmit}
-            className="space-y-5"
+            className="space-y-4"
           >
 
             {/* USUARIO */}
@@ -180,7 +168,7 @@ export default function LoginForm() {
 
               <label
                 htmlFor="username"
-                className="mb-2 block text-sm font-medium text-slate-700"
+                className="mb-2 block text-base font-medium text-[#1f2937]"
               >
                 Usuario
               </label>
@@ -202,7 +190,7 @@ export default function LoginForm() {
                   }}
                   placeholder="Ingresa tu usuario"
                   autoComplete="username"
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                 />
 
               </div>
@@ -215,7 +203,7 @@ export default function LoginForm() {
 
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-medium text-slate-700"
+                className="mb-2 block text-base font-medium text-[#1f2937]"
               >
                 Contraseña
               </label>
@@ -237,7 +225,7 @@ export default function LoginForm() {
                   }}
                   placeholder="Ingresa tu contraseña"
                   autoComplete="current-password"
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-11 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
                 />
 
                 {/* Mostrar / ocultar contraseña */}
@@ -281,7 +269,7 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-[#1d2a39] py-3 text-base font-semibold text-white shadow-sm transition hover:bg-[#162332] focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
             >
 
               {loading
