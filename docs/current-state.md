@@ -48,12 +48,16 @@ Drizzle de los seeds `seeds/company/*.sql`.
 - `InitialAdministratorService` (`src/auth/`) — implementado y ejecutado una vez.
 - **Primer Administrador: CREADO Y VALIDADO** (`username: admin`, empresa «APEX GYM
   Desarrollo», rol `Administrador`). Hash Argon2id verificado.
-- **Login: implementado** — `POST /auth/login` valida `companyId` + `username`
-  normalizado + contraseña, y rechaza de forma genérica credenciales, usuario o
-  rol no válidos/inactivos.
-- **JWT access token: implementado** — firmado con `JWT_ACCESS_SECRET`, TTL de
-  15 minutos; incluye solo `sub`, `companyId`, `roleId` y `username`.
-- **Sesiones, refresh tokens, cookies, guards y Passport: NO implementados.**
+- **POST /auth/login: IMPLEMENTADO Y VALIDADO** manualmente desde Postman.
+- **AccessTokenGuard: IMPLEMENTADO Y VALIDADO** — valida Bearer JWT, payload,
+  usuario y rol activos contra PostgreSQL.
+- **GET /auth/me: IMPLEMENTADO Y VALIDADO EN POSTMAN** con Bearer JWT válido;
+  devuelve únicamente `id`, `companyId`, `roleId`, `username` y `fullName`.
+- **Bearer JWT (firma y expiración): VALIDADO** — algoritmo HS256 y TTL de 15 min.
+- **Revalidación user/role contra PostgreSQL: IMPLEMENTADA.**
+- **PermissionGuard / autorización por permisos: PENDIENTE.**
+- **Refresh tokens: NO implementados.**
+- **Sesiones, cookies y Passport: NO implementados.**
 
 ## Seguridad de BD
 
@@ -70,6 +74,4 @@ auditadas del bug de `drizzle-kit` 0.31.10 — ver `CLAUDE.md`).
 
 ## Próximo paso
 
-- Guards JWT y autorización por permisos.
-- Refresh tokens / sesiones y estrategia de renovación.
-- Pruebas HTTP automatizadas y manuales del login.
+- Implementar autorización basada en `permissions` / `role_permissions`.

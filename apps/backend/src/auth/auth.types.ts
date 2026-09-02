@@ -1,7 +1,8 @@
 /**
  * Tipos y constantes de la capa de autenticación:
  *  - fase 1: creación segura del primer usuario Administrador de una empresa;
- *  - fase 2: login y emisión de access token JWT.
+ *  - fase 2: login y emisión de access token JWT;
+ *  - fase 3: validación de access token y usuario autenticado.
  */
 
 /** Política de contraseña — primera versión. */
@@ -11,6 +12,9 @@ export const PASSWORD_MAX_LENGTH = 128;
 /** TTL del access token. */
 export const ACCESS_TOKEN_EXPIRES_IN = '15m';
 export const ACCESS_TOKEN_EXPIRES_IN_SECONDS = 900;
+
+/** Algoritmo único admitido para los access tokens. */
+export const ACCESS_TOKEN_ALGORITHM = 'HS256';
 
 /** Nombre de la variable de entorno del secreto de firma. */
 export const JWT_ACCESS_SECRET_ENV = 'JWT_ACCESS_SECRET';
@@ -51,6 +55,23 @@ export interface AccessTokenPayload {
   companyId: string;
   roleId: number;
   username: string;
+}
+
+/** Usuario autenticado disponible para rutas protegidas. */
+export interface AuthenticatedUser {
+  id: string;
+  companyId: string;
+  roleId: number;
+  username: string;
+  fullName: string;
+}
+
+/** Superficie HTTP mínima que usa el guard; evita `any` en request.user. */
+export interface AuthenticatedRequest {
+  headers: {
+    authorization?: string | string[];
+  };
+  user?: AuthenticatedUser;
 }
 
 /** Datos de entrada del login (POST /auth/login). */
