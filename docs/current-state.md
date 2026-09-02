@@ -31,7 +31,7 @@ Este archivo cambia entre etapas. Para las reglas permanentes ver `CLAUDE.md`.
 | `role_permissions` | 49 (37 + 12) |
 | `membership_types` | 9 |
 | `expense_categories` | 4 |
-| `users` | 0 |
+| `users` | 1 |
 | `platform_admins` | 0 |
 
 ---
@@ -45,8 +45,9 @@ Drizzle de los seeds `seeds/company/*.sql`.
 ## Auth
 
 - `PasswordHasherService` (`src/auth/`) — Argon2id configurado (19456 / 2 / 1).
-- `InitialAdministratorService` (`src/auth/`) — implementado, **no ejecutado**.
-- **Primer Administrador: PENDIENTE.**
+- `InitialAdministratorService` (`src/auth/`) — implementado y ejecutado una vez.
+- **Primer Administrador: CREADO Y VALIDADO** (`username: admin`, empresa «APEX GYM
+  Desarrollo», rol `Administrador`). Hash Argon2id verificado.
 - **Login: NO implementado.**
 - **JWT / sesiones: NO implementados.**
 
@@ -64,10 +65,6 @@ auditadas del bug de `drizzle-kit` 0.31.10 — ver `CLAUDE.md`).
 ---
 
 ## Próximo paso
-
-Crear y validar el primer usuario **Administrador** (invocar `InitialAdministratorService`).
-
-Después:
 
 - controller / DTO HTTP
 - pruebas con Postman
