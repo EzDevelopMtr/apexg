@@ -55,7 +55,12 @@ Drizzle de los seeds `seeds/company/*.sql`.
   devuelve únicamente `id`, `companyId`, `roleId`, `username` y `fullName`.
 - **Bearer JWT (firma y expiración): VALIDADO** — algoritmo HS256 y TTL de 15 min.
 - **Revalidación user/role contra PostgreSQL: IMPLEMENTADA.**
-- **PermissionGuard / autorización por permisos: PENDIENTE.**
+- **AuthorizationService: IMPLEMENTADO** — resuelve permisos actuales mediante
+  PostgreSQL, sin usar permisos en el JWT ni caché.
+- **@RequirePermissions: IMPLEMENTADO** — declara permisos acumulativos (AND).
+- **PermissionGuard: IMPLEMENTADO** — distingue ausencia de autenticación (401)
+  de permiso insuficiente (403).
+- **Autorización aplicada a endpoints de negocio: PENDIENTE.**
 - **Refresh tokens: NO implementados.**
 - **Sesiones, cookies y Passport: NO implementados.**
 
@@ -74,4 +79,4 @@ auditadas del bug de `drizzle-kit` 0.31.10 — ver `CLAUDE.md`).
 
 ## Próximo paso
 
-- Implementar autorización basada en `permissions` / `role_permissions`.
+- Aplicar `AccessTokenGuard` + `PermissionGuard` al primer módulo de negocio.

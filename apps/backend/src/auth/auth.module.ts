@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 import { AccessTokenGuard } from './access-token.guard.js';
 import { AuthController } from './auth.controller.js';
+import { AuthorizationService } from './authorization.service.js';
 import {
   ACCESS_TOKEN_ALGORITHM,
   ACCESS_TOKEN_EXPIRES_IN,
@@ -12,6 +13,7 @@ import {
 import { InitialAdministratorService } from './initial-administrator.service.js';
 import { LoginService } from './login.service.js';
 import { PasswordHasherService } from './password-hasher.service.js';
+import { PermissionGuard } from './permission.guard.js';
 
 /**
  * Autenticación.
@@ -19,8 +21,9 @@ import { PasswordHasherService } from './password-hasher.service.js';
  *            (hashing + creación del primer Administrador; sin HTTP).
  *  - fase 2: `LoginService` + `POST /auth/login` (access token JWT, 15 min).
  *  - fase 3: `AccessTokenGuard` + `GET /auth/me`.
+ *  - infraestructura de autorización: `AuthorizationService` + `PermissionGuard`.
  *
- * Sin refresh tokens ni autorización por permiso todavía.
+ * Sin refresh tokens; los guards de permisos se aplicarán por ruta de negocio.
  * `JWT_ACCESS_SECRET` es obligatorio: `getOrThrow` impide arrancar sin él.
  */
 @Module({
@@ -42,12 +45,16 @@ import { PasswordHasherService } from './password-hasher.service.js';
     InitialAdministratorService,
     LoginService,
     AccessTokenGuard,
+    AuthorizationService,
+    PermissionGuard,
   ],
   exports: [
     PasswordHasherService,
     InitialAdministratorService,
     LoginService,
     AccessTokenGuard,
+    AuthorizationService,
+    PermissionGuard,
   ],
 })
 export class AuthModule {}

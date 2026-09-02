@@ -66,6 +66,9 @@ export interface AuthenticatedUser {
   fullName: string;
 }
 
+/** Código exacto del catálogo global `permissions.code`. */
+export type PermissionCode = string;
+
 /** Superficie HTTP mínima que usa el guard; evita `any` en request.user. */
 export interface AuthenticatedRequest {
   headers: {
