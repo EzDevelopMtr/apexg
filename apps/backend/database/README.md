@@ -20,7 +20,8 @@ apps/backend/database/
 ├── schema.dbml
 ├── migrations/
 │   ├── 001_initial_schema.sql
-│   └── 002_seed_modules_permissions.sql
+│   ├── 002_seed_modules_permissions.sql
+│   └── 003_harden_users_auth.sql
 └── seeds/
     └── company/
         ├── 001_roles_permissions.sql
@@ -33,6 +34,7 @@ apps/backend/database/
 | `schema.dbml` | Fuente documental del modelo lógico (27 tablas). No se ejecuta. | — |
 | `migrations/001_initial_schema.sql` | Crea toda la estructura: tablas, PK, FK, UNIQUE, índices. | Base completa |
 | `migrations/002_seed_modules_permissions.sql` | Catálogo global: 11 módulos + 37 permisos. | Global |
+| `migrations/003_harden_users_auth.sql` | Endurece `users`/`roles` (NOT NULL, `state DEFAULT 1`) y añade integridad multiempresa usuario↔rol. Después de 002. **No idempotente.** | Base completa |
 | `seeds/company/001_roles_permissions.sql` | Roles base (`Administrador`, `Recepcionista`) y sus permisos. | Por empresa |
 | `seeds/company/002_membership_types.sql` | 9 tipos de membresía base. | Por empresa |
 | `seeds/company/003_expense_categories.sql` | 4 categorías de egreso base. | Por empresa |
@@ -100,6 +102,31 @@ psql "$DATABASE_URL" \
 
 ---
 
+## Endurecimiento — `003_harden_users_auth.sql`
+
+Solo DDL (`ALTER TABLE users` / `roles`). Se ejecuta **después** de `002` y forma parte del
+historial de migraciones. **No es idempotente** (un segundo intento falla).
+
+- `users`: `company_id`, `username`, `full_name`, `password`, `role_id`, `created_at`, `state`
+  pasan a `NOT NULL`; `state` obtiene `DEFAULT 1` (`created_at` ya tenía `DEFAULT now()`).
+- `roles`: `company_id`, `name`, `state`, `created_at` pasan a `NOT NULL`; `state` obtiene
+  `DEFAULT 1`. `description` sigue nullable.
+- **Integridad multiempresa usuario↔rol:** reemplaza la FK simple `users.role_id → roles.id` por
+  una FK compuesta `fk_users_company_role` `(company_id, role_id) → roles(company_id, id)` (apoyada
+  en la clave candidata `uq_roles_company_role_id UNIQUE (company_id, id)`). El rol de un usuario
+  debe pertenecer a su misma empresa, incluso con SQL manual.
+
+```bash
+psql "$DATABASE_URL" \
+  -f apps/backend/database/migrations/003_harden_users_auth.sql
+```
+
+> `drizzle-kit pull` 0.31.10 introspecta mal esas dos restricciones compuestas
+> (`fk_users_company_role`, `uq_roles_company_role_id`): invierte el orden de columnas. En
+> `src/database/schema/schema.ts` se corrigen a mano y se auditan contra PostgreSQL tras cada pull.
+
+---
+
 ## Datos por empresa — `seeds/company/`
 
 `roles`, `role_permissions`, `membership_types` y `expense_categories` **no son globales**: cada
@@ -136,9 +163,10 @@ Orden completo:
 
 1. Ejecutar `001_initial_schema.sql`.
 2. Ejecutar `002_seed_modules_permissions.sql`.
-3. Crear la empresa en `companies`.
-4. Obtener su `companies.id`.
-5. Ejecutar, con ese id, los tres seeds de `seeds/company/`.
+3. Ejecutar `003_harden_users_auth.sql`.
+4. Crear la empresa en `companies`.
+5. Obtener su `companies.id`.
+6. Ejecutar, con ese id, los tres seeds de `seeds/company/`.
 
 ```bash
 # 1. Estructura
@@ -149,7 +177,11 @@ psql "$DATABASE_URL" \
 psql "$DATABASE_URL" \
   -f apps/backend/database/migrations/002_seed_modules_permissions.sql
 
-# 3-4. Crear la empresa y capturar su id (ejemplo)
+# 3. Endurecimiento de users/roles
+psql "$DATABASE_URL" \
+  -f apps/backend/database/migrations/003_harden_users_auth.sql
+
+# 4-5. Crear la empresa y capturar su id (ejemplo)
 COMPANY_ID=$(psql "$DATABASE_URL" -tAc \
   "INSERT INTO companies (name, currency) VALUES ('Mi Gimnasio', 'COP') RETURNING id")
 

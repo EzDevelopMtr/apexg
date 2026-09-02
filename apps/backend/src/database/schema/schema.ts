@@ -1,8 +1,16 @@
 // Archivo derivado por `drizzle-kit pull` (introspección de PostgreSQL).
-// Único cambio manual: se eliminó el import `sql` no utilizado que emite
-// drizzle-kit, incompatible con `noUnusedLocals` del tsconfig compartido.
-// No modificar tablas, columnas, tipos, defaults ni relaciones a mano:
-// regenerar con `pnpm exec drizzle-kit pull` tras cada cambio de esquema.
+// PostgreSQL es la autoridad del esquema; NO usar este archivo para
+// `drizzle-kit generate` / `migrate`.
+//
+// Cambios manuales auditados (drizzle-kit 0.31.10 introspecta mal las
+// restricciones compuestas):
+//   - se elimina el `import { sql }` no utilizado (choca con noUnusedLocals);
+//   - fk_users_company_role: foreignColumns corregido a [roles.companyId, roles.id]
+//     (PostgreSQL: FOREIGN KEY (company_id, role_id) REFERENCES roles(company_id, id));
+//   - uq_roles_company_role_id: .on(table.companyId, table.id)
+//     (PostgreSQL: UNIQUE (company_id, id)).
+// Cualquier otro cambio de tablas/columnas/tipos: regenerar con
+// `pnpm exec drizzle-kit pull` y volver a auditar esas dos restricciones.
 import { pgTable, unique, uuid, varchar, timestamp, integer, foreignKey, text, index, date, numeric, boolean, primaryKey } from "drizzle-orm/pg-core"
 
 
@@ -41,17 +49,20 @@ export const companies = pgTable("companies", {
 
 export const roles = pgTable("roles", {
 	id: integer().primaryKey().generatedByDefaultAsIdentity({ name: "roles_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 2147483647, cache: 1 }),
-	companyId: uuid("company_id"),
-	name: varchar(),
+	companyId: uuid("company_id").notNull(),
+	name: varchar().notNull(),
 	description: varchar(),
-	state: integer(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	state: integer().default(1).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.companyId],
 			foreignColumns: [companies.id],
 			name: "roles_company_id_fkey"
 		}),
+	// Corrección manual auditada: drizzle-kit 0.31.10 lo introspecta como
+	// .on(table.id, table.companyId). PostgreSQL real: UNIQUE (company_id, id).
+	unique("uq_roles_company_role_id").on(table.companyId, table.id),
 	unique("uq_roles_company_name").on(table.companyId, table.name),
 ]);
 
@@ -81,23 +92,26 @@ export const permissions = pgTable("permissions", {
 
 export const users = pgTable("users", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	companyId: uuid("company_id"),
-	username: varchar(),
-	fullName: varchar("full_name", { length: 150 }),
-	password: varchar({ length: 255 }),
-	roleId: integer("role_id"),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	state: integer(),
+	companyId: uuid("company_id").notNull(),
+	username: varchar().notNull(),
+	fullName: varchar("full_name", { length: 150 }).notNull(),
+	password: varchar({ length: 255 }).notNull(),
+	roleId: integer("role_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	state: integer().default(1).notNull(),
 }, (table) => [
+	foreignKey({
+			// Corrección manual auditada: drizzle-kit 0.31.10 introspecta
+			// foreignColumns como [roles.id, roles.companyId]. PostgreSQL real:
+			// FOREIGN KEY (company_id, role_id) REFERENCES roles(company_id, id).
+			columns: [table.companyId, table.roleId],
+			foreignColumns: [roles.companyId, roles.id],
+			name: "fk_users_company_role"
+		}),
 	foreignKey({
 			columns: [table.companyId],
 			foreignColumns: [companies.id],
 			name: "users_company_id_fkey"
-		}),
-	foreignKey({
-			columns: [table.roleId],
-			foreignColumns: [roles.id],
-			name: "users_role_id_fkey"
 		}),
 	unique("uq_users_company_username").on(table.companyId, table.username),
 ]);

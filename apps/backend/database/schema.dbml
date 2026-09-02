@@ -42,14 +42,18 @@ Table companies {
 
 Table users {
   id uuid [primary key]
-  company_id uuid [ref: > companies.id]
-  username varchar
-  full_name varchar(150)
+  company_id uuid [not null, ref: > companies.id]
+  username varchar [not null]
+  full_name varchar(150) [not null]
   // Nombre real del Administrador / Recepcionista.
-  password varchar(255)
-  role_id integer [ref: > roles.id]
-  created_at timestamptz
-  state integer
+  password varchar(255) [not null]
+  role_id integer [not null]
+  // users.role_id ya NO es una FK simple a roles.id.
+  // Ver Ref compuesto fk_users_company_role al final del archivo:
+  // (company_id, role_id) -> roles(company_id, id), que obliga a que el
+  // rol asignado pertenezca a la misma empresa que el usuario.
+  created_at timestamptz [not null, default: `now()`]
+  state integer [not null, default: 1]
 
   Indexes {
     (company_id, username) [unique]
@@ -58,14 +62,17 @@ Table users {
 
 Table roles {
   id integer [primary key]
-  company_id uuid [ref: > companies.id]
-  name varchar
+  company_id uuid [not null, ref: > companies.id]
+  name varchar [not null]
   description varchar
-  state integer
-  created_at timestamptz
+  state integer [not null, default: 1]
+  created_at timestamptz [not null, default: `now()`]
 
   Indexes {
     (company_id, name) [unique]
+    (company_id, id) [unique, name: 'uq_roles_company_role_id']
+    // Clave candidata redundante (id ya es PK) usada como destino de la
+    // FK compuesta fk_users_company_role.
   }
 }
 
@@ -681,3 +688,13 @@ Table notifications {
     (client_id, scheduled_at)
   }
 }
+
+
+// ===================================================
+// INTEGRIDAD MULTIEMPRESA usuario ↔ rol  (migración 003)
+// ===================================================
+
+// FK compuesta: el rol de un usuario debe pertenecer a su misma empresa.
+// Reemplaza a la antigua FK simple users.role_id -> roles.id.
+// users.company_id -> companies.id (inline arriba) se conserva aparte.
+Ref fk_users_company_role: users.(company_id, role_id) > roles.(company_id, id)
