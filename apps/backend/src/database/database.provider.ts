@@ -6,6 +6,7 @@ import type { Pool } from 'pg';
 
 import { DATABASE, DATABASE_POOL } from './database.constants.js';
 import type { Database } from './database.types.js';
+import * as schema from './schema/schema.js';
 
 /**
  * pg.Pool único de la aplicación.
@@ -26,10 +27,12 @@ export const databasePoolProvider: Provider = {
 
 /**
  * Instancia de Drizzle sobre el MISMO pool que expone DATABASE_POOL.
- * Sin schema todavía. No ejecuta ninguna consulta al construirse.
+ * El schema es la representación TypeScript derivada por introspección
+ * (`drizzle-kit pull`) de PostgreSQL. No ejecuta ninguna consulta al
+ * construirse.
  */
 export const databaseProvider: Provider = {
   provide: DATABASE,
   inject: [DATABASE_POOL],
-  useFactory: (pool: Pool): Database => drizzle(pool),
+  useFactory: (pool: Pool): Database => drizzle(pool, { schema }),
 };
