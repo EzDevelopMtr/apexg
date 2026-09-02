@@ -65,10 +65,21 @@ Devuelve solo identificadores y datos no sensibles (nunca `password` ni el hash)
 
 La creación de usuarios adicionales será otro caso de uso (`createUser`).
 
+## Login y token de acceso
+
+- `POST /auth/login` recibe `companyId` (UUID), `username` y `password`. El
+  `ValidationPipe` global rechaza tipos/campos no declarados; el username se
+  normaliza con `trim().toLowerCase()` y la contraseña se compara sin alterarla.
+- La consulta queda acotada a `company_id` + `username`; antes de emitir el token
+  comprueba que usuario y rol de esa misma empresa estén activos. Todo rechazo usa
+  `401 Credenciales inválidas`, sin revelar la causa.
+- El access token es un JWT firmado con `JWT_ACCESS_SECRET`, obligatorio al
+  arrancar. Expira en 15 minutos y contiene solo `sub`, `companyId`, `roleId` y
+  `username`. La respuesta no contiene contraseña ni hash.
+
 ## Pendiente
 
-- **Login** (validación de credenciales) — no implementado.
-- **JWT / sesiones / cookies / guards / Passport** — no implementados.
+- **Refresh tokens / sesiones / cookies / guards / Passport** — no implementados.
 - Controller / DTO HTTP para exponer el alta de Administrador.
 - Endurecimiento opcional de grants `anon`/`authenticated` o RLS en `public`.
 
