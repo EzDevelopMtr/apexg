@@ -39,7 +39,10 @@ export type NombreIcono =
   | "usuario-mas"
   | "usuario-ok"
   | "reloj"
-  | "usuario-x";
+  | "usuario-x"
+  | "tendencia"
+  | "calendario"
+  | "alerta";
 
 
 /*
@@ -129,19 +132,19 @@ export const modulos: Modulo[] = [
   {
     id: "finanzas",
     nombre: "Finanzas",
-    descripcion: "Ingresos y egresos",
+    descripcion: "Balance financiero, egresos y reportes.",
     icono: "grafico",
-    disponible: false,
-    ruta: null,
+    disponible: true,
+    ruta: "/modulos/finanzas/dashboard",
   },
 
   {
     id: "entrenadores",
     nombre: "Entrenadores",
-    descripcion: "Gestion de entrenadores",
+    descripcion: "Gestion de entrenadores y comisiones",
     icono: "mancuerna",
-    disponible: false,
-    ruta: null,
+    disponible: true,
+    ruta: "/modulos/entrenadores/todos",
   },
 
 ];
@@ -208,9 +211,16 @@ export const seccionesClientes: SeccionClientes[] = [
   },
 
   {
-    id: "vencidos",
-    nombre: "Vencidos",
-    titulo: "Clientes vencidos",
+    id: "en-mora",
+    nombre: "En mora",
+    titulo: "Clientes en mora",
+    icono: "usuario-x",
+  },
+
+  {
+    id: "inactivos",
+    nombre: "Inactivos",
+    titulo: "Clientes inactivos",
     icono: "usuario-x",
   },
 

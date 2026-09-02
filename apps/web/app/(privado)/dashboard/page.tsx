@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import Dashboard from "../../../components/dashboard";
+import DashboardGuard from "../../../components/dashboard-guard";
 
 
 /*
@@ -23,5 +23,5 @@ export const metadata: Metadata = {
 
 export default function PaginaDashboard() {
 
-  return <Dashboard />;
+  return <DashboardGuard />;
 }

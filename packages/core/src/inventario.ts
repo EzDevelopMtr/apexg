@@ -5,15 +5,32 @@ export type CategoriaProducto =
   | "belleza"
   | "otros";
 
+export type UnidadMedida = "unidad" | "caja" | "kg" | "litro" | "paquete";
+
+export const unidadesMedida: Array<{ value: UnidadMedida; label: string }> = [
+  { value: "unidad", label: "Unidad" },
+  { value: "caja", label: "Caja" },
+  { value: "kg", label: "Kilogramo" },
+  { value: "litro", label: "Litro" },
+  { value: "paquete", label: "Paquete" },
+];
+
 export interface ProductoInventario {
   id: string;
   nombre: string;
   categoria: CategoriaProducto;
   sku: string;
+
+  // RF-28: cantidad y unidad de medida.
+  unidadMedida: UnidadMedida;
+
   precioCompra: number;
   precioVenta: number;
   stock: number;
+
+  // RF-29: nivel minimo de existencias.
   stockMinimo: number;
+
   proveedor: string;
   activo: boolean;
   fechaIngreso: string;
@@ -25,6 +42,7 @@ export const productosIniciales: ProductoInventario[] = [
     nombre: "Proteína Whey",
     categoria: "suplementos",
     sku: "SUP-001",
+    unidadMedida: "unidad",
     precioCompra: 180000,
     precioVenta: 260000,
     stock: 18,
@@ -38,6 +56,7 @@ export const productosIniciales: ProductoInventario[] = [
     nombre: "Mancuerna 10kg",
     categoria: "accesorios",
     sku: "ACC-024",
+    unidadMedida: "unidad",
     precioCompra: 220000,
     precioVenta: 310000,
     stock: 6,
@@ -51,6 +70,7 @@ export const productosIniciales: ProductoInventario[] = [
     nombre: "Camiseta DryFit",
     categoria: "ropa",
     sku: "ROP-112",
+    unidadMedida: "unidad",
     precioCompra: 45000,
     precioVenta: 76000,
     stock: 0,
@@ -64,6 +84,7 @@ export const productosIniciales: ProductoInventario[] = [
     nombre: "Gel hidratante",
     categoria: "belleza",
     sku: "BEL-009",
+    unidadMedida: "litro",
     precioCompra: 21000,
     precioVenta: 42000,
     stock: 14,

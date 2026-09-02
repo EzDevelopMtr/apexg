@@ -1,125 +1,146 @@
-export type EstadoPago = "pendiente" | "pagado" | "vencido";
+import type { NombreIcono } from "./modulos";
+import type { FormaPago } from "./clientes";
+import { formasPago } from "./clientes";
+import { planesMembresiaIniciales, type PlanMembresia } from "./membresias";
 
-export type MetodoPago =
-  | "efectivo"
-  | "transferencia"
-  | "tarjeta"
-  | "nequi";
+/*
+  =====================================================
+  PAGOS Y ABONOS (RF-17 a RF-21, RN 4.3)
+  =====================================================
+*/
 
-export const conceptosPago = [
-  "Membresía mensual",
-  "Membresía trimestral",
-  "Membresía anual",
-  "Entrenamiento personal",
-  "Clases grupales",
-  "Pago a entrenador",
-  "Otro",
-] as const;
+export type MetodoPago = FormaPago;
+export const metodosPago = formasPago;
 
-export type ConceptoPago = (typeof conceptosPago)[number];
-export type TipoDestinoPago = "cliente" | "entrenador";
+export type TipoAbono = "completo" | "1er abono" | "2do abono" | "abono final";
 
 export interface Pago {
   id: string;
-  tipo: TipoDestinoPago;
-  clienteId: string;
+
+  clienteId: number;
   clienteNombre: string;
-  entrenadorId?: string;
-  entrenadorNombre?: string;
-  concepto: ConceptoPago;
-  monto: number;
-  fecha: string;
-  vencimiento: string;
+
+  membresiaId: string;
+  membresiaNombre: string;
+
+  // Identifica el ciclo de membresía al que pertenece este abono
+  // (permite acumular varios abonos hasta completar el valor total).
+  cicloId: string;
+
+  valorMembresia: number;
+  valorPagado: number;
+  saldoPendiente: number; // saldo restante DESPUES de este pago
+
+  tipoAbono: TipoAbono;
+
+  fecha: string; // YYYY-MM-DD
   metodo: MetodoPago;
   referencia: string;
-  estado: EstadoPago;
+  usuarioRegistro: string;
   observaciones: string;
 }
 
-export const pagosIniciales: Pago[] = [
-  {
-    id: "pago-1",
-    tipo: "cliente",
-    clienteId: "cli-001",
-    clienteNombre: "Juan Pérez",
-    concepto: "Membresía mensual",
-    monto: 65000,
-    fecha: "2026-08-01",
-    vencimiento: "2026-08-31",
-    metodo: "transferencia",
-    referencia: "TRX-20260801-001",
-    estado: "pagado",
-    observaciones: "Pago confirmado por transferencia bancaria.",
-  },
-  {
-    id: "pago-2",
-    tipo: "cliente",
-    clienteId: "cli-002",
-    clienteNombre: "Laura Gómez",
-    concepto: "Membresía trimestral",
-    monto: 180000,
-    fecha: "2026-08-05",
-    vencimiento: "2026-10-31",
-    metodo: "tarjeta",
-    referencia: "TAR-20260805-220",
-    estado: "pendiente",
-    observaciones: "Cobro programado para la fecha de vencimiento.",
-  },
-  {
-    id: "pago-3",
-    tipo: "cliente",
-    clienteId: "cli-003",
-    clienteNombre: "Carlos Rodríguez",
-    concepto: "Membresía mensual",
-    monto: 65000,
-    fecha: "2026-07-25",
-    vencimiento: "2026-08-25",
-    metodo: "efectivo",
-    referencia: "EFE-20260725-007",
-    estado: "vencido",
-    observaciones: "Pago aún pendiente fuera de la fecha límite.",
-  },
-  {
-    id: "pago-4",
-    tipo: "cliente",
-    clienteId: "cli-005",
-    clienteNombre: "Pedro Sánchez",
-    concepto: "Membresía anual",
-    monto: 600000,
-    fecha: "2026-08-11",
-    vencimiento: "2027-01-10",
-    metodo: "nequi",
-    referencia: "NEQ-20260811-450",
-    estado: "pagado",
-    observaciones: "Pago realizado a través de Nequi.",
-  },
-];
+export function generarCicloId(clienteId: number, fechaIngreso: string): string {
+  return `${clienteId}-${fechaIngreso}`;
+}
+
+/*
+  -----------------------------------------------------
+  SALDO PENDIENTE (RF-18)
+  -----------------------------------------------------
+*/
+
+export function calcularTotalPagado(pagos: Pago[], cicloId: string): number {
+  return pagos
+    .filter((pago) => pago.cicloId === cicloId)
+    .reduce((acumulado, pago) => acumulado + pago.valorPagado, 0);
+}
+
+export function calcularSaldoPendiente(
+  pagos: Pago[],
+  cicloId: string,
+  valorMembresia: number
+): number {
+  return Math.max(valorMembresia - calcularTotalPagado(pagos, cicloId), 0);
+}
+
+/*
+  -----------------------------------------------------
+  ETIQUETA DEL ABONO (RF-20)
+  -----------------------------------------------------
+*/
+
+export function determinarTipoAbono(
+  cantidadAbonosPrevios: number,
+  saldoPendienteDespues: number
+): TipoAbono {
+  if (saldoPendienteDespues <= 0) {
+    return cantidadAbonosPrevios === 0 ? "completo" : "abono final";
+  }
+
+  return cantidadAbonosPrevios === 0 ? "1er abono" : "2do abono";
+}
+
+/*
+  -----------------------------------------------------
+  VALIDACION DEL ABONO MINIMO (RF-19, RN 4.3)
+  -----------------------------------------------------
+*/
+
+export function validarAbono(
+  monto: number,
+  plan: PlanMembresia,
+  saldoPendienteAntes: number
+): string[] {
+  const errores: string[] = [];
+
+  if (monto <= 0) {
+    errores.push("El monto debe ser mayor que cero.");
+  }
+
+  if (monto > saldoPendienteAntes) {
+    errores.push("El monto no puede superar el saldo pendiente.");
+  }
+
+  // Las membresías sin abono mínimo definido no admiten pago parcial (RN 4.3).
+  if (plan.abonoMinimo === null && monto < saldoPendienteAntes) {
+    errores.push(
+      `${plan.nombre} no admite abonos: debe pagarse de forma completa.`
+    );
+  }
+
+  // El abono no puede ser menor al mínimo, salvo que sea el abono
+  // que cierra el saldo pendiente (abono final).
+  if (
+    plan.abonoMinimo !== null &&
+    monto < plan.abonoMinimo &&
+    monto < saldoPendienteAntes
+  ) {
+    errores.push(
+      `El abono mínimo para ${plan.nombre} es ${plan.abonoMinimo.toLocaleString("es-CO")}.`
+    );
+  }
+
+  return errores;
+}
 
 export function validarPago(pago: Pago): string[] {
   const errores: string[] = [];
 
-  if (pago.tipo === "cliente" && !pago.clienteNombre.trim()) {
+  if (!pago.clienteNombre.trim()) {
     errores.push("El nombre del cliente es obligatorio.");
   }
 
-  if (pago.tipo === "entrenador" && !pago.entrenadorNombre?.trim()) {
-    errores.push("El nombre del entrenador es obligatorio.");
+  if (!pago.membresiaId) {
+    errores.push("Debe seleccionar el tipo de membresía.");
   }
 
-  if (!pago.concepto.trim()) {
-    errores.push("El concepto del pago es obligatorio.");
-  }
-
-  if (pago.monto <= 0) {
+  if (pago.valorPagado <= 0) {
     errores.push("El monto debe ser mayor que cero.");
   }
 
   if (!pago.fecha) {
     errores.push("La fecha del pago es obligatoria.");
-  }
-
-  if (!pago.vencimiento) {
-    errores.push("La fecha de vencimiento es obligatoria.");
   }
 
   if (!pago.referencia.trim()) {
@@ -133,7 +154,75 @@ export function validarPago(pago: Pago): string[] {
   return errores;
 }
 
-import type { NombreIcono } from "./modulos";
+/*
+  -----------------------------------------------------
+  DATOS DE PRUEBA
+  -----------------------------------------------------
+*/
+
+function plan(id: string): PlanMembresia {
+  return planesMembresiaIniciales.find((item) => item.id === id)!;
+}
+
+export const pagosIniciales: Pago[] = [
+  {
+    id: "pago-1",
+    clienteId: 1,
+    clienteNombre: "Juan Pérez",
+    membresiaId: "mensualidad",
+    membresiaNombre: plan("mensualidad").nombre,
+    cicloId: generarCicloId(1, "2026-08-15"),
+    valorMembresia: plan("mensualidad").valor,
+    valorPagado: plan("mensualidad").valor,
+    saldoPendiente: 0,
+    tipoAbono: "completo",
+    fecha: "2026-08-15",
+    metodo: "transferencia",
+    referencia: "TRX-20260815-001",
+    usuarioRegistro: "apexg",
+    observaciones: "Pago confirmado por transferencia bancaria.",
+  },
+  {
+    id: "pago-2",
+    clienteId: 2,
+    clienteNombre: "Laura Gómez",
+    membresiaId: "personalizado",
+    membresiaNombre: plan("personalizado").nombre,
+    cicloId: generarCicloId(2, "2026-08-20"),
+    valorMembresia: plan("personalizado").valor,
+    valorPagado: 100000,
+    saldoPendiente: 100000,
+    tipoAbono: "1er abono",
+    fecha: "2026-08-20",
+    metodo: "tarjeta",
+    referencia: "TAR-20260820-220",
+    usuarioRegistro: "apexg",
+    observaciones: "Primer abono del plan personalizado.",
+  },
+  {
+    id: "pago-3",
+    clienteId: 3,
+    clienteNombre: "Carlos Rodríguez",
+    membresiaId: "mensualidad",
+    membresiaNombre: plan("mensualidad").nombre,
+    cicloId: generarCicloId(3, "2026-07-25"),
+    valorMembresia: plan("mensualidad").valor,
+    valorPagado: 30000,
+    saldoPendiente: 35000,
+    tipoAbono: "1er abono",
+    fecha: "2026-07-25",
+    metodo: "efectivo",
+    referencia: "EFE-20260725-007",
+    usuarioRegistro: "apexg",
+    observaciones: "Quedó saldo pendiente; el cliente pasó a mora.",
+  },
+];
+
+/*
+  -----------------------------------------------------
+  SECCIONES DEL MODULO PAGOS
+  -----------------------------------------------------
+*/
 
 export interface SeccionPagos {
   id: string;
@@ -150,22 +239,16 @@ export const seccionesPagos: SeccionPagos[] = [
     icono: "lista",
   },
   {
-    id: "pendientes",
-    nombre: "Pendientes",
-    titulo: "Pagos pendientes",
+    id: "registrar",
+    nombre: "Registrar pago",
+    titulo: "Registrar pago o abono",
+    icono: "usuario-mas",
+  },
+  {
+    id: "con-saldo",
+    nombre: "Con saldo pendiente",
+    titulo: "Pagos con saldo pendiente",
     icono: "reloj",
-  },
-  {
-    id: "pagados",
-    nombre: "Pagados",
-    titulo: "Pagos realizados",
-    icono: "usuario-ok",
-  },
-  {
-    id: "vencidos",
-    nombre: "Vencidos",
-    titulo: "Pagos vencidos",
-    icono: "usuario-x",
   },
 ];
 

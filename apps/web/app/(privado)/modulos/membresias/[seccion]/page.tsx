@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 import { esSeccionMembresias, seccionesMembresias, tituloSeccionMembresias } from "@apexg/core";
-import { Membresias } from "@apexg/modulo-membresias";
+
+import MembresiasSeccion from "../../../../../components/membresias-seccion";
 
 interface PaginaProps {
   params: Promise<{ seccion: string }>;
@@ -20,5 +21,5 @@ export async function generateMetadata({ params }: PaginaProps): Promise<Metadat
 export default async function PaginaSeccionMembresias({ params }: PaginaProps) {
   const { seccion } = await params;
   if (!esSeccionMembresias(seccion)) notFound();
-  return <Membresias activeSection={seccion} />;
+  return <MembresiasSeccion seccion={seccion} />;
 }

@@ -19,4 +19,8 @@ export * from "./clientes";
 export * from "./membresias";
 export * from "./pagos";
 export * from "./inventario";
+export * from "./finanzas";
+export * from "./entrenadores";
+export * from "./permisos";
+export * from "./almacenamiento";
 export * from "./modulos";

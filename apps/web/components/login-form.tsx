@@ -283,6 +283,16 @@ export default function LoginForm() {
         </section>
 
         {/* =================================
+            CREDENCIALES DE PRUEBA
+        ================================= */}
+
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white/70 p-4 text-xs text-slate-500">
+          <p className="font-semibold text-slate-600">Usuarios de prueba</p>
+          <p className="mt-1">Administrador: apexg / apex2026</p>
+          <p>Recepcionista: recepcion / apex2026</p>
+        </div>
+
+        {/* =================================
             FOOTER
         ================================= */}
 

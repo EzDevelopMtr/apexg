@@ -34,15 +34,29 @@ import {
 
 import type { ReactNode } from "react";
 
+import type { Rol } from "@apexg/core";
+
 
 /*
   -----------------------------------------------------
-  CREDENCIALES TEMPORALES DE ADMIN
+  CREDENCIALES TEMPORALES
   -----------------------------------------------------
+
+  Dos usuarios de prueba, uno por rol (numeral 2.2
+  del ERS). Cuando exista el Backend esto se
+  reemplaza por una llamada real de autenticacion.
 */
 
-const USUARIO_ADMIN = "apexg";
-const CLAVE_ADMIN = "apex2026";
+interface UsuarioDemo {
+  usuario: string;
+  clave: string;
+  rol: Rol;
+}
+
+const USUARIOS_DEMO: UsuarioDemo[] = [
+  { usuario: "apexg", clave: "apex2026", rol: "administrador" },
+  { usuario: "recepcion", clave: "apex2026", rol: "recepcionista" },
+];
 
 
 /*
@@ -62,6 +76,7 @@ const CLAVE_ALMACENAMIENTO = "apexg:sesion";
 
 export interface Sesion {
   usuario: string;
+  rol: Rol;
 }
 
 
@@ -162,14 +177,18 @@ export function ProveedorSesion({
   const iniciarSesion = useCallback(
     (usuario: string, clave: string) => {
 
-      if (
-        usuario !== USUARIO_ADMIN ||
-        clave !== CLAVE_ADMIN
-      ) {
+      const encontrado = USUARIOS_DEMO.find(
+        (item) => item.usuario === usuario && item.clave === clave
+      );
+
+      if (!encontrado) {
         return false;
       }
 
-      const nueva: Sesion = { usuario };
+      const nueva: Sesion = {
+        usuario: encontrado.usuario,
+        rol: encontrado.rol,
+      };
 
       setSesion(nueva);
 

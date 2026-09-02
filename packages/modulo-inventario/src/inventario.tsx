@@ -17,6 +17,7 @@ import {
 import {
   categoriasProducto,
   productosIniciales,
+  unidadesMedida,
   validarProductoInventario,
   type ProductoInventario,
 } from "@apexg/core";
@@ -51,6 +52,7 @@ function formularioVacio(): ProductoInventario {
     nombre: "",
     categoria: "suplementos",
     sku: "",
+    unidadMedida: "unidad",
     precioCompra: 0,
     precioVenta: 0,
     stock: 0,
@@ -81,6 +83,7 @@ export default function Inventario({ activeSection }: InventarioProps) {
     if (!guardados) return;
 
     try {
+      // oxlint-disable-next-line react/set-state-in-effect
       setProductos(JSON.parse(guardados) as ProductoInventario[]);
     } catch {
       window.localStorage.removeItem(CLAVE_INVENTARIO);
@@ -462,8 +465,11 @@ export default function Inventario({ activeSection }: InventarioProps) {
                       <td className="px-4 py-4">
                         <div className="min-w-[170px]">
                           <div className="mb-1 flex items-center justify-between text-xs text-slate-500">
-                            <span>{producto.stock} unidades</span>
-                            <span>Máx. {producto.stockMinimo}</span>
+                            <span>
+                              {producto.stock}{" "}
+                              {unidadesMedida.find((u) => u.value === producto.unidadMedida)?.label}
+                            </span>
+                            <span>Mín. {producto.stockMinimo}</span>
                           </div>
                           <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
                             <div
@@ -578,6 +584,29 @@ export default function Inventario({ activeSection }: InventarioProps) {
                 required
                 className="bg-slate-950 text-white placeholder:text-slate-500"
               />
+            </div>
+
+            <div>
+              <label htmlFor="unidadMedida" className="mb-2 block text-sm font-medium text-slate-200">
+                Unidad de medida
+              </label>
+              <select
+                id="unidadMedida"
+                value={formulario.unidadMedida}
+                onChange={(event) =>
+                  setFormulario({
+                    ...formulario,
+                    unidadMedida: event.target.value as ProductoInventario["unidadMedida"],
+                  })
+                }
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-orange-500 focus:outline-none"
+              >
+                {unidadesMedida.map((unidad) => (
+                  <option key={unidad.value} value={unidad.value}>
+                    {unidad.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">

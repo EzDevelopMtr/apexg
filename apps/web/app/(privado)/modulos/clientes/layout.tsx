@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ModuleLayout } from "@apexg/ui";
 
 import ClientesSidebar from "../../../../components/clientes-sidebar";
+import RequiereModulo from "../../../../components/requiere-modulo";
 
 
 /*
@@ -26,9 +27,11 @@ export default function LayoutClientes({
 
   return (
 
-    <ModuleLayout sidebar={<ClientesSidebar />}>
-      {children}
-    </ModuleLayout>
+    <RequiereModulo moduloId="clientes">
+      <ModuleLayout sidebar={<ClientesSidebar />}>
+        {children}
+      </ModuleLayout>
+    </RequiereModulo>
 
   );
 }

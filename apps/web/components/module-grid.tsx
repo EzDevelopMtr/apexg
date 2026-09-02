@@ -3,16 +3,23 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { modulos } from "@apexg/core";
+import { modulos, puedeAccederModulo } from "@apexg/core";
 import { obtenerIcono } from "@apexg/ui";
 import { useSesion } from "../lib/auth";
+
+const IconoDashboard = obtenerIcono("grafico");
 
 
 export default function ModuleGrid() {
 
   const router = useRouter();
 
-  const { cerrarSesion } = useSesion();
+  const { cerrarSesion, sesion } = useSesion();
+
+  // RF-02 / RNF-03: solo se muestran los modulos permitidos para el rol.
+  const modulosVisibles = sesion
+    ? modulos.filter((modulo) => puedeAccederModulo(sesion.rol, modulo.id))
+    : [];
 
 
   /*
@@ -41,16 +48,38 @@ export default function ModuleGrid() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
               Selecciona un módulo
             </h1>
+
+            {sesion && (
+              <p className="mt-2 text-sm text-slate-500">
+                Sesión: <strong className="text-slate-700">{sesion.usuario}</strong> ·{" "}
+                {sesion.rol === "administrador" ? "Administrador" : "Recepcionista"}
+              </p>
+            )}
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-blue-700 transition hover:border-blue-400 hover:bg-blue-100 hover:text-blue-800"
-          >
-            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-blue-500" />
-            Cerrar sesión
-          </button>
+          <div className="flex items-center gap-3">
+            {sesion?.rol === "administrador" && (
+              <Link
+                href="/dashboard"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border-2 border-blue-500 px-4 py-2 text-xs font-bold tracking-wide text-blue-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-500 hover:text-orange-600 hover:shadow-md"
+              >
+                <IconoDashboard
+                  size={16}
+                  className="transition-transform duration-300 group-hover:scale-110"
+                />
+                Ver dashboard
+              </Link>
+            )}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold tracking-wide text-blue-700 transition hover:border-blue-400 hover:bg-blue-100 hover:text-blue-800"
+            >
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-blue-500" />
+              Cerrar sesión
+            </button>
+          </div>
         </div>
 
         <div className="mb-10 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
@@ -60,7 +89,7 @@ export default function ModuleGrid() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {modulos.map((modulo) => {
+          {modulosVisibles.map((modulo) => {
             const Icono = obtenerIcono(modulo.icono);
             const isAvailable = modulo.disponible && modulo.ruta;
 
@@ -70,17 +99,9 @@ export default function ModuleGrid() {
                   <Icono size={28} />
                 </div>
 
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-lg font-bold text-slate-900">
-                    {modulo.nombre}
-                  </h2>
-
-                  {isAvailable && (
-                    <span className="mt-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-700">
-                      OK
-                    </span>
-                  )}
-                </div>
+                <h2 className="text-lg font-bold text-slate-900">
+                  {modulo.nombre}
+                </h2>
 
                 <p className="mt-2 text-sm leading-6 text-slate-500">
                   {modulo.descripcion}

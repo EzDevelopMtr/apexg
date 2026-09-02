@@ -18,12 +18,15 @@
 import type { ComponentType } from "react";
 
 import {
+  AlertTriangle,
   BarChart3,
+  Calendar,
   Clock,
   CreditCard,
   Dumbbell,
   List,
   Package,
+  TrendingUp,
   UserCheck,
   UserPlus,
   UserX,
@@ -68,6 +71,9 @@ export const iconos: Record<NombreIcono, ComponenteIcono> = {
   "usuario-ok": UserCheck,
   "reloj": Clock,
   "usuario-x": UserX,
+  "tendencia": TrendingUp,
+  "calendario": Calendar,
+  "alerta": AlertTriangle,
 };
 
 

@@ -1,559 +1,333 @@
 "use client";
 
-import { useState } from "react";
+import { Save, X } from "lucide-react";
 
 import {
-  X,
-  Save,
-} from "lucide-react";
-
-import type { Cliente } from "@apexg/core";
-
+  calcularVencimientoCliente,
+  entrenadoresIniciales,
+  formasPago,
+  planesMembresiaIniciales,
+  tiposSangre,
+  type Cliente,
+  type EstadoCliente,
+} from "@apexg/core";
 
 /*
   =====================================================
-  PROPIEDADES DEL FORMULARIO
+  FORMULARIO DE CLIENTE (RF-04 a RF-08)
   =====================================================
 */
 
 interface ClienteFormProps {
-
-  /*
-    Cliente existente.
-
-    Si existe → estamos editando.
-
-    Si no existe → estamos creando.
-  */
-
-  client?: Cliente;
-
-  /*
-    Función que se ejecutará al guardar.
-  */
-
-  onSave: (client: Cliente) => void;
-
-  /*
-    Función para cancelar.
-  */
-
+  cliente: Cliente;
+  errores: string[];
+  onChange: (cliente: Cliente) => void;
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
+  esEdicion: boolean;
 }
 
-
-/*
-  =====================================================
-  FORMULARIO DE CLIENTE
-  =====================================================
-*/
+const estilosInput =
+  "w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20";
+const estilosLabel = "mb-2 block text-sm font-semibold text-slate-700";
+const estilosSelect = `${estilosInput} bg-white`;
 
 export default function ClienteForm({
-  client,
-  onSave,
+  cliente,
+  errores,
+  onChange,
+  onSubmit,
   onCancel,
+  esEdicion,
 }: ClienteFormProps) {
+  const planSeleccionado = planesMembresiaIniciales.find(
+    (plan) => plan.id === cliente.membresiaId
+  );
 
+  const actualizarMembresiaOFecha = (cambios: Partial<Cliente>) => {
+    const siguiente = { ...cliente, ...cambios };
 
-  /*
-    =====================================================
-    ESTADOS DEL FORMULARIO
-    =====================================================
-  */
-
-  const [nombre, setNombre] =
-    useState(client?.nombre ?? "");
-
-  const [documento, setDocumento] =
-    useState(client?.documento ?? "");
-
-  const [telefono, setTelefono] =
-    useState(client?.telefono ?? "");
-
-  const [correo, setCorreo] =
-    useState(client?.correo ?? "");
-
-  const [membresia, setMembresia] =
-    useState(client?.membresia ?? "Mensual");
-
-  const [estado, setEstado] =
-    useState<Cliente["estado"]>(
-      client?.estado ?? "Activo"
-    );
-
-  const [fechaVencimiento, setFechaVencimiento] =
-    useState(
-      client?.fechaVencimiento ?? ""
-    );
-
-
-  /*
-    =====================================================
-    GUARDAR
-    =====================================================
-  */
-
-  const handleSubmit = (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
-
-    /*
-      Evitamos que el navegador
-      recargue la página.
-    */
-
-    event.preventDefault();
-
-
-    /*
-      Creamos el objeto Cliente.
-    */
-
-    const newClient: Cliente = {
-
-      /*
-        Si estamos editando utilizamos
-        el ID existente.
-
-        Si estamos creando generamos
-        uno nuevo.
-      */
-
-      id: client?.id ?? Date.now(),
-
-      nombre,
-      documento,
-      telefono,
-      correo,
-      membresia,
-      estado,
-      fechaVencimiento,
-    };
-
-
-    /*
-      Enviamos el cliente al componente padre.
-    */
-
-    onSave(newClient);
+    onChange({
+      ...siguiente,
+      fechaVencimiento: siguiente.fechaIngreso
+        ? calcularVencimientoCliente(siguiente.fechaIngreso, siguiente.membresiaId)
+        : siguiente.fechaVencimiento,
+    });
   };
 
-
   return (
-
-    /*
-      ===================================================
-      MODAL
-      ===================================================
-    */
-
-    <div
-      className="
-        fixed
-        inset-0
-        z-50
-        flex
-        items-center
-        justify-center
-        bg-black/40
-        p-4
-      "
-    >
-
-      <div
-        className="
-          max-h-[90vh]
-          w-full
-          max-w-2xl
-          overflow-y-auto
-          rounded-2xl
-          bg-white
-          shadow-2xl
-        "
-      >
-
-
-        {/* =================================================
-            ENCABEZADO
-        ================================================= */}
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 p-6">
-
           <div>
-
             <h2 className="text-xl font-bold text-slate-900">
-              {client
-                ? "Editar cliente"
-                : "Agregar cliente"}
+              {esEdicion ? "Editar cliente" : "Agregar cliente"}
             </h2>
-
             <p className="mt-1 text-sm text-slate-500">
               Completa la información del cliente.
             </p>
-
           </div>
-
-
-          {/* CERRAR */}
 
           <button
             type="button"
             onClick={onCancel}
-            className="
-              flex
-              h-9
-              w-9
-              items-center
-              justify-center
-              rounded-lg
-              text-slate-400
-              transition
-              hover:bg-slate-100
-              hover:text-slate-700
-            "
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
           >
-
             <X size={20} />
-
           </button>
-
         </div>
 
-
-        {/* =================================================
-            FORMULARIO
-        ================================================= */}
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 p-6"
-        >
-
-
-          {/* NOMBRE */}
+        <form onSubmit={onSubmit} className="space-y-6 p-6">
+          {errores.length > 0 && (
+            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+              {errores.map((error) => (
+                <p key={error}>{error}</p>
+              ))}
+            </div>
+          )}
 
           <div>
-
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Nombre completo
-            </label>
-
+            <label className={estilosLabel}>Nombre completo</label>
             <input
               type="text"
-              value={nombre}
-              onChange={(event) =>
-                setNombre(event.target.value)
-              }
+              value={cliente.nombre}
+              onChange={(event) => onChange({ ...cliente, nombre: event.target.value })}
               required
               placeholder="Ej. Juan Pérez"
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-200
-                px-4
-                py-3
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-2
-                focus:ring-blue-500/20
-              "
+              className={estilosInput}
             />
-
           </div>
 
-
-          {/* DOCUMENTO + TELÉFONO */}
-
           <div className="grid gap-5 md:grid-cols-2">
-
-
             <div>
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Documento
-              </label>
-
+              <label className={estilosLabel}>Documento</label>
               <input
                 type="text"
-                value={documento}
-                onChange={(event) =>
-                  setDocumento(event.target.value)
-                }
+                value={cliente.documento}
+                onChange={(event) => onChange({ ...cliente, documento: event.target.value })}
                 required
                 placeholder="Número de documento"
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  px-4
-                  py-3
-                  outline-none
-                  transition
-                  focus:border-blue-500
-                  focus:ring-2
-                  focus:ring-blue-500/20
-                "
+                className={estilosInput}
               />
-
             </div>
 
-
             <div>
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Teléfono
-              </label>
-
+              <label className={estilosLabel}>Teléfono</label>
               <input
                 type="tel"
-                value={telefono}
-                onChange={(event) =>
-                  setTelefono(event.target.value)
-                }
+                value={cliente.telefono}
+                onChange={(event) => onChange({ ...cliente, telefono: event.target.value })}
                 required
                 placeholder="300 000 0000"
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  px-4
-                  py-3
-                  outline-none
-                  transition
-                  focus:border-blue-500
-                  focus:ring-2
-                  focus:ring-blue-500/20
-                "
+                className={estilosInput}
               />
-
             </div>
-
           </div>
-
-
-          {/* CORREO */}
-
-          <div>
-
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Correo electrónico
-            </label>
-
-            <input
-              type="email"
-              value={correo}
-              onChange={(event) =>
-                setCorreo(event.target.value)
-              }
-              placeholder="cliente@email.com"
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-200
-                px-4
-                py-3
-                outline-none
-                transition
-                focus:border-blue-500
-                focus:ring-2
-                focus:ring-blue-500/20
-              "
-            />
-
-          </div>
-
-
-          {/* MEMBRESÍA + ESTADO */}
 
           <div className="grid gap-5 md:grid-cols-2">
-
-
             <div>
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Membresía
-              </label>
-
-              <select
-                value={membresia}
-                onChange={(event) =>
-                  setMembresia(event.target.value)
-                }
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-4
-                  py-3
-                  outline-none
-                  focus:border-blue-500
-                  focus:ring-2
-                  focus:ring-blue-500/20
-                "
-              >
-
-                <option value="Mensual">
-                  Mensual
-                </option>
-
-                <option value="Trimestral">
-                  Trimestral
-                </option>
-
-                <option value="Semestral">
-                  Semestral
-                </option>
-
-                <option value="Anual">
-                  Anual
-                </option>
-
-              </select>
-
+              <label className={estilosLabel}>Correo electrónico</label>
+              <input
+                type="email"
+                value={cliente.correo}
+                onChange={(event) => onChange({ ...cliente, correo: event.target.value })}
+                placeholder="cliente@email.com"
+                className={estilosInput}
+              />
             </div>
 
-
             <div>
-
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Estado
-              </label>
-
-              <select
-                value={estado}
+              <label className={estilosLabel}>Contacto de emergencia</label>
+              <input
+                type="text"
+                value={cliente.contactoEmergencia}
                 onChange={(event) =>
-                  setEstado(
-                    event.target.value as Cliente["estado"]
-                  )
+                  onChange({ ...cliente, contactoEmergencia: event.target.value })
                 }
-                className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-slate-200
-                  bg-white
-                  px-4
-                  py-3
-                  outline-none
-                  focus:border-blue-500
-                  focus:ring-2
-                  focus:ring-blue-500/20
-                "
-              >
-
-                <option value="Activo">
-                  Activo
-                </option>
-
-                <option value="Por vencer">
-                  Por vencer
-                </option>
-
-                <option value="Vencido">
-                  Vencido
-                </option>
-
-              </select>
-
+                required
+                placeholder="Nombre y teléfono"
+                className={estilosInput}
+              />
             </div>
-
           </div>
 
+          <div className="grid gap-5 md:grid-cols-3">
+            <div>
+              <label className={estilosLabel}>Forma de pago</label>
+              <select
+                value={cliente.formaPago}
+                onChange={(event) =>
+                  onChange({ ...cliente, formaPago: event.target.value as Cliente["formaPago"] })
+                }
+                className={estilosSelect}
+              >
+                {formasPago.map((forma) => (
+                  <option key={forma.value} value={forma.value}>
+                    {forma.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {/* FECHA */}
+            <div>
+              <label className={estilosLabel}>Tipo de sangre</label>
+              <select
+                value={cliente.tipoSangre}
+                onChange={(event) =>
+                  onChange({ ...cliente, tipoSangre: event.target.value as Cliente["tipoSangre"] })
+                }
+                className={estilosSelect}
+              >
+                <option value="">Sin definir</option>
+                {tiposSangre.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className={estilosLabel}>Fecha de cumpleaños</label>
+              <input
+                type="date"
+                value={cliente.fechaCumpleanos}
+                onChange={(event) =>
+                  onChange({ ...cliente, fechaCumpleanos: event.target.value })
+                }
+                className={estilosInput}
+              />
+            </div>
+          </div>
 
           <div>
-
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Fecha de vencimiento
-            </label>
-
+            <label className={estilosLabel}>Condición médica</label>
             <input
-              type="date"
-              value={fechaVencimiento}
+              type="text"
+              value={cliente.condicionMedica}
               onChange={(event) =>
-                setFechaVencimiento(
-                  event.target.value
-                )
+                onChange({ ...cliente, condicionMedica: event.target.value })
               }
-              required
-              className="
-                w-full
-                rounded-xl
-                border
-                border-slate-200
-                px-4
-                py-3
-                outline-none
-                focus:border-blue-500
-                focus:ring-2
-                focus:ring-blue-500/20
-              "
+              placeholder="N/A"
+              className={estilosInput}
             />
-
           </div>
 
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <label className={estilosLabel}>Tipo de membresía</label>
+              <select
+                value={cliente.membresiaId}
+                onChange={(event) =>
+                  actualizarMembresiaOFecha({ membresiaId: event.target.value, entrenadorId: undefined })
+                }
+                className={estilosSelect}
+              >
+                {planesMembresiaIniciales
+                  .filter((plan) => plan.activo)
+                  .map((plan) => (
+                    <option key={plan.id} value={plan.id}>
+                      {plan.nombre}
+                    </option>
+                  ))}
+              </select>
+            </div>
 
-          {/* =================================================
-              BOTONES
-          ================================================= */}
+            <div>
+              <label className={estilosLabel}>Estado</label>
+              <select
+                value={cliente.estado}
+                onChange={(event) =>
+                  onChange({ ...cliente, estado: event.target.value as EstadoCliente })
+                }
+                className={estilosSelect}
+              >
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="En mora">En mora</option>
+              </select>
+            </div>
+          </div>
+
+          {planSeleccionado?.requiereEntrenador && (
+            <div>
+              <label className={estilosLabel}>Entrenador asignado</label>
+              <select
+                value={cliente.entrenadorId ?? ""}
+                onChange={(event) => onChange({ ...cliente, entrenadorId: event.target.value })}
+                required
+                className={estilosSelect}
+              >
+                <option value="">Selecciona un entrenador</option>
+                {entrenadoresIniciales
+                  .filter((entrenador) => entrenador.activo)
+                  .map((entrenador) => (
+                    <option key={entrenador.id} value={entrenador.id}>
+                      {entrenador.nombre}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <label className={estilosLabel}>Fecha de ingreso</label>
+              <input
+                type="date"
+                value={cliente.fechaIngreso}
+                onChange={(event) => actualizarMembresiaOFecha({ fechaIngreso: event.target.value })}
+                required
+                className={estilosInput}
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Se asigna hoy por defecto; edítala si la membresía inicia otro día.
+              </p>
+            </div>
+
+            <div>
+              <label className={estilosLabel}>Fecha de vencimiento</label>
+              <input
+                type="date"
+                value={cliente.fechaVencimiento}
+                readOnly
+                className={`${estilosInput} bg-slate-50 text-slate-500`}
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Calculada automáticamente según el tipo de membresía.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className={estilosLabel}>Comentarios / novedades</label>
+            <textarea
+              value={cliente.comentarios}
+              onChange={(event) => onChange({ ...cliente, comentarios: event.target.value })}
+              rows={3}
+              className={estilosInput}
+            />
+          </div>
 
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
-
             <button
               type="button"
               onClick={onCancel}
-              className="
-                rounded-xl
-                px-5
-                py-3
-                font-semibold
-                text-slate-600
-                transition
-                hover:bg-slate-100
-              "
+              className="rounded-xl px-5 py-3 font-semibold text-slate-600 transition hover:bg-slate-100"
             >
               Cancelar
             </button>
 
-
             <button
               type="submit"
-              className="
-                inline-flex
-                items-center
-                gap-2
-                rounded-xl
-                bg-blue-600
-                px-5
-                py-3
-                font-semibold
-                text-white
-                transition
-                hover:bg-blue-700
-              "
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
-
               <Save size={18} />
-
               Guardar cliente
-
             </button>
-
           </div>
-
         </form>
-
       </div>
-
     </div>
-
   );
 }
