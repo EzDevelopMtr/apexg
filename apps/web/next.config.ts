@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     "@apexg/module-clients",
     "@apexg/module-memberships",
     "@apexg/module-payments",
+    "@apexg/module-trainers",
+    "@apexg/module-expenses",
+    "@apexg/module-inventory",
+    "@apexg/module-finances",
+    "@apexg/module-daily-log",
   ],
 };
 

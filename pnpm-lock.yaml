@@ -35,6 +35,18 @@ importers:
       '@apexg/module-clients':
         specifier: workspace:*
         version: link:../../packages/module-clients
+      '@apexg/module-daily-log':
+        specifier: workspace:*
+        version: link:../../packages/module-daily-log
+      '@apexg/module-expenses':
+        specifier: workspace:*
+        version: link:../../packages/module-expenses
+      '@apexg/module-finances':
+        specifier: workspace:*
+        version: link:../../packages/module-finances
+      '@apexg/module-inventory':
+        specifier: workspace:*
+        version: link:../../packages/module-inventory
       '@apexg/module-kit':
         specifier: workspace:*
         version: link:../../packages/module-kit
@@ -44,6 +56,9 @@ importers:
       '@apexg/module-payments':
         specifier: workspace:*
         version: link:../../packages/module-payments
+      '@apexg/module-trainers':
+        specifier: workspace:*
+        version: link:../../packages/module-trainers
       '@apexg/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -138,6 +153,130 @@ importers:
         specifier: ~6.0.3
         version: 6.0.3
 
+  packages/module-daily-log:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/module-expenses:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/module-finances:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/module-inventory:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
   packages/module-kit:
     dependencies:
       '@apexg/core':
@@ -195,6 +334,37 @@ importers:
         version: 6.0.3
 
   packages/module-payments:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/module-trainers:
     dependencies:
       '@apexg/core':
         specifier: workspace:*

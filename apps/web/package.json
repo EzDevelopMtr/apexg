@@ -20,7 +20,12 @@
     "@apexg/data": "workspace:*",
     "@apexg/module-kit": "workspace:*",
     "@apexg/module-memberships": "workspace:*",
-    "@apexg/module-payments": "workspace:*"
+    "@apexg/module-payments": "workspace:*",
+    "@apexg/module-trainers": "workspace:*",
+    "@apexg/module-expenses": "workspace:*",
+    "@apexg/module-inventory": "workspace:*",
+    "@apexg/module-finances": "workspace:*",
+    "@apexg/module-daily-log": "workspace:*"
   },
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",

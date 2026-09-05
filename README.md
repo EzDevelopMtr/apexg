@@ -19,7 +19,8 @@ apexg/
 │   ├── core/                 Dominio: tipos, reglas y funciones puras
 │   ├── data/                 Contratos de acceso a datos + implementaciones
 │   ├── ui/                   Primitivos visuales compartidos
-│   ├── module-clients/       Módulo de negocio: clientes
+│   ├── module-kit/           Plumbing compartido entre módulos
+│   ├── module-*/             Un paquete por módulo de negocio
 │   └── typescript-config/    Configuraciones de TypeScript compartidas
 ├── docs/GLOSSARY.md
 └── CLAUDE.md
@@ -57,26 +58,35 @@ pnpm --filter @apexg/core test
 
 ## Rutas
 
-| Ruta                         | Pantalla              |
-| ---------------------------- | --------------------- |
-| `/`                          | Redirige a `/modules` |
-| `/login`                     | Inicio de sesión      |
-| `/modules`                   | Selector de módulos   |
-| `/modules/clients`           | Redirige a `/all`     |
-| `/modules/clients/[section]` | Módulo Clientes       |
-| `/dashboard`                 | Marcador de posición  |
+| Ruta                             | Módulo           | Rol           |
+| -------------------------------- | ---------------- | ------------- |
+| `/login`                         | Inicio de sesión | —             |
+| `/modules`                       | Selector         | ambos         |
+| `/modules/clients/[section]`     | Clientes         | ambos         |
+| `/modules/payments/[section]`    | Pagos            | ambos         |
+| `/modules/daily-log/[section]`   | Apartado diario  | ambos         |
+| `/modules/memberships/[section]` | Membresías       | administrador |
+| `/modules/trainers/[section]`    | Entrenadores     | administrador |
+| `/modules/expenses/[section]`    | Egresos          | administrador |
+| `/modules/inventory/[section]`   | Inventario       | administrador |
+| `/modules/finances/[section]`    | Finanzas         | administrador |
 
-Secciones válidas de Clientes: `all`, `add`, `active`, `expiring`, `overdue`.
-Están definidas en `packages/core/src/navigation/client-sections.ts`; agregar
-una es agregar un registro, no editar un componente.
+Los roles salen de la matriz del ERS §2.2, que vive como dato en
+`packages/core/src/domain/permissions.ts`. El apartado diario es un módulo
+propio y no una sección de Finanzas: §2.2 se lo concede a la recepcionista
+mientras le niega Finanzas.
+
+Las secciones de cada módulo están en `packages/core/src/navigation/` y llevan
+su propio predicado, así que agregar una es agregar un registro, no editar un
+componente.
 
 ## Sesión
 
 Credenciales temporales de desarrollo:
 
 ```
-usuario:    apexg
-contraseña: apex2026
+apexg     / apex2026    (administrador)
+recepcion / apex2026    (recepcionista)
 ```
 
 **Esto no es seguridad real.** La validación ocurre en el navegador y las
