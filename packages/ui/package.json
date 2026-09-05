@@ -10,7 +10,6 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "oxlint src",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -20,7 +19,6 @@
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",
     "@types/react": "^19.2.17",
-    "oxlint": "^1.75.0",
     "typescript": "~6.0.3"
   },
   "peerDependencies": {

@@ -1,87 +1,41 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
+import Field from "./field";
+import { controlClasses } from "./control-classes";
 
-/*
-  =====================================================
-  CAMPO DE TEXTO
-  =====================================================
-
-  Incluye etiqueta, icono opcional y mensaje de error.
-*/
-
-interface InputProps
-  extends InputHTMLAttributes<HTMLInputElement> {
-
-  // Texto de la etiqueta.
-  etiqueta?: string;
-
-  // Icono que aparece a la izquierda.
-  icono?: ReactNode;
-
-  // Mensaje de error debajo del campo.
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
+  icon?: ReactNode;
   error?: string;
 }
 
 export default function Input({
-  etiqueta,
-  icono,
+  label,
+  icon,
   error,
   className = "",
   id,
-  ...resto
+  ...rest
 }: InputProps) {
+  const invalid = Boolean(error);
 
   return (
-    <div>
-      {etiqueta && (
-        <label
-          htmlFor={id}
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          {etiqueta}
-        </label>
-      )}
-
+    <Field label={label} error={error} htmlFor={id}>
       <div className="relative">
-        {icono && (
-          <span
-            className="
-              absolute
-              left-4
-              top-1/2
-              -translate-y-1/2
-              text-slate-400
-            "
-          >
-            {icono}
+        {icon && (
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+            {icon}
           </span>
         )}
-
         <input
           id={id}
-          className={`
-            w-full
-            rounded-xl
-            border
-            bg-white
-            py-3
-            text-slate-900
-            outline-none
-            transition
-            placeholder:text-slate-400
-            focus:border-blue-500
-            focus:ring-2
-            focus:ring-blue-100
-            ${icono ? "pl-12 pr-4" : "px-4"}
-            ${error ? "border-red-300" : "border-slate-200"}
-            ${className}
-          `}
-          {...resto}
+          aria-invalid={invalid || undefined}
+          className={controlClasses(
+            invalid,
+            `${icon ? "pl-12 pr-4" : "px-4"} ${className}`,
+          )}
+          {...rest}
         />
       </div>
-
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
-    </div>
+    </Field>
   );
 }

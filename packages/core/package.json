@@ -2,7 +2,7 @@
   "name": "@apexg/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Tipos de dominio, catalogo de modulos y datos de APEX GYM",
+  "description": "Domain types, business rules and pure functions for APEX GYM",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -10,12 +10,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "oxlint src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",
-    "oxlint": "^1.75.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^3.0.5"
   }
 }

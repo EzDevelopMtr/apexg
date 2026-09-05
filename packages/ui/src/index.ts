@@ -1,34 +1,40 @@
-/*
-  =====================================================
-  PUNTO DE ENTRADA DE @apexg/ui
-  =====================================================
+/**
+ * `@apexg/ui` — presentational primitives.
+ *
+ * Knows nothing about Next.js, routing or business rules, so it can be reused
+ * by any app in the monorepo. Navigation lives in `apps/web`.
+ */
 
-  Componentes de interfaz compartidos.
-
-  IMPORTANTE:
-
-  Este paquete es presentacional. No conoce Next.js
-  ni el enrutador, para poder reutilizarse en
-  cualquier aplicacion del monorepo.
-
-  La navegacion (enlaces, rutas, sesion) vive
-  en apps/web.
-*/
-
-
-/* --------------------------- Primitivos ------------- */
-
-export { default as Button } from "./components/button";
-
-export {
-  default as Card,
-  CardHeader,
-  CardBody,
-} from "./components/card";
+/* Form controls */
+export { default as Field } from "./components/field";
+export { controlClasses } from "./components/control-classes";
+export type { FieldProps } from "./components/field";
 
 export { default as Input } from "./components/input";
+export type { InputProps } from "./components/input";
+
+export { default as Select } from "./components/select";
+export type { SelectProps, SelectOption } from "./components/select";
+
+export { default as Textarea } from "./components/textarea";
+export type { TextareaProps } from "./components/textarea";
+
+/* Display */
+export { default as Badge } from "./components/badge";
+export type { BadgeProps, BadgeTone } from "./components/badge";
+
+export { default as Button } from "./components/button";
+export type {
+  ButtonProps,
+  ButtonVariant,
+  ButtonSize,
+} from "./components/button";
+
+export { default as Card, CardHeader, CardBody } from "./components/card";
+export type { CardProps } from "./components/card";
 
 export { default as Modal } from "./components/modal";
+export type { ModalProps } from "./components/modal";
 
 export {
   default as Table,
@@ -36,24 +42,19 @@ export {
   TableCell,
   TableEmpty,
 } from "./components/table";
+export type { TableProps } from "./components/table";
 
-
-/* --------------------------- Layout ----------------- */
-
+/* Layout */
 export { default as ModuleLayout } from "./layout/module-layout";
+export type { ModuleLayoutProps } from "./layout/module-layout";
 
-export {
-  SidebarShell,
-  EtiquetaSidebar,
-} from "./layout/sidebar";
+export { SidebarShell, SidebarLabel } from "./layout/sidebar";
+export type { SidebarShellProps } from "./layout/sidebar";
 
-export { clasesItemSidebar } from "./layout/clases-sidebar";
+export { sidebarItemClasses } from "./layout/sidebar-classes";
 
-
-/* --------------------------- Iconos ----------------- */
-
-export {
-  iconos,
-  obtenerIcono,
-  type ComponenteIcono,
-} from "./iconos";
+/* Icons */
+export { getIcon } from "./icons";
+export { default as Icon } from "./components/icon";
+export type { IconComponent } from "./icons";
+export type { IconProps } from "./components/icon";

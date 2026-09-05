@@ -1,19 +1,16 @@
-/*
-  =====================================================
-  PUNTO DE ENTRADA DE @apexg/core
-  =====================================================
+/**
+ * `@apexg/core` — the domain.
+ *
+ * No React, no Next, no data access. Everything here runs in a plain Node test,
+ * which is what makes the financial rules in SRS §4 verifiable (RNF-07).
+ */
 
-  Este paquete NO depende de React ni de Next.js.
+export * from "./domain/money";
+export * from "./domain/calendar";
+export * from "./domain/client";
+export * from "./domain/membership";
+export * from "./domain/membership-catalog";
 
-  Solamente contiene:
-
-    - Tipos del dominio (Cliente, Modulo, ...)
-    - Datos de prueba
-    - Catalogo de modulos y secciones
-
-  Cualquier aplicacion del monorepo puede
-  importarlo sin arrastrar dependencias de UI.
-*/
-
-export * from "./clientes";
-export * from "./modulos";
+export * from "./navigation/icons";
+export * from "./navigation/modules";
+export * from "./navigation/client-sections";

@@ -1,73 +1,46 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-/*
-  =====================================================
-  BOTON
-  =====================================================
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md";
 
-  Variantes disponibles:
-
-    primario    → azul relleno (accion principal)
-    secundario  → borde gris (accion secundaria)
-    fantasma    → sin fondo (acciones discretas)
-    peligro     → rojo (eliminar, cerrar sesion)
-*/
-
-type VarianteBoton =
-  | "primario"
-  | "secundario"
-  | "fantasma"
-  | "peligro";
-
-type TamanoBoton = "sm" | "md";
-
-interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variante?: VarianteBoton;
-  tamano?: TamanoBoton;
-  children: ReactNode;
-}
-
-const variantes: Record<VarianteBoton, string> = {
-  primario:
-    "bg-blue-600 text-white hover:bg-blue-700 disabled:hover:bg-blue-600",
-  secundario:
+const VARIANTS: Record<ButtonVariant, string> = {
+  primary: "bg-blue-600 text-white hover:bg-blue-700",
+  secondary:
     "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
-  fantasma:
-    "text-slate-500 hover:text-slate-900",
-  peligro:
-    "bg-red-600 text-white hover:bg-red-700",
+  ghost: "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+  danger: "bg-red-600 text-white hover:bg-red-700",
 };
 
-const tamanos: Record<TamanoBoton, string> = {
+const SIZES: Record<ButtonSize, string> = {
   sm: "px-4 py-2 text-sm",
   md: "px-5 py-3",
 };
 
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  children: ReactNode;
+}
+
 export default function Button({
-  variante = "primario",
-  tamano = "md",
+  variant = "primary",
+  size = "md",
+  type = "button",
   className = "",
   children,
-  ...resto
+  ...rest
 }: ButtonProps) {
   return (
     <button
+      // Defaults to "button": an untyped button inside a form submits it,
+      // which has caused accidental saves in this codebase before.
+      type={type}
       className={`
-        inline-flex
-        items-center
-        justify-center
-        gap-2
-        rounded-xl
-        font-semibold
-        transition
-        disabled:cursor-not-allowed
-        disabled:opacity-50
-        ${variantes[variante]}
-        ${tamanos[tamano]}
-        ${className}
+        inline-flex items-center justify-center gap-2 rounded-xl font-semibold
+        transition disabled:cursor-not-allowed disabled:opacity-50
+        ${VARIANTS[variant]} ${SIZES[size]} ${className}
       `}
-      {...resto}
+      {...rest}
     >
       {children}
     </button>

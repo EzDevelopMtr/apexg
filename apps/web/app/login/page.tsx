@@ -1,20 +1,10 @@
 import type { Metadata } from "next";
-
 import LoginForm from "../../components/login-form";
 
-
-/*
-  =====================================================
-  RUTA  /login
-  =====================================================
-*/
-
 export const metadata: Metadata = {
-  title: "Iniciar sesion | APEX GYM",
+  title: "Iniciar sesión | APEX GYM",
 };
 
-
-export default function PaginaLogin() {
-
+export default function LoginPage() {
   return <LoginForm />;
 }

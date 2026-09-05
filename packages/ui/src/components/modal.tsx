@@ -1,99 +1,71 @@
-import type { ReactNode } from "react";
+"use client";
 
+import { useEffect } from "react";
+import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
-/*
-  =====================================================
-  MODAL
-  =====================================================
-
-  Ventana que aparece encima del contenido.
-
-  Es un componente controlado: quien lo usa decide
-  si esta abierto (propiedad abierto) y que ocurre
-  al cerrarlo (propiedad onCerrar).
-*/
-
-interface ModalProps {
-
-  // Si el modal se muestra o no.
-  abierto: boolean;
-
-  // Titulo del encabezado.
-  titulo: string;
-
-  // Se ejecuta al pulsar la X o el fondo oscuro.
-  onCerrar: () => void;
-
+export interface ModalProps {
+  open: boolean;
+  /** User-facing title, in Spanish. */
+  title: string;
+  description?: string;
+  onClose: () => void;
   children: ReactNode;
 }
 
 export default function Modal({
-  abierto,
-  titulo,
-  onCerrar,
+  open,
+  title,
+  description,
+  onClose,
   children,
 }: ModalProps) {
+  // Escape closes the dialog. Without it a keyboard user has to tab to the
+  // close button, which the previous hand-rolled modal did not support.
+  useEffect(() => {
+    if (!open) return;
 
-  /*
-    Si esta cerrado no dibujamos nada.
-  */
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
 
-  if (!abierto) {
-    return null;
-  }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-
-      {/* FONDO OSCURO */}
-
       <button
         type="button"
         aria-label="Cerrar"
-        onClick={onCerrar}
+        tabIndex={-1}
+        onClick={onClose}
         className="absolute inset-0 bg-slate-950/50"
       />
-
-      {/* CONTENIDO */}
-
       <div
         role="dialog"
         aria-modal="true"
-        className="
-          relative
-          z-10
-          max-h-[90vh]
-          w-full
-          max-w-2xl
-          overflow-y-auto
-          rounded-2xl
-          bg-white
-          shadow-xl
-        "
+        aria-label={title}
+        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-bold text-slate-900">
-            {titulo}
-          </h2>
-
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+            {description && (
+              <p className="mt-1 text-sm text-slate-500">{description}</p>
+            )}
+          </div>
           <button
             type="button"
-            onClick={onCerrar}
+            onClick={onClose}
             aria-label="Cerrar"
-            className="
-              rounded-lg
-              p-2
-              text-slate-400
-              transition
-              hover:bg-slate-100
-              hover:text-slate-900
-            "
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
           >
             <X size={20} />
           </button>
         </div>
-
         <div className="p-6">{children}</div>
       </div>
     </div>

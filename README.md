@@ -1,28 +1,37 @@
 # APEX GYM — Monorepo
 
-Sistema de gestion para gimnasio. El frontend es una aplicacion
-**Next.js** (App Router) y el codigo compartido vive en paquetes
-independientes dentro del mismo repositorio.
+Sistema de gestión para gimnasio. El frontend es una aplicación **Next.js**
+(App Router) y el código compartido vive en paquetes independientes dentro
+del mismo repositorio.
+
+Los requisitos vienen del ERS (documento en español). El código está escrito
+en inglés; la traducción del vocabulario del negocio es única y está en
+[docs/GLOSSARY.md](docs/GLOSSARY.md). Las convenciones de ingeniería están en
+[CLAUDE.md](CLAUDE.md).
 
 ## Estructura
 
 ```
 apexg/
 ├── apps/
-│   └── web/                  Aplicacion Next.js (rutas, sesion, layout)
+│   └── web/                  Aplicación Next.js (rutas, sesión, layout)
 ├── packages/
-│   ├── core/                 Tipos, datos y catalogo de modulos (sin React)
-│   ├── ui/                   Componentes visuales compartidos
-│   ├── modulo-clientes/      Modulo de negocio: clientes
+│   ├── core/                 Dominio: tipos, reglas y funciones puras
+│   ├── data/                 Contratos de acceso a datos + implementaciones
+│   ├── ui/                   Primitivos visuales compartidos
+│   ├── module-clients/       Módulo de negocio: clientes
 │   └── typescript-config/    Configuraciones de TypeScript compartidas
-├── pnpm-workspace.yaml
-└── turbo.json
+├── docs/GLOSSARY.md
+└── CLAUDE.md
 ```
 
-La idea: **cada modulo del negocio es su propio paquete**. Cuando se
-construyan Membresias, Pagos, Inventario, Finanzas o Entrenadores, cada
-uno entra como `packages/modulo-<nombre>` y `apps/web` solo agrega su
-ruta.
+Las dependencias fluyen en un solo sentido: `core ← data ← module-* ← web`.
+`core` no importa hacia arriba, así que un cálculo de vencimiento corre en un
+test de Node sin React, sin Next y sin base de datos.
+
+Cada módulo del negocio es su propio paquete. Cuando se construyan Membresías,
+Pagos, Inventario, Finanzas o Entrenadores, cada uno entra como
+`packages/module-<nombre>` y `apps/web` solo agrega su ruta.
 
 ## Requisitos
 
@@ -31,66 +40,70 @@ ruta.
 
 ## Comandos
 
-Desde la raiz del repositorio:
-
 ```bash
-pnpm install        # instalar dependencias de todo el monorepo
-pnpm dev            # levantar la aplicacion en http://localhost:3000
-pnpm build          # compilar todo
-pnpm lint           # oxlint en todos los paquetes
-pnpm typecheck      # revisar tipos en todos los paquetes
+pnpm install     # instalar dependencias de todo el monorepo
+pnpm dev         # levantar la aplicación en http://localhost:3000
+pnpm verify      # lint + typecheck + tests (lo mismo que corre CI)
+pnpm test        # solo los tests
+pnpm format      # prettier
 ```
 
 Para trabajar en un solo paquete:
 
 ```bash
 pnpm --filter @apexg/web dev
-pnpm --filter @apexg/ui typecheck
+pnpm --filter @apexg/core test
 ```
 
 ## Rutas
 
-| Ruta                            | Pantalla                        |
-| ------------------------------- | ------------------------------- |
-| `/`                             | Redirige a `/modulos`           |
-| `/login`                        | Inicio de sesion                |
-| `/modulos`                      | Selector de modulos             |
-| `/modulos/clientes`             | Redirige a `/todos`             |
-| `/modulos/clientes/[seccion]`   | Modulo Clientes                 |
-| `/dashboard`                    | Dashboard (aun no enlazado)     |
+| Ruta                         | Pantalla              |
+| ---------------------------- | --------------------- |
+| `/`                          | Redirige a `/modules` |
+| `/login`                     | Inicio de sesión      |
+| `/modules`                   | Selector de módulos   |
+| `/modules/clients`           | Redirige a `/all`     |
+| `/modules/clients/[section]` | Módulo Clientes       |
+| `/dashboard`                 | Marcador de posición  |
 
-Secciones validas de Clientes: `todos`, `agregar`, `activos`,
-`por-vencer`, `vencidos`.
+Secciones válidas de Clientes: `all`, `add`, `active`, `expiring`, `overdue`.
+Están definidas en `packages/core/src/navigation/client-sections.ts`; agregar
+una es agregar un registro, no editar un componente.
 
-## Sesion
+## Sesión
 
 Credenciales temporales de desarrollo:
 
 ```
 usuario:    apexg
-contrasena: apex2026
+contraseña: apex2026
 ```
 
-**Esto no es seguridad real.** La validacion ocurre en el navegador y
-las credenciales estan escritas en el codigo
-(`apps/web/lib/auth.tsx`). Cuando exista el Backend hay que:
+**Esto no es seguridad real.** La validación ocurre en el navegador y las
+credenciales están escritas en el código (`apps/web/lib/session.tsx`). Cuando
+exista el Backend hay que:
 
-1. Reemplazar `iniciarSesion()` por una llamada a la API.
-2. Proteger las rutas en el servidor (`middleware.ts`), no solo con
-   el guardia de interfaz `SesionGuard`.
+1. Autenticar contra la API con contraseñas cifradas (RF-01, RNF-02).
+2. Guardar la sesión en una cookie `httpOnly`.
+3. Proteger las rutas en `middleware.ts`, no solo con el guardia de interfaz
+   `SessionGuard` (RF-02, RNF-03).
 
 ## Datos
 
-Los clientes son datos de prueba en `packages/core/src/clientes.ts` y
-se mantienen en memoria: al recargar la pagina se reinician. Se
-reemplazaran por datos del Backend.
+No hay backend todavía. `packages/data` expone el contrato
+`ClientRepository` y una implementación en memoria que se reinicia al
+recargar. Los componentes dependen del contrato, nunca de la
+implementación: cambiarla por un cliente HTTP no toca la interfaz.
 
-## Notas tecnicas
+## Notas técnicas
 
-- Los paquetes internos se publican como TypeScript sin compilar y
-  Next.js los transpila (`transpilePackages` en `next.config.ts`).
-- Tailwind CSS v4 se configura desde PostCSS. Las carpetas de los
-  paquetes se declaran con `@source` en `apps/web/app/globals.css`;
-  sin eso, las clases usadas dentro de `packages/` no se generarian.
-- `packages/ui` es presentacional y no importa nada de Next.js, para
-  poder reutilizarse en otras aplicaciones del monorepo.
+- Los paquetes internos se publican como TypeScript sin compilar y Next.js
+  los transpila (`transpilePackages` en `next.config.ts`).
+- Tailwind CSS v4 se configura desde PostCSS. Las carpetas de los paquetes se
+  declaran con `@source` en `apps/web/app/globals.css`; sin eso, las clases
+  usadas dentro de `packages/` no se generarían.
+- `packages/ui` es presentacional y no importa nada de Next.js, para poder
+  reutilizarse en otras aplicaciones del monorepo.
+- Objetos con funciones (como las secciones, que llevan su predicado) no
+  cruzan la frontera servidor/cliente. Se pasa el `id` y el cliente resuelve
+  el catálogo.
