@@ -30,17 +30,17 @@ export function SidebarShell({
     <aside
       className="
         group fixed left-0 top-0 z-40 h-screen w-20 overflow-hidden
-        bg-slate-950 text-white transition-all duration-300 hover:w-72
+        bg-shell text-white transition-all duration-300 hover:w-72
       "
     >
       <div className="flex h-full flex-col">
         <div className="flex h-20 items-center border-b border-white/10 px-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand">
             <Icon name={iconName} size={22} />
           </div>
           <div className="ml-4 min-w-max opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <p className="font-bold">{title}</p>
-            <p className="text-xs text-slate-400">{subtitle}</p>
+            <p className="text-xs text-body-faint">{subtitle}</p>
           </div>
         </div>
 

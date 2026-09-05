@@ -78,7 +78,7 @@ export default function ClientMembershipFields({
         />
       </div>
 
-      <p id="expiration-hint" className="-mt-2 text-sm text-slate-500">
+      <p id="expiration-hint" className="-mt-2 text-sm text-body-soft">
         El vencimiento se calcula automáticamente según el tipo de membresía.
       </p>
     </>

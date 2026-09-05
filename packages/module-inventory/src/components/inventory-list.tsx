@@ -53,8 +53,8 @@ export default function InventoryList({ items, onEdit }: InventoryListProps) {
           items.map((item) => (
             <TableRow key={item.id}>
               <TableCell>
-                <p className="font-semibold text-slate-900">{item.name}</p>
-                <p className="text-sm text-slate-500">{item.sku}</p>
+                <p className="font-semibold text-body">{item.name}</p>
+                <p className="text-sm text-body-soft">{item.sku}</p>
               </TableCell>
               <TableCell className="text-sm">
                 {ITEM_CATEGORY_LABELS[item.category]}

@@ -37,15 +37,13 @@ export default function CategoryPanel({
         description="El administrador puede ampliar o retirar categorías."
       />
       <CardBody className="space-y-4">
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-line-soft">
           {categories.map((category) => (
             <li
               key={category.id}
               className="flex items-center justify-between py-3"
             >
-              <span className="font-medium text-slate-800">
-                {category.name}
-              </span>
+              <span className="font-medium text-body">{category.name}</span>
               <div className="flex items-center gap-3">
                 <Badge tone={category.active ? "success" : "neutral"}>
                   {category.active ? "Activa" : "Inactiva"}
@@ -64,7 +62,7 @@ export default function CategoryPanel({
           ))}
         </ul>
 
-        <div className="flex items-end gap-3 border-t border-slate-100 pt-4">
+        <div className="flex items-end gap-3 border-t border-line-soft pt-4">
           <div className="flex-1">
             <Input
               id="newCategory"

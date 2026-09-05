@@ -20,8 +20,8 @@ export default function DailyIncomeCard({
     <Card>
       <CardHeader title="Ingresos del día" description={on} />
       <CardBody>
-        <p className="text-3xl font-bold text-slate-900">{formatCOP(income)}</p>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="text-3xl font-bold text-body">{formatCOP(income)}</p>
+        <p className="mt-1 text-sm text-body-soft">
           {count} {count === 1 ? "pago registrado" : "pagos registrados"}
         </p>
       </CardBody>

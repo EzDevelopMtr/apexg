@@ -9,21 +9,21 @@ import { Button, Icon } from "@apexg/ui";
 import { useSession } from "../lib/use-session";
 
 const CARD_BASE =
-  "group rounded-2xl border bg-white p-6 text-left shadow-sm transition-all duration-300";
+  "group rounded-2xl border bg-panel p-6 text-left shadow-sm transition-all duration-300";
 const CARD_AVAILABLE =
-  "cursor-pointer border-slate-200 hover:-translate-y-1 hover:border-blue-400 hover:shadow-lg";
-const CARD_DISABLED = "cursor-not-allowed border-slate-200 opacity-50";
+  "cursor-pointer border-line hover:-translate-y-1 hover:border-brand hover:shadow-lg";
+const CARD_DISABLED = "cursor-not-allowed border-line opacity-50";
 
 function ModuleCard({ module }: { module: Module }) {
   return (
     <>
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-brand-soft text-brand-ink">
         <Icon name={module.icon} size={24} />
       </div>
-      <h2 className="font-bold text-slate-900">{module.name}</h2>
-      <p className="mt-1 text-sm text-slate-500">{module.description}</p>
+      <h2 className="font-bold text-body">{module.name}</h2>
+      <p className="mt-1 text-sm text-body-soft">{module.description}</p>
       {!module.available && (
-        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-body-faint">
           Próximamente
         </p>
       )}
@@ -47,21 +47,21 @@ export default function ModuleGrid() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-10">
+    <main className="ground-grid min-h-screen px-6 py-10">
       <div className="mx-auto max-w-6xl">
         <div className="mb-10 flex items-start justify-between gap-4">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-blue-600">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-ink">
               APEX GYM
             </p>
-            <h1 className="text-3xl font-bold text-slate-900">
+            <h1 className="text-3xl font-bold text-body">
               Selecciona un módulo
             </h1>
-            <p className="mt-2 text-slate-500">
+            <p className="mt-2 text-body-soft">
               Selecciona el área que deseas administrar.
             </p>
             {session && (
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-body-faint">
                 {session.username} · {ROLE_LABELS[session.role]}
               </p>
             )}

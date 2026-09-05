@@ -46,7 +46,7 @@ export default function CommissionsPanel() {
                   {trainer.fullName}
                 </TableCell>
                 <TableCell>{formatCOP(commissionTotal(own))}</TableCell>
-                <TableCell className="font-semibold text-orange-700">
+                <TableCell className="font-semibold text-warn-ink">
                   {formatCOP(commissionTotal(pending))}
                 </TableCell>
               </TableRow>

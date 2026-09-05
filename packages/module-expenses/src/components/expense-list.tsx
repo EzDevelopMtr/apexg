@@ -33,9 +33,7 @@ export default function ExpenseList({
           expenses.map((expense) => (
             <TableRow key={expense.id}>
               <TableCell>
-                <p className="font-semibold text-slate-900">
-                  {expense.description}
-                </p>
+                <p className="font-semibold text-body">{expense.description}</p>
               </TableCell>
               <TableCell className="text-sm">
                 {findCategory(categories, expense.categoryId)?.name ??

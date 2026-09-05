@@ -22,8 +22,8 @@ export default function TrainerRow({
   return (
     <TableRow>
       <TableCell>
-        <p className="font-semibold text-slate-900">{trainer.fullName}</p>
-        <p className="text-sm text-slate-500">{trainer.idNumber}</p>
+        <p className="font-semibold text-body">{trainer.fullName}</p>
+        <p className="text-sm text-body-soft">{trainer.idNumber}</p>
       </TableCell>
 
       <TableCell className="text-sm">{trainer.phone}</TableCell>

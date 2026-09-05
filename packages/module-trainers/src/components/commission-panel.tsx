@@ -43,15 +43,13 @@ export default function CommissionPanel({
             return (
               <TableRow key={trainer.id}>
                 <TableCell>
-                  <p className="font-semibold text-slate-900">
-                    {trainer.fullName}
-                  </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-semibold text-body">{trainer.fullName}</p>
+                  <p className="text-sm text-body-soft">
                     {own.length} {own.length === 1 ? "registro" : "registros"}
                   </p>
                 </TableCell>
                 <TableCell>{formatCOP(commissionTotal(own))}</TableCell>
-                <TableCell className="font-semibold text-orange-700">
+                <TableCell className="font-semibold text-warn-ink">
                   {formatCOP(commissionTotal(pending))}
                 </TableCell>
               </TableRow>

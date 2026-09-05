@@ -47,7 +47,7 @@ export default function ModuleSidebar({
       footer={
         <Link
           href="/modules"
-          className="flex h-12 w-full items-center rounded-xl px-3 text-slate-400 transition hover:bg-white/10 hover:text-white"
+          className="flex h-12 w-full items-center rounded-xl px-3 text-body-faint transition hover:bg-panel/10 hover:text-white"
         >
           <ArrowLeft size={21} className="shrink-0" />
           <SidebarLabel>Cambiar módulo</SidebarLabel>

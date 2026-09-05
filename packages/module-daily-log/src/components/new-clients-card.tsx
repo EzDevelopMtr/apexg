@@ -22,9 +22,9 @@ export default function NewClientsCard({
       />
       <CardBody>
         {clients.length === 0 ? (
-          <p className="text-slate-400">Ningún cliente nuevo hoy.</p>
+          <p className="text-body-faint">Ningún cliente nuevo hoy.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-line-soft">
             {clients.map((client) => {
               const payment = payments.find(
                 (item) => item.clientId === client.id && item.paidOn === on,
@@ -33,10 +33,8 @@ export default function NewClientsCard({
 
               return (
                 <li key={client.id} className="py-3">
-                  <p className="font-semibold text-slate-900">
-                    {client.fullName}
-                  </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-semibold text-body">{client.fullName}</p>
+                  <p className="text-sm text-body-soft">
                     {client.phone} · {plan?.name ?? client.membershipTypeId}
                     {payment && ` · ${PAYMENT_METHOD_LABELS[payment.method]}`}
                   </p>

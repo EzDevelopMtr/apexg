@@ -26,12 +26,12 @@ export default function ClientRow({
     <TableRow>
       <TableCell>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
             <UserRound size={19} />
           </div>
           <div>
-            <p className="font-semibold text-slate-900">{client.fullName}</p>
-            <p className="text-sm text-slate-500">{client.email}</p>
+            <p className="font-semibold text-body">{client.fullName}</p>
+            <p className="text-sm text-body-soft">{client.email}</p>
           </div>
         </div>
       </TableCell>

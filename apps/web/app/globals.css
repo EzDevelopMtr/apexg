@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 /*
-  ==========================================
-  ARCHIVOS QUE TAILWIND DEBE REVISAR
-  ==========================================
-
-  Tailwind v4 detecta las clases del proyecto
-  automaticamente, pero en un monorepo hay que
-  indicarle tambien las carpetas de los paquetes
-  internos. Sin esto, las clases que solo se
-  usan dentro de packages/ no se generarian.
+  Design tokens live with the design system, not with the app. Every colour in
+  the product resolves through this file.
 */
-
-@source "../../../packages/ui/src";
-@source "../../../packages/module-clients/src";
+@import "../../../packages/ui/src/theme.css";
 
 /*
-  ==========================================
-  ESTILOS GENERALES
-  SISTEMA DE GESTION PARA GIMNASIO
-  ==========================================
+  Tailwind v4 finds the app's classes on its own, but in a monorepo it has to
+  be told where the internal packages are. Without this, a class used only
+  inside packages/ never gets generated.
 */
+@source "../../../packages/ui/src";
+@source "../../../packages/module-kit/src";
+@source "../../../packages/module-clients/src";
+@source "../../../packages/module-memberships/src";
+@source "../../../packages/module-payments/src";
+@source "../../../packages/module-trainers/src";
+@source "../../../packages/module-expenses/src";
+@source "../../../packages/module-inventory/src";
+@source "../../../packages/module-finances/src";
+@source "../../../packages/module-daily-log/src";
 
 * {
   box-sizing: border-box;
@@ -42,5 +42,12 @@ body {
     "Segoe UI",
     sans-serif;
 
-  background-color: #f1f5f9;
+  background-color: var(--color-canvas);
+  color: var(--color-body);
+}
+
+/* Digits line up in every table of amounts and dates. */
+table,
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

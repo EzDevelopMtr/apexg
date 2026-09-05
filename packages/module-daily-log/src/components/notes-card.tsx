@@ -36,19 +36,21 @@ export default function NotesCard({
       />
       <CardBody className="space-y-4">
         {notes.length === 0 ? (
-          <p className="text-slate-400">Sin novedades registradas.</p>
+          <p className="text-body-faint">Sin novedades registradas.</p>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="divide-y divide-line-soft">
             {notes.map((note) => (
               <li key={note.id} className="py-3">
-                <p className="text-slate-800">{note.text}</p>
-                <p className="mt-1 text-xs text-slate-400">{note.recordedBy}</p>
+                <p className="text-body">{note.text}</p>
+                <p className="mt-1 text-xs text-body-faint">
+                  {note.recordedBy}
+                </p>
               </li>
             ))}
           </ul>
         )}
 
-        <div className="border-t border-slate-100 pt-4">
+        <div className="border-t border-line-soft pt-4">
           <Textarea
             id="newNote"
             label="Agregar novedad"

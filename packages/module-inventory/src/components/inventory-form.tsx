@@ -53,12 +53,12 @@ export default function InventoryForm({
       <InventoryFields draft={draft} update={update} />
 
       {failure && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger-ink">
           {failure}
         </p>
       )}
 
-      <div className="flex justify-end gap-3 border-t border-slate-100 pt-5">
+      <div className="flex justify-end gap-3 border-t border-line-soft pt-5">
         <Button variant="ghost" onClick={onCancel} disabled={saving}>
           Cancelar
         </Button>

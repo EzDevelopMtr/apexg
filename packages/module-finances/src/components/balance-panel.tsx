@@ -32,11 +32,11 @@ export default function BalancePanel({
             <CardBody className="space-y-3">
               <Line label="Ingresos" value={formatCOP(balance.income)} />
               <Line label="Egresos" value={formatCOP(balance.expenses)} />
-              <div className="border-t border-slate-100 pt-3">
+              <div className="border-t border-line-soft pt-3">
                 <Line
                   label="Utilidad"
                   value={formatCOP(balance.profit)}
-                  tone={balance.profit >= 0 ? "text-green-700" : "text-red-700"}
+                  tone={balance.profit >= 0 ? "text-ok-ink" : "text-danger-ink"}
                   bold
                 />
               </div>
@@ -51,7 +51,7 @@ export default function BalancePanel({
 function Line({
   label,
   value,
-  tone = "text-slate-900",
+  tone = "text-body",
   bold = false,
 }: {
   label: string;
@@ -61,7 +61,7 @@ function Line({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-slate-500">{label}</span>
+      <span className="text-sm text-body-soft">{label}</span>
       <span className={`${bold ? "font-bold" : "font-medium"} ${tone}`}>
         {value}
       </span>

@@ -19,12 +19,12 @@ export default function ModulePageHeader({
     <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         {eyebrow && (
-          <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-ink">
             {eyebrow}
           </p>
         )}
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">{title}</h1>
-        {description && <p className="mt-2 text-slate-500">{description}</p>}
+        <h1 className="mt-1 text-3xl font-bold text-body">{title}</h1>
+        {description && <p className="mt-2 text-body-soft">{description}</p>}
       </div>
       {action}
     </div>

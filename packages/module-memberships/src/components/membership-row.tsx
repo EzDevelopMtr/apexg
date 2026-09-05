@@ -22,8 +22,8 @@ export default function MembershipRow({ type, onEdit }: MembershipRowProps) {
   return (
     <TableRow>
       <TableCell>
-        <p className="font-semibold text-slate-900">{type.name}</p>
-        <p className="text-sm text-slate-500">{type.conditions}</p>
+        <p className="font-semibold text-body">{type.name}</p>
+        <p className="text-sm text-body-soft">{type.conditions}</p>
       </TableCell>
 
       <TableCell className="font-semibold">{formatCOP(type.price)}</TableCell>

@@ -34,14 +34,14 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
+    <main className="ground-grain flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-shell shadow-lg">
             <Dumbbell size={32} strokeWidth={2} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">APEX GYM</h1>
-          <p className="mt-1 text-slate-500">Sistema de gestión</p>
+          <h1 className="text-2xl font-bold text-body">APEX GYM</h1>
+          <p className="mt-1 text-body-soft">Sistema de gestión</p>
         </div>
 
         <Card>
@@ -74,14 +74,14 @@ export default function LoginForm() {
                   aria-label={
                     showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                   }
-                  className="absolute right-4 top-11 text-slate-400 hover:text-slate-600"
+                  className="absolute right-4 top-11 text-body-faint hover:text-body-muted"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
 
               {error && (
-                <p role="alert" className="text-sm text-red-600">
+                <p role="alert" className="text-sm text-danger-ink">
                   {error}
                 </p>
               )}

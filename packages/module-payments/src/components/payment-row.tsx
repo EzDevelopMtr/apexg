@@ -16,8 +16,8 @@ export default function PaymentRow({ payment, clientName }: PaymentRowProps) {
   return (
     <TableRow>
       <TableCell>
-        <p className="font-semibold text-slate-900">{clientName}</p>
-        <p className="text-sm text-slate-500">{payment.reference}</p>
+        <p className="font-semibold text-body">{clientName}</p>
+        <p className="text-sm text-body-soft">{payment.reference}</p>
       </TableCell>
 
       <TableCell className="text-sm">{payment.paidOn}</TableCell>

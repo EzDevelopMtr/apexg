@@ -14,17 +14,17 @@ export default function LowStockNotice({
   return (
     <div
       role="status"
-      className="mb-6 flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4"
+      className="mb-6 flex items-start gap-3 rounded-2xl border border-warn-line bg-warn-soft p-4"
     >
-      <AlertTriangle size={20} className="mt-0.5 shrink-0 text-orange-600" />
+      <AlertTriangle size={20} className="mt-0.5 shrink-0 text-warn-ink" />
       <div>
-        <p className="font-semibold text-orange-900">
+        <p className="font-semibold text-warn-ink">
           {items.length}{" "}
           {items.length === 1
             ? "ítem está en su mínimo o por debajo"
             : "ítems están en su mínimo o por debajo"}
         </p>
-        <p className="mt-1 text-sm text-orange-800">
+        <p className="mt-1 text-sm text-warn-ink">
           {items.map((item) => item.name).join(", ")}
         </p>
       </div>

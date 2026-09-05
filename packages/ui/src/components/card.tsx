@@ -8,7 +8,7 @@ export interface CardProps {
 export default function Card({ children, className = "" }: CardProps) {
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}
+      className={`rounded-2xl border border-line bg-panel shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -25,11 +25,11 @@ export function CardHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+    <div className="flex items-center justify-between border-b border-line px-6 py-4">
       <div>
-        <h2 className="font-bold text-slate-900">{title}</h2>
+        <h2 className="font-bold text-body">{title}</h2>
         {description && (
-          <p className="mt-1 text-sm text-slate-500">{description}</p>
+          <p className="mt-1 text-sm text-body-soft">{description}</p>
         )}
       </div>
       {action}

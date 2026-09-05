@@ -42,26 +42,26 @@ export default function Modal({
         aria-label="Cerrar"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 bg-slate-950/50"
+        className="absolute inset-0 bg-shell/50"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-panel shadow-xl"
       >
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
+        <div className="flex items-start justify-between border-b border-line px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+            <h2 className="text-lg font-bold text-body">{title}</h2>
             {description && (
-              <p className="mt-1 text-sm text-slate-500">{description}</p>
+              <p className="mt-1 text-sm text-body-soft">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-lg p-2 text-body-faint transition hover:bg-canvas hover:text-body"
           >
             <X size={20} />
           </button>

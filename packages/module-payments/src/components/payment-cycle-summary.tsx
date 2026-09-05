@@ -18,14 +18,14 @@ export default function PaymentCycleSummary({
   const settled = cycle.balanceBefore <= 0;
 
   return (
-    <Card className="bg-slate-50">
+    <Card className="bg-surface">
       <CardBody className="grid gap-4 sm:grid-cols-3">
         <Figure label="Plan" value={cycle.planName} />
         <Figure label="Valor del plan" value={formatCOP(cycle.agreedPrice)} />
         <Figure
           label="Saldo pendiente"
           value={settled ? "Al día" : formatCOP(cycle.balanceBefore)}
-          tone={settled ? "text-green-700" : "text-orange-700"}
+          tone={settled ? "text-ok-ink" : "text-warn-ink"}
         />
       </CardBody>
     </Card>
@@ -35,7 +35,7 @@ export default function PaymentCycleSummary({
 function Figure({
   label,
   value,
-  tone = "text-slate-900",
+  tone = "text-body",
 }: {
   label: string;
   value: string;
@@ -43,7 +43,7 @@ function Figure({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <p className="text-xs font-semibold uppercase tracking-wider text-body-soft">
         {label}
       </p>
       <p className={`mt-1 font-bold ${tone}`}>{value}</p>

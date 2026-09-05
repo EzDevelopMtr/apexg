@@ -4,7 +4,7 @@ import { Card, CardBody } from "@apexg/ui";
 export function LoadingState() {
   return (
     <Card>
-      <CardBody className="py-12 text-center text-slate-400">
+      <CardBody className="py-12 text-center text-body-faint">
         Cargando clientes...
       </CardBody>
     </Card>
@@ -22,14 +22,14 @@ export function ErrorState({
   return (
     <Card>
       <CardBody className="py-12 text-center">
-        <p role="alert" className="font-semibold text-red-600">
+        <p role="alert" className="font-semibold text-danger-ink">
           No pudimos cargar los clientes.
         </p>
-        <p className="mt-1 text-sm text-slate-500">{message}</p>
+        <p className="mt-1 text-sm text-body-soft">{message}</p>
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 font-semibold text-blue-600 hover:underline"
+          className="mt-4 font-semibold text-brand-ink hover:underline"
         >
           Reintentar
         </button>

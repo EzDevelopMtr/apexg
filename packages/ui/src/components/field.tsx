@@ -22,14 +22,14 @@ export default function Field({ label, error, htmlFor, children }: FieldProps) {
       {label && (
         <label
           htmlFor={htmlFor}
-          className="mb-2 block text-sm font-medium text-slate-700"
+          className="mb-2 block text-sm font-medium text-body-muted"
         >
           {label}
         </label>
       )}
       {children}
       {error && (
-        <p role="alert" className="mt-2 text-sm text-red-600">
+        <p role="alert" className="mt-2 text-sm text-danger-ink">
           {error}
         </p>
       )}

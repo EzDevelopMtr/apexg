@@ -17,16 +17,16 @@ export const metadata: Metadata = {
  */
 export default function DashboardPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-6">
+    <main className="ground-grain flex min-h-screen items-center justify-center px-6">
       <div className="max-w-md text-center">
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="mt-2 text-slate-500">
+        <h1 className="text-2xl font-bold text-body">Dashboard</h1>
+        <p className="mt-2 text-body-soft">
           Los indicadores del negocio se construirán cuando el módulo de
           Finanzas exista. Aún no hay datos reales que mostrar.
         </p>
         <Link
           href="/modules"
-          className="mt-6 inline-block font-semibold text-blue-600 hover:underline"
+          className="mt-6 inline-block font-semibold text-brand-ink hover:underline"
         >
           Volver a módulos
         </Link>

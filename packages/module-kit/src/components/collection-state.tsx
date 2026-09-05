@@ -6,7 +6,7 @@ import type { Collection } from "../hooks/use-collection";
 export function LoadingState({ message }: { message: string }) {
   return (
     <Card>
-      <CardBody className="py-12 text-center text-slate-400">
+      <CardBody className="py-12 text-center text-body-faint">
         {message}
       </CardBody>
     </Card>
@@ -26,14 +26,14 @@ export function ErrorState({
   return (
     <Card>
       <CardBody className="py-12 text-center">
-        <p role="alert" className="font-semibold text-red-600">
+        <p role="alert" className="font-semibold text-danger-ink">
           {message}
         </p>
-        {detail && <p className="mt-1 text-sm text-slate-500">{detail}</p>}
+        {detail && <p className="mt-1 text-sm text-body-soft">{detail}</p>}
         <button
           type="button"
           onClick={onRetry}
-          className="mt-4 font-semibold text-blue-600 hover:underline"
+          className="mt-4 font-semibold text-brand-ink hover:underline"
         >
           Reintentar
         </button>

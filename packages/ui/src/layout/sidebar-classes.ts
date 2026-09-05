@@ -4,8 +4,8 @@ export function sidebarItemClasses(active: boolean): string {
     mb-2 flex h-12 w-full items-center rounded-xl px-3 transition
     ${
       active
-        ? "bg-blue-600 text-white"
-        : "text-slate-400 hover:bg-white/10 hover:text-white"
+        ? "bg-brand text-white"
+        : "text-shell-muted hover:bg-panel/10 hover:text-white"
     }
   `;
 }

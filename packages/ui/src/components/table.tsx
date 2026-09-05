@@ -10,27 +10,27 @@ export default function Table({ headers, children }: TableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
-        <thead className="bg-slate-50">
+        <thead className="bg-surface">
           <tr>
             {headers.map((header) => (
               <th
                 key={header}
                 scope="col"
-                className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500"
+                className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-body-soft"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">{children}</tbody>
+        <tbody className="divide-y divide-line-soft">{children}</tbody>
       </table>
     </div>
   );
 }
 
 export function TableRow({ children }: { children: ReactNode }) {
-  return <tr className="transition hover:bg-slate-50">{children}</tr>;
+  return <tr className="transition hover:bg-surface">{children}</tr>;
 }
 
 export function TableCell({
@@ -41,7 +41,7 @@ export function TableCell({
   className?: string;
 }) {
   return (
-    <td className={`px-6 py-4 text-slate-700 ${className}`}>{children}</td>
+    <td className={`px-6 py-4 text-body-muted ${className}`}>{children}</td>
   );
 }
 
@@ -54,7 +54,7 @@ export function TableEmpty({
 }) {
   return (
     <tr>
-      <td colSpan={columns} className="px-6 py-12 text-center text-slate-400">
+      <td colSpan={columns} className="px-6 py-12 text-center text-body-faint">
         {message}
       </td>
     </tr>
