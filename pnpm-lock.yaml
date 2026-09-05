@@ -41,6 +41,9 @@ importers:
       '@apexg/module-memberships':
         specifier: workspace:*
         version: link:../../packages/module-memberships
+      '@apexg/module-payments':
+        specifier: workspace:*
+        version: link:../../packages/module-payments
       '@apexg/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -161,6 +164,37 @@ importers:
         version: 6.0.3
 
   packages/module-memberships:
+    dependencies:
+      '@apexg/core':
+        specifier: workspace:*
+        version: link:../core
+      '@apexg/data':
+        specifier: workspace:*
+        version: link:../data
+      '@apexg/module-kit':
+        specifier: workspace:*
+        version: link:../module-kit
+      '@apexg/ui':
+        specifier: workspace:*
+        version: link:../ui
+      lucide-react:
+        specifier: ^1.32.0
+        version: 1.33.0(react@19.2.8)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.8
+    devDependencies:
+      '@apexg/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.18
+      typescript:
+        specifier: ~6.0.3
+        version: 6.0.3
+
+  packages/module-payments:
     dependencies:
       '@apexg/core':
         specifier: workspace:*

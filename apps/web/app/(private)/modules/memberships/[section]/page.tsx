@@ -1,34 +1,13 @@
-import { notFound } from "next/navigation";
-import type { Metadata } from "next";
 import { membershipSections } from "@apexg/core";
 import MembershipsModule from "../../../../../components/memberships-module";
+import { createSectionRoute } from "../../../../../lib/module-route";
+import type { SectionRouteParams } from "../../../../../lib/module-route";
 
-interface PageProps {
-  params: Promise<{ section: string }>;
-}
+const route = createSectionRoute(membershipSections, "Membresías");
 
-export function generateStaticParams() {
-  return membershipSections.sections.map((section) => ({
-    section: section.id,
-  }));
-}
+export const generateStaticParams = route.generateStaticParams;
+export const generateMetadata = route.generateMetadata;
 
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { section } = await params;
-  const title = membershipSections.isSectionId(section)
-    ? membershipSections.getSection(section).title
-    : "Membresías";
-
-  return { title: `${title} | APEX GYM` };
-}
-
-export default async function MembershipSectionPage({ params }: PageProps) {
-  const { section } = await params;
-
-  // Sections carry predicates, so only the id crosses to the client.
-  if (!membershipSections.isSectionId(section)) notFound();
-
-  return <MembershipsModule sectionId={section} />;
+export default async function MembershipSectionPage(props: SectionRouteParams) {
+  return <MembershipsModule sectionId={await route.resolve(props)} />;
 }

@@ -9,6 +9,7 @@ import type { Money } from "./money";
 import type { Payment, PaymentKind } from "./payment";
 import {
   checkPayment,
+  cyclesWithBalance,
   classifyPayment,
   outstandingBalance,
   paymentLabel,
@@ -164,5 +165,41 @@ describe("checkPayment (RF-19)", () => {
     expect(
       checkPayment(fortnight, fromPesos(45_000), fromPesos(45_000)),
     ).toEqual({ accepted: true });
+  });
+});
+
+describe("cyclesWithBalance (RF-18)", () => {
+  it("drops a cycle once a later payment settles it", () => {
+    // The first instalment's snapshot still says 35.000; only the last
+    // payment of the cycle says what is owed now.
+    const payments = [
+      makePayment(1, fromPesos(30_000), fromPesos(35_000)),
+      makePayment(2, fromPesos(35_000), fromPesos(0), "finalInstallment"),
+    ];
+    expect(cyclesWithBalance(payments)).toEqual([]);
+  });
+
+  it("keeps a cycle that still owes, reporting the latest balance", () => {
+    const payments = [
+      makePayment(1, fromPesos(20_000), fromPesos(45_000)),
+      makePayment(2, fromPesos(20_000), fromPesos(25_000)),
+    ];
+    const open = cyclesWithBalance(payments);
+
+    expect(open).toHaveLength(1);
+    expect(open[0]?.balanceAfter).toBe(fromPesos(25_000));
+  });
+
+  it("reports each cycle independently", () => {
+    const other = toCycleId(CLIENT, date("2026-07-01"));
+    const payments = [
+      makePayment(1, fromPesos(65_000), fromPesos(0), "full"),
+      {
+        ...makePayment(1, fromPesos(30_000), fromPesos(35_000)),
+        cycleId: other,
+      },
+    ];
+
+    expect(cyclesWithBalance(payments)).toHaveLength(1);
   });
 });

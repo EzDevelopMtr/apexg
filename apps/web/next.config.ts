@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     "@apexg/module-kit",
     "@apexg/module-clients",
     "@apexg/module-memberships",
+    "@apexg/module-payments",
   ],
 };
 

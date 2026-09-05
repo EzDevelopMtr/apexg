@@ -160,3 +160,27 @@ export function checkPayment(
   }
   return { accepted: true };
 }
+
+/**
+ * The latest payment of each cycle that still leaves a balance (RF-18).
+ *
+ * Filtering on `balanceAfter > 0` alone would keep showing a settled client:
+ * their first instalment left a balance at the time, and that snapshot never
+ * changes. Only the last payment of a cycle says what is owed now.
+ */
+export function cyclesWithBalance(
+  payments: readonly Payment[],
+): readonly Payment[] {
+  const latestByCycle = new Map<CycleId, Payment>();
+
+  for (const payment of payments) {
+    const current = latestByCycle.get(payment.cycleId);
+    if (!current || payment.sequence > current.sequence) {
+      latestByCycle.set(payment.cycleId, payment);
+    }
+  }
+
+  return [...latestByCycle.values()].filter(
+    (payment) => payment.balanceAfter > 0,
+  );
+}

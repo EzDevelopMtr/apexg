@@ -19,7 +19,8 @@
     "@apexg/module-clients": "workspace:*",
     "@apexg/data": "workspace:*",
     "@apexg/module-kit": "workspace:*",
-    "@apexg/module-memberships": "workspace:*"
+    "@apexg/module-memberships": "workspace:*",
+    "@apexg/module-payments": "workspace:*"
   },
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",

@@ -24,6 +24,8 @@ export const paymentSections = createSectionCatalog<PaymentSectionId, Payment>([
     label: "Con saldo pendiente",
     title: "Pagos con saldo pendiente",
     icon: "clock",
-    view: { kind: "list", includes: (payment) => payment.balanceAfter > 0 },
+    // Filtered by cyclesWithBalance in the page: what is owed now depends on
+    // the other payments of the cycle, which a per-item predicate cannot see.
+    view: { kind: "list", includes: () => true },
   },
 ]);
