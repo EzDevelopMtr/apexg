@@ -106,3 +106,59 @@ export function calculateExpirationDate(
     ? addMonths(startDate, term.amount)
     : addDays(startDate, term.amount);
 }
+
+/** A closed range of calendar days, both ends inclusive. */
+export interface DateRange {
+  readonly from: IsoDate;
+  readonly to: IsoDate;
+}
+
+export function isWithin(date: IsoDate, range: DateRange): boolean {
+  return date >= range.from && date <= range.to;
+}
+
+/** Monday of the week containing `date`. The gym's week starts on Monday. */
+export function startOfWeek(date: IsoDate): IsoDate {
+  const weekday = fromIsoDate(date).getDay();
+  const daysSinceMonday = weekday === 0 ? 6 : weekday - 1;
+  return addDays(date, -daysSinceMonday);
+}
+
+export function startOfMonth(date: IsoDate): IsoDate {
+  return `${date.slice(0, 7)}-01` as IsoDate;
+}
+
+/**
+ * Last day of the month containing `date`.
+ *
+ * Computed rather than assumed: building the range end as `YYYY-MM-31` happens
+ * to work under string comparison but denotes a day that does not exist, and
+ * breaks the moment the value is parsed instead of compared.
+ */
+export function endOfMonth(date: IsoDate): IsoDate {
+  const source = fromIsoDate(date);
+  const lastDay = new Date(
+    source.getFullYear(),
+    source.getMonth() + 1,
+    0,
+  ).getDate();
+  return `${date.slice(0, 7)}-${String(lastDay).padStart(2, "0")}` as IsoDate;
+}
+
+/** The day, week or month containing `date`. */
+export function rangeFor(
+  period: "day" | "week" | "month",
+  date: IsoDate,
+): DateRange {
+  if (period === "day") return { from: date, to: date };
+  if (period === "week") {
+    const from = startOfWeek(date);
+    return { from, to: addDays(from, 6) };
+  }
+  return { from: startOfMonth(date), to: endOfMonth(date) };
+}
+
+/** The same day one month earlier, clamped like {@link addMonths}. */
+export function previousMonth(date: IsoDate): IsoDate {
+  return addMonths(date, -1);
+}

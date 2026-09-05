@@ -1,7 +1,9 @@
 import { createContext } from "react";
+import type { Role } from "@apexg/core";
 
 export interface Session {
   readonly username: string;
+  readonly role: Role;
 }
 
 export interface SessionContextValue {

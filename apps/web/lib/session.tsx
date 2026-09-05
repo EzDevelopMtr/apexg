@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import type { Role } from "@apexg/core";
 import type { Session } from "./session-context";
 import { SessionContext } from "./session-context";
 
@@ -13,8 +14,8 @@ import { SessionContext } from "./session-context";
  * Browser-side session.
  *
  * THIS IS NOT REAL SECURITY. Credentials are compiled into the bundle and the
- * check runs in the browser, so anyone can read them and anyone can reach a
- * "protected" page's HTML directly.
+ * check runs in the browser, so anyone can read them, edit the stored role, or
+ * reach a "protected" page's HTML directly.
  *
  * RF-01/RNF-02 require accounts in a database with hashed passwords, and
  * RF-02/RNF-03 require the role check to run on the server. Replacing this
@@ -22,8 +23,16 @@ import { SessionContext } from "./session-context";
  * guard the routes in `middleware.ts` rather than with a client component.
  */
 
-const DEV_USERNAME = "apexg";
-const DEV_PASSWORD = "apex2026";
+interface DemoUser {
+  readonly username: string;
+  readonly password: string;
+  readonly role: Role;
+}
+
+const DEMO_USERS: readonly DemoUser[] = [
+  { username: "apexg", password: "apex2026", role: "admin" },
+  { username: "recepcion", password: "apex2026", role: "receptionist" },
+];
 
 const STORAGE_KEY = "apexg:session";
 
@@ -31,8 +40,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Read after mount, not in a lazy initializer: sessionStorage does not exist
-  // during server rendering, and reading it in render would desync hydration.
   useEffect(() => {
     try {
       const stored = window.sessionStorage.getItem(STORAGE_KEY);
@@ -44,9 +51,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback((username: string, password: string) => {
-    if (username !== DEV_USERNAME || password !== DEV_PASSWORD) return false;
+    const found = DEMO_USERS.find(
+      (user) => user.username === username && user.password === password,
+    );
+    if (!found) return false;
 
-    const next: Session = { username };
+    const next: Session = { username: found.username, role: found.role };
     setSession(next);
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     return true;

@@ -28,7 +28,7 @@ export default function ClientsPage({
   // function cannot cross the server/client boundary.
   const section = getClientSection(sectionId);
 
-  const { clients, state, error, save, reload } = useClients();
+  const { items: clients, state, error, save, reload } = useClients();
 
   // Pinned once per mount: recomputing "today" on every render would make the
   // derived statuses flicker across a midnight boundary mid-session.

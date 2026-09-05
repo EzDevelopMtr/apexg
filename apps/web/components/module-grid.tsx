@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import type { Module } from "@apexg/core";
-import { MODULES } from "@apexg/core";
+import { MODULES, ROLE_LABELS, canAccessModule } from "@apexg/core";
 import { Button, Icon } from "@apexg/ui";
 import { useSession } from "../lib/use-session";
 
@@ -33,7 +33,13 @@ function ModuleCard({ module }: { module: Module }) {
 
 export default function ModuleGrid() {
   const router = useRouter();
-  const { signOut } = useSession();
+  const { session, signOut } = useSession();
+
+  // RF-02: the matrix decides what this role even sees. Hiding a card is not
+  // security — RequireModule guards the route, and the API must too (RNF-03).
+  const visibleModules = session
+    ? MODULES.filter((module) => canAccessModule(session.role, module.id))
+    : [];
 
   const handleSignOut = () => {
     signOut();
@@ -54,6 +60,11 @@ export default function ModuleGrid() {
             <p className="mt-2 text-slate-500">
               Selecciona el área que deseas administrar.
             </p>
+            {session && (
+              <p className="mt-1 text-sm text-slate-400">
+                {session.username} · {ROLE_LABELS[session.role]}
+              </p>
+            )}
           </div>
           <Button variant="secondary" onClick={handleSignOut}>
             <LogOut size={18} />
@@ -62,7 +73,7 @@ export default function ModuleGrid() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULES.map((module) =>
+          {visibleModules.map((module) =>
             module.available && module.route ? (
               <Link
                 key={module.id}

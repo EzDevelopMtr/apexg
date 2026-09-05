@@ -4,7 +4,12 @@ import {
   addMonths,
   calculateExpirationDate,
   daysBetween,
+  endOfMonth,
   isIsoDate,
+  isWithin,
+  previousMonth,
+  rangeFor,
+  startOfWeek,
   toIsoDate,
 } from "./calendar";
 
@@ -68,5 +73,52 @@ describe("calendar", () => {
       });
       expect(expiry).toBe("2026-06-02");
     });
+  });
+});
+
+describe("date ranges", () => {
+  it("starts the week on Monday", () => {
+    // 2026-06-15 is a Monday; 2026-06-21 the Sunday that closes that week.
+    expect(startOfWeek(date("2026-06-15"))).toBe("2026-06-15");
+    expect(startOfWeek(date("2026-06-21"))).toBe("2026-06-15");
+    expect(startOfWeek(date("2026-06-18"))).toBe("2026-06-15");
+  });
+
+  it("crosses a month boundary when the week does", () => {
+    expect(startOfWeek(date("2026-07-01"))).toBe("2026-06-29");
+  });
+
+  it("computes the real last day of the month", () => {
+    // "YYYY-MM-31" would denote a day that does not exist in February.
+    expect(endOfMonth(date("2026-02-10"))).toBe("2026-02-28");
+    expect(endOfMonth(date("2024-02-10"))).toBe("2024-02-29");
+    expect(endOfMonth(date("2026-04-10"))).toBe("2026-04-30");
+    expect(endOfMonth(date("2026-12-01"))).toBe("2026-12-31");
+  });
+
+  it("builds day, week and month ranges", () => {
+    expect(rangeFor("day", date("2026-06-18"))).toEqual({
+      from: "2026-06-18",
+      to: "2026-06-18",
+    });
+    expect(rangeFor("week", date("2026-06-18"))).toEqual({
+      from: "2026-06-15",
+      to: "2026-06-21",
+    });
+    expect(rangeFor("month", date("2026-02-18"))).toEqual({
+      from: "2026-02-01",
+      to: "2026-02-28",
+    });
+  });
+
+  it("includes both ends of a range", () => {
+    const range = rangeFor("month", date("2026-06-10"));
+    expect(isWithin(date("2026-06-01"), range)).toBe(true);
+    expect(isWithin(date("2026-06-30"), range)).toBe(true);
+    expect(isWithin(date("2026-07-01"), range)).toBe(false);
+  });
+
+  it("steps back a month with clamping", () => {
+    expect(previousMonth(date("2026-03-31"))).toBe("2026-02-28");
   });
 });

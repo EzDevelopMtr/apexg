@@ -16,7 +16,8 @@
     "@apexg/core": "workspace:*",
     "@apexg/ui": "workspace:*",
     "lucide-react": "^1.32.0",
-    "@apexg/data": "workspace:*"
+    "@apexg/data": "workspace:*",
+    "@apexg/module-kit": "workspace:*"
   },
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",

@@ -81,3 +81,38 @@ Note: "Por vencer" is **not** a state. It is a derived filter
 | ------------- | -------------- |
 | Administrador | `admin`        |
 | Recepcionista | `receptionist` |
+
+## Trainers, expenses and inventory
+
+| Spanish               | English           |
+| --------------------- | ----------------- |
+| Entrenador            | `Trainer`         |
+| Certificados          | `certifications`  |
+| Fecha de contratación | `hiredOn`         |
+| Cupo máximo           | `maxClients`      |
+| Comisión              | `Commission`      |
+| Egreso                | `Expense`         |
+| Categoría de egreso   | `ExpenseCategory` |
+| Concepto              | `description`     |
+| Producto / Ítem       | `InventoryItem`   |
+| Unidad de medida      | `UnitOfMeasure`   |
+| Stock / Existencias   | `stock`           |
+| Stock mínimo          | `minimumStock`    |
+| Precio de compra      | `costPrice`       |
+| Precio de venta       | `salePrice`       |
+| Proveedor             | `supplier`        |
+
+## Finance
+
+| Spanish              | English          |
+| -------------------- | ---------------- |
+| Balance              | `Balance`        |
+| Ingresos             | `income`         |
+| Egresos (total)      | `expenses`       |
+| Utilidad             | `profit`         |
+| Cierre mensual       | `MonthlyClosure` |
+| Ciclo (de pago)      | `cycle`          |
+| Referencia           | `reference`      |
+| Usuario que registró | `recordedBy`     |
+| Apartado diario      | `DailyLog`       |
+| Novedad              | `DailyLogNote`   |

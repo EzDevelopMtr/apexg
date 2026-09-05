@@ -1,6 +1,7 @@
 import type { IsoDate } from "./calendar";
 import { calculateExpirationDate, daysBetween } from "./calendar";
 import type { MembershipType, MembershipTypeId } from "./membership";
+import type { TrainerId } from "./trainer";
 
 declare const clientIdBrand: unique symbol;
 
@@ -35,6 +36,11 @@ export interface Client {
   readonly startDate: IsoDate;
   /** Derived from `startDate` and the membership term (RF-07). */
   readonly expirationDate: IsoDate;
+  /**
+   * Assigned trainer (RF-24). Present only on the personal and semi-personal
+   * plans, which are the ones `requiresTrainer` identifies.
+   */
+  readonly trainerId?: TrainerId;
 }
 
 /**

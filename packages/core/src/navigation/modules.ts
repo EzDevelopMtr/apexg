@@ -18,8 +18,10 @@ export interface Module {
 }
 
 /**
- * Every module the SRS defines. Only Clients is built; the rest are listed so
- * the grid reflects the real scope rather than a subset of it.
+ * Every module the SRS defines.
+ *
+ * The daily log is a module of its own rather than a section of Finances:
+ * §2.2 grants it to the receptionist while denying her Finances.
  */
 export const MODULES: readonly Module[] = [
   {
@@ -35,55 +37,59 @@ export const MODULES: readonly Module[] = [
     name: "Membresías",
     description: "Planes, tarifas y condiciones",
     icon: "card",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/memberships/all",
   },
   {
     id: "payments",
     name: "Pagos",
     description: "Pagos, abonos y saldos",
     icon: "wallet",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/payments/all",
   },
   {
     id: "trainers",
     name: "Entrenadores",
     description: "Entrenadores y comisiones",
     icon: "dumbbell",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/trainers/all",
   },
   {
     id: "expenses",
     name: "Egresos",
     description: "Gastos y categorías",
     icon: "receipt",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/expenses/all",
   },
   {
     id: "inventory",
     name: "Inventario",
     description: "Ítems y existencias",
     icon: "package",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/inventory/all",
   },
   {
     id: "finances",
     name: "Finanzas",
     description: "Balances y reportes",
     icon: "chart",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/finances/dashboard",
   },
   {
     id: "dailyLog",
     name: "Apartado diario",
     description: "Bitácora del día",
     icon: "notebook",
-    available: false,
-    route: null,
+    available: true,
+    route: "/modules/daily-log/today",
   },
 ];
+
+export function findModule(id: string): Module | undefined {
+  return MODULES.find((module) => module.id === id);
+}

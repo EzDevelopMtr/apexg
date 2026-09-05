@@ -5,6 +5,5 @@
  * implementations used until the backend exists.
  */
 
-export * from "./client-repository";
-export { InMemoryClientRepository } from "./in-memory/in-memory-client-repository";
-export { buildSeedClients } from "./in-memory/client-seed";
+export * from "./repositories";
+export * from "./in-memory";

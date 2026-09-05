@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { ClientSectionId } from "@apexg/core";
 import { ClientsPage } from "@apexg/module-clients";
-import { CLIENTS_BASE_PATH } from "./clients-sidebar";
+const CLIENTS_BASE_PATH = "/modules/clients";
 
 /**
  * Bridges the module to Next.js routing.

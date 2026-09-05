@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { CLIENT_SECTIONS } from "@apexg/core";
+import type { IconName } from "@apexg/core";
+import { navSectionsFor } from "@apexg/core";
 import {
   Icon,
   SidebarLabel,
@@ -11,16 +12,38 @@ import {
   sidebarItemClasses,
 } from "@apexg/ui";
 
-export const CLIENTS_BASE_PATH = "/modules/clients";
+export interface ModuleSidebarProps {
+  /** Module id, e.g. `clients`. Its sections are looked up here. */
+  moduleId: string;
+  /** Module name shown at the top, in Spanish. */
+  title: string;
+  icon: IconName;
+  /** Where the module's sections live, e.g. `/modules/clients`. */
+  basePath: string;
+}
 
-export default function ClientsSidebar() {
+/**
+ * Navigation for any module.
+ *
+ * Sections are resolved here rather than passed in: they carry predicates, and
+ * a server layout handing one to this client component would fail at runtime.
+ * One component serves every module — the catalogue is data, so a new module
+ * needs a route, not a new sidebar.
+ */
+export default function ModuleSidebar({
+  moduleId,
+  title,
+  icon,
+  basePath,
+}: ModuleSidebarProps) {
   const currentPath = usePathname();
+  const sections = navSectionsFor(moduleId);
 
   return (
     <SidebarShell
-      title="CLIENTES"
+      title={title}
       subtitle="APEX GYM"
-      iconName="users"
+      iconName={icon}
       footer={
         <Link
           href="/modules"
@@ -31,8 +54,8 @@ export default function ClientsSidebar() {
         </Link>
       }
     >
-      {CLIENT_SECTIONS.map((section) => {
-        const path = `${CLIENTS_BASE_PATH}/${section.id}`;
+      {sections.map((section) => {
+        const path = `${basePath}/${section.id}`;
         const active = currentPath === path;
 
         return (

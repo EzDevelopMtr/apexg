@@ -7,7 +7,9 @@ const nextConfig: NextConfig = {
     "@apexg/core",
     "@apexg/data",
     "@apexg/ui",
+    "@apexg/module-kit",
     "@apexg/module-clients",
+    "@apexg/module-memberships",
   ],
 };
 
