@@ -1,7 +1,3 @@
-import type { IsoDate } from "./calendar";
-import type { Money } from "./money";
-import { subtract } from "./money";
-
 declare const inventoryItemIdBrand: unique symbol;
 export type InventoryItemId = string & {
   readonly [inventoryItemIdBrand]: true;
@@ -22,32 +18,21 @@ export const UNIT_LABELS: Record<UnitOfMeasure, string> = {
   pack: "Paquete",
 };
 
-export type ItemCategory =
-  "supplements" | "accessories" | "clothing" | "care" | "other";
-
-/** User-facing category names, in Spanish. */
-export const ITEM_CATEGORY_LABELS: Record<ItemCategory, string> = {
-  supplements: "Suplementos",
-  accessories: "Accesorios",
-  clothing: "Ropa",
-  care: "Cuidado personal",
-  other: "Otros",
-};
-
-/** Something the gym stocks (RF-28, RF-29). */
+/**
+ * Something the gym stocks (RF-28, RF-29).
+ *
+ * Matches `inventory_items` as it exists today: no SKU, category, cost/sale
+ * price or supplier — the ERS itself leaves that fuller scope pending a
+ * decision with the client (§2.4). Adding those back is a schema change,
+ * not a frontend one.
+ */
 export interface InventoryItem {
   readonly id: InventoryItemId;
   readonly name: string;
-  readonly sku: string;
-  readonly category: ItemCategory;
   readonly unit: UnitOfMeasure;
-  readonly costPrice: Money;
-  readonly salePrice: Money;
   readonly stock: number;
   readonly minimumStock: number;
-  readonly supplier: string;
   readonly active: boolean;
-  readonly addedOn: IsoDate;
 }
 
 /** Whether stock has fallen to or below the configured minimum (RF-30). */
@@ -60,17 +45,4 @@ export function itemsBelowMinimum(
   items: readonly InventoryItem[],
 ): readonly InventoryItem[] {
   return items.filter((item) => item.active && isBelowMinimum(item));
-}
-
-/** Margin per unit sold. Negative when an item is priced below cost. */
-export function unitMargin(item: InventoryItem): Money {
-  return subtract(item.salePrice, item.costPrice);
-}
-
-/** What the stock on hand cost the business. */
-export function stockValue(items: readonly InventoryItem[]): Money {
-  return items.reduce<Money>(
-    (running, item) => (running + item.costPrice * item.stock) as Money,
-    0 as Money,
-  );
 }

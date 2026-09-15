@@ -2,12 +2,7 @@
 
 import { Pencil } from "lucide-react";
 import type { InventoryItem } from "@apexg/core";
-import {
-  ITEM_CATEGORY_LABELS,
-  UNIT_LABELS,
-  formatCOP,
-  isBelowMinimum,
-} from "@apexg/core";
+import { UNIT_LABELS, isBelowMinimum } from "@apexg/core";
 import {
   Badge,
   Button,
@@ -20,10 +15,8 @@ import {
 
 const HEADERS = [
   "Ítem",
-  "Categoría",
   "Existencias",
   "Mínimo",
-  "Precio venta",
   "Estado",
   "Acción",
 ] as const;
@@ -54,18 +47,11 @@ export default function InventoryList({ items, onEdit }: InventoryListProps) {
             <TableRow key={item.id}>
               <TableCell>
                 <p className="font-semibold text-body">{item.name}</p>
-                <p className="text-sm text-body-soft">{item.sku}</p>
-              </TableCell>
-              <TableCell className="text-sm">
-                {ITEM_CATEGORY_LABELS[item.category]}
               </TableCell>
               <TableCell className="text-sm">
                 {item.stock} {UNIT_LABELS[item.unit]}
               </TableCell>
               <TableCell className="text-sm">{item.minimumStock}</TableCell>
-              <TableCell className="text-sm">
-                {formatCOP(item.salePrice)}
-              </TableCell>
               <TableCell>{stockBadge(item)}</TableCell>
               <TableCell className="text-right">
                 <Button
