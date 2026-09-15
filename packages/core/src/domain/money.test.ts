@@ -4,10 +4,12 @@ import {
   add,
   atLeastZero,
   formatCOP,
+  fromApiString,
   fromCents,
   fromPesos,
   multiply,
   subtract,
+  toApiString,
   toPesos,
 } from "./money";
 
@@ -41,5 +43,24 @@ describe("money", () => {
   it("formats as Colombian pesos without decimals", () => {
     // Intl uses a non-breaking space, so compare on the digits.
     expect(formatCOP(fromPesos(65_000))).toContain("65.000");
+  });
+
+  it("parses the NUMERIC(_,2) string the backend sends", () => {
+    expect(fromApiString("65000.00")).toBe(fromPesos(65_000));
+    expect(fromApiString("0.50")).toBe(fromCents(50));
+    expect(fromApiString("-100.00")).toBe(fromPesos(-100));
+  });
+
+  it("rejects a malformed API money string", () => {
+    expect(() => fromApiString("65000")).toThrow(RangeError);
+    expect(() => fromApiString("65,000.00")).toThrow(RangeError);
+    expect(() => fromApiString("65000.0")).toThrow(RangeError);
+  });
+
+  it("round-trips through the API string shape", () => {
+    for (const pesos of [0, 65_000, 0.5, -100, 1_234_567.89]) {
+      const amount = fromPesos(pesos);
+      expect(fromApiString(toApiString(amount))).toBe(amount);
+    }
   });
 });

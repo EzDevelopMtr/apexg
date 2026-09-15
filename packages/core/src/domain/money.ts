@@ -82,3 +82,30 @@ const COP_FORMATTER = new Intl.NumberFormat("es-CO", {
 export function formatCOP(amount: Money): string {
   return COP_FORMATTER.format(toPesos(amount));
 }
+
+const API_MONEY_PATTERN = /^-?\d+\.\d{2}$/;
+
+/**
+ * Parses the string a `NUMERIC(_,2)` column comes back as over HTTP (the
+ * backend never sends a JSON number for money — see its own CLAUDE.md). The
+ * backend guarantees this exact shape, so a mismatch means something is
+ * genuinely wrong rather than a case to handle gracefully.
+ */
+export function fromApiString(value: string): Money {
+  if (!API_MONEY_PATTERN.test(value)) {
+    throw new RangeError(`Not a valid API money string: "${value}"`);
+  }
+  const negative = value.startsWith("-");
+  const [whole = "0", fraction = "0"] = (negative ? value.slice(1) : value).split(".");
+  const cents = Number(whole) * CENTS_PER_PESO + Number(fraction);
+  return fromCents(negative ? -cents : cents);
+}
+
+/** The inverse of {@link fromApiString} — what a `NUMERIC(_,2)` body field expects. */
+export function toApiString(amount: Money): string {
+  const negative = isNegative(amount);
+  const absolute = Math.abs(amount);
+  const whole = Math.floor(absolute / CENTS_PER_PESO);
+  const fraction = String(absolute % CENTS_PER_PESO).padStart(2, "0");
+  return `${negative ? "-" : ""}${whole}.${fraction}`;
+}
