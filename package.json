@@ -11,13 +11,20 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
-    "lint": "turbo run lint",
+    "lint": "oxlint",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "oxlint && turbo run typecheck && vitest run"
   },
   "devDependencies": {
     "oxlint": "^1.75.0",
     "turbo": "^2.10.11",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "prettier": "^3.4.2",
+    "vitest": "^3.0.5"
   }
 }

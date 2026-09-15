@@ -1,19 +1,37 @@
-/*
-  =====================================================
-  PUNTO DE ENTRADA DE @apexg/core
-  =====================================================
+/**
+ * `@apexg/core` — the domain.
+ *
+ * No React, no Next, no data access. Everything here runs in a plain Node test,
+ * which is what makes the financial rules in SRS §4 verifiable (RNF-07).
+ */
 
-  Este paquete NO depende de React ni de Next.js.
+/* Primitives */
+export * from "./domain/money";
+export * from "./domain/calendar";
 
-  Solamente contiene:
+/* Entities */
+export * from "./domain/client";
+export * from "./domain/membership";
+export * from "./domain/membership-catalog";
+export * from "./domain/payment";
+export * from "./domain/trainer";
+export * from "./domain/expense";
+export * from "./domain/inventory";
+export * from "./domain/finance";
 
-    - Tipos del dominio (Cliente, Modulo, ...)
-    - Datos de prueba
-    - Catalogo de modulos y secciones
+/* Access control */
+export * from "./domain/permissions";
 
-  Cualquier aplicacion del monorepo puede
-  importarlo sin arrastrar dependencias de UI.
-*/
-
-export * from "./clientes";
-export * from "./modulos";
+/* Navigation */
+export * from "./navigation/icons";
+export * from "./navigation/modules";
+export * from "./navigation/client-sections";
+export * from "./navigation/section-catalog";
+export * from "./navigation/membership-sections";
+export * from "./navigation/payment-sections";
+export * from "./navigation/trainer-sections";
+export * from "./navigation/expense-sections";
+export * from "./navigation/inventory-sections";
+export * from "./navigation/finance-sections";
+export * from "./navigation/daily-log-sections";
+export * from "./navigation/nav-sections";

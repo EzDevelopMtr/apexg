@@ -1,0 +1,700 @@
+//////////////////////////////////////////////////////
+// APEX GYM — Modelo lógico (DBML)
+// Estilo y tablas existentes conservados.
+// UUID = entidades de negocio · integer = catálogos (roles, módulos, permisos)
+//////////////////////////////////////////////////////
+
+
+// ===================================================
+// ADMINISTRACIÓN DE PLATAFORMA
+// ===================================================
+
+Table platform_admins {
+  id uuid [primary key]
+  email varchar [unique]
+  password varchar(255)
+  full_name varchar
+  created_at timestamptz
+  state integer
+  // 1 = activo · 2 = inactivo
+}
+
+Table companies {
+  id uuid [primary key]
+  name text
+  legal_name text
+  currency varchar(3)
+  // Código ISO simple: COP, USD, EUR
+  timezone text
+  created_by uuid [ref: > platform_admins.id]
+  created_at timestamptz
+  updated_at timestamptz
+  logo_path text
+  primary_color text
+  secondary_color text
+  accent_color text
+}
+
+
+// ===================================================
+// USUARIOS · ROLES · PERMISOS
+// ===================================================
+
+Table users {
+  id uuid [primary key]
+  company_id uuid [not null, ref: > companies.id]
+  username varchar [not null]
+  full_name varchar(150) [not null]
+  // Nombre real del Administrador / Recepcionista.
+  password varchar(255) [not null]
+  role_id integer [not null]
+  // users.role_id ya NO es una FK simple a roles.id.
+  // Ver Ref compuesto fk_users_company_role al final del archivo:
+  // (company_id, role_id) -> roles(company_id, id), que obliga a que el
+  // rol asignado pertenezca a la misma empresa que el usuario.
+  created_at timestamptz [not null, default: `now()`]
+  state integer [not null, default: 1]
+
+  Indexes {
+    (company_id, username) [unique]
+  }
+}
+
+Table roles {
+  id integer [primary key]
+  company_id uuid [not null, ref: > companies.id]
+  name varchar [not null]
+  description varchar
+  state integer [not null, default: 1]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (company_id, name) [unique]
+    (company_id, id) [unique, name: 'uq_roles_company_role_id']
+    // Clave candidata redundante (id ya es PK) usada como destino de la
+    // FK compuesta fk_users_company_role.
+  }
+}
+
+Table modules {
+  id integer [primary key]
+  name varchar [unique] // Clientes, Membresias, Pagos, Reportes, Rutinas
+  description varchar
+  state integer
+}
+
+Table permissions {
+  id integer [primary key]
+  module_id integer [ref: > modules.id]
+  action varchar // create, read, update, delete, export
+  code varchar [unique] // ej: "membresias.create"
+  description varchar
+}
+
+Table role_permissions {
+  role_id integer [ref: > roles.id]
+  permission_id integer [ref: > permissions.id]
+  granted_at timestamptz
+
+  Indexes {
+    (role_id, permission_id) [pk]
+  }
+}
+
+
+// ===================================================
+// CLIENTES
+// ===================================================
+
+Table clients {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  document_number varchar(50) [not null]
+  full_name varchar(150) [not null]
+
+  phone varchar(30)
+  email varchar(150)
+
+  emergency_contact_name varchar(150)
+  emergency_contact_phone varchar(30)
+
+  blood_type varchar(5)
+  birth_date date
+
+  medical_condition text
+  comments text
+
+  state integer [not null, default: 1]
+  // 1 = activo
+  // 2 = inactivo
+  // 3 = en mora
+
+  registered_at date [not null]
+  retired_at timestamptz
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, document_number) [unique]
+    (company_id, state)
+    (company_id, full_name)
+  }
+}
+
+Table client_notes {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_id uuid [not null, ref: > clients.id]
+
+  note text [not null]
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz [not null]
+
+  Indexes {
+    (client_id, created_at)
+  }
+}
+
+
+// ===================================================
+// MEMBRESÍAS
+// ===================================================
+
+Table membership_types {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  name varchar(100) [not null]
+
+  price numeric(12,2) [not null]
+
+  description text
+
+  duration_value integer [not null]
+  duration_unit varchar(20) [not null]
+  // day, week, month
+
+  minimum_payment numeric(12,2)
+
+  trainer_share numeric(12,2)
+  business_share numeric(12,2)
+  // Nullable. Solo se configuran en planes con entrenador
+  // (Personalizado / Semipersonalizado). Evita hardcodear
+  // en el backend los nombres de membresía y sus valores.
+  // En membresías normales quedan null.
+
+  allows_partial_payment boolean [not null, default: false]
+
+  is_promotional boolean [not null, default: false]
+  // true = plan de promoción (incluye folleto físico)
+
+  state integer [not null, default: 1]
+  // 1 = activo · 2 = inactivo
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, name) [unique]
+  }
+}
+
+Table client_memberships {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_id uuid [not null, ref: > clients.id]
+
+  membership_type_id uuid [not null, ref: > membership_types.id]
+
+  trainer_id uuid [ref: > trainers.id]
+  // Opcional. Se asigna solo cuando la membresía
+  // es Personalizado o Semipersonalizado.
+
+  promotion_group_id uuid [ref: > promotion_groups.id]
+  // Opcional. Grupo de promoción amigos/familiares.
+
+  start_date date [not null]
+
+  end_date date [not null]
+
+  agreed_price numeric(12,2) [not null]
+  // Valor acordado; conserva el histórico aunque
+  // cambie el precio del plan.
+
+  state integer [not null, default: 1]
+  // 1 = vigente
+  // 2 = vencida
+  // 3 = cancelada
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (client_id, start_date)
+    (company_id, state)
+    (company_id, end_date)
+    (trainer_id, state)
+    (promotion_group_id)
+  }
+}
+
+
+// ===================================================
+// PAGOS Y ABONOS  (una sola tabla)
+// ===================================================
+
+Table payments {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_membership_id uuid [not null, ref: > client_memberships.id]
+
+  amount numeric(12,2) [not null]
+
+  payment_type varchar(20) [not null]
+  // full               = pago completo
+  // first_installment  = primer abono
+  // second_installment = segundo abono
+  // final_installment  = abono final
+
+  payment_method varchar(20) [not null]
+  // cash, card, transfer
+
+  balance_after numeric(12,2) [not null]
+  // Saldo pendiente de la membresía luego de este pago.
+
+  paid_at timestamptz [not null]
+
+  notes text
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+
+  Indexes {
+    (client_membership_id, paid_at)
+    (company_id, paid_at)
+  }
+}
+
+
+// ===================================================
+// ENTRENADORES Y COMISIONES
+// ===================================================
+
+Table trainers {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  full_name varchar(150) [not null]
+  document_number varchar(50) [not null]
+  phone varchar(30)
+
+  hired_at date
+
+  salary numeric(12,2)
+
+  max_clients integer
+  // Opcional. Capacidad máxima de clientes.
+
+  state integer [not null, default: 1]
+  // 1 = activo · 2 = inactivo
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, document_number) [unique]
+    (company_id, state)
+  }
+}
+
+Table trainer_commissions {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  trainer_id uuid [not null, ref: > trainers.id]
+
+  client_membership_id uuid [not null, ref: > client_memberships.id]
+
+  payment_id uuid [not null, unique, ref: > payments.id]
+  // Pago que originó la comisión.
+  // unique = cada pago genera como máximo una comisión.
+
+  trainer_amount numeric(12,2) [not null]
+  business_amount numeric(12,2) [not null]
+  // Valor histórico realmente generado por este pago.
+
+  commission_date date [not null]
+
+  created_at timestamptz
+
+  Indexes {
+    (trainer_id, commission_date)
+    (company_id, commission_date)
+  }
+}
+
+
+// ===================================================
+// PROMOCIONES DE GRUPO (amigos / familiares)
+// ===================================================
+
+Table promotion_groups {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  name varchar(100) [not null]
+
+  state integer [not null, default: 1]
+  // 1 = activo · 2 = inactivo
+  // El grupo se conserva entre renovaciones.
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, name)
+  }
+}
+
+Table promotion_group_members {
+  promotion_group_id uuid [not null, ref: > promotion_groups.id]
+  client_id uuid [not null, ref: > clients.id]
+
+  joined_at timestamptz [not null]
+
+  Indexes {
+    (promotion_group_id, client_id) [pk]
+    (client_id)
+  }
+}
+
+
+// ===================================================
+// EGRESOS
+// ===================================================
+
+Table expense_categories {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  name varchar(100) [not null]
+  description text
+
+  state integer [not null, default: 1]
+  // 1 = activo · 2 = inactivo
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, name) [unique]
+  }
+}
+
+Table expenses {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  category_id uuid [not null, ref: > expense_categories.id]
+
+  concept varchar(200) [not null]
+
+  amount numeric(12,2) [not null]
+
+  expense_date date [not null]
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, expense_date)
+    (category_id)
+  }
+}
+
+
+// ===================================================
+// INVENTARIO
+// ===================================================
+
+Table inventory_items {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  name varchar(150) [not null]
+
+  description text
+
+  unit_of_measure varchar(30) [not null]
+  // unidad, kg, litro, botella, caja, etc.
+
+  current_stock numeric(12,3) [not null, default: 0]
+
+  minimum_stock numeric(12,3) [not null, default: 0]
+
+  state integer [not null, default: 1]
+  // 1 = activo
+  // 0 = inactivo
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, name) [unique]
+    (company_id, state)
+  }
+}
+
+Table inventory_movements {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  inventory_item_id uuid [not null, ref: > inventory_items.id]
+
+  movement_type varchar(20) [not null]
+  // IN
+  // OUT
+  // ADJUSTMENT
+
+  quantity numeric(12,3) [not null]
+
+  previous_stock numeric(12,3)
+  resulting_stock numeric(12,3)
+
+  reason text
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz [not null]
+
+  Indexes {
+    (inventory_item_id, created_at)
+    (company_id, created_at)
+  }
+}
+
+
+// ===================================================
+// MANTENIMIENTO PREVENTIVO DE EQUIPOS
+// ===================================================
+
+Table equipment_maintenance {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  inventory_item_id uuid [not null, ref: > inventory_items.id]
+
+  scheduled_date date [not null]
+  completed_date date
+
+  description text
+
+  state integer [not null, default: 1]
+  // 1 = programado
+  // 2 = completado
+  // 3 = cancelado
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (inventory_item_id, scheduled_date)
+    (company_id, state)
+  }
+}
+
+
+// ===================================================
+// APARTADO DIARIO Y CIERRE MENSUAL
+// ===================================================
+
+Table daily_logs {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  log_date date [not null]
+
+  observations text
+
+  created_by uuid [ref: > users.id]
+
+  created_at timestamptz
+  updated_at timestamptz
+
+  Indexes {
+    (company_id, log_date) [unique]
+    // Máximo un registro por empresa y fecha.
+  }
+}
+
+Table monthly_closures {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  year integer [not null]
+  month integer [not null]
+  // 1 a 12
+
+  observations text
+
+  closed_by uuid [ref: > users.id]
+  closed_at timestamptz
+
+  created_at timestamptz
+
+  Indexes {
+    (company_id, year, month) [unique]
+  }
+}
+
+
+// ===================================================
+// ASISTENCIA Y BIOMETRÍA (fase futura)
+// ===================================================
+
+Table attendances {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_id uuid [not null, ref: > clients.id]
+
+  check_in timestamptz [not null]
+  check_out timestamptz
+
+  source varchar(20) [not null, default: 'manual']
+  // manual · biometric
+
+  created_at timestamptz
+
+  Indexes {
+    (client_id, check_in)
+    (company_id, check_in)
+  }
+}
+
+Table client_biometrics {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_id uuid [not null, ref: > clients.id]
+
+  external_reference varchar(150)
+  // Identificador del cliente en el lector/servicio externo.
+
+  provider varchar(50)
+
+  state integer [not null, default: 1]
+  // 1 = activo · 2 = inactivo
+
+  created_at timestamptz
+
+  Indexes {
+    (client_id)
+    (company_id, provider, external_reference) [unique]
+  }
+}
+
+
+// ===================================================
+// AUDITORÍA Y NOTIFICACIONES
+// ===================================================
+
+Table audit_logs {
+  id uuid [primary key]
+
+  company_id uuid [ref: > companies.id]
+
+  user_id uuid [ref: > users.id]
+
+  action varchar(50) [not null]
+  // create, update, delete, login, export, ...
+
+  module varchar(50)
+  entity varchar(50)
+  entity_id varchar(64)
+  // varchar: las entidades mezclan uuid e integer.
+
+  detail text
+
+  created_at timestamptz [not null]
+
+  Indexes {
+    (company_id, created_at)
+    (user_id, created_at)
+    (entity, entity_id)
+  }
+}
+
+Table notifications {
+  id uuid [primary key]
+
+  company_id uuid [not null, ref: > companies.id]
+
+  client_id uuid [not null, ref: > clients.id]
+
+  type varchar(30) [not null]
+  // membership_expiration · birthday
+
+  channel varchar(20) [not null]
+  // sms · email · whatsapp
+
+  message text
+
+  scheduled_at timestamptz
+  sent_at timestamptz
+
+  state integer [not null, default: 1]
+  // 1 = pendiente
+  // 2 = enviada
+  // 3 = fallida
+
+  created_at timestamptz
+
+  Indexes {
+    (company_id, state)
+    (client_id, scheduled_at)
+  }
+}
+
+
+// ===================================================
+// INTEGRIDAD MULTIEMPRESA usuario ↔ rol  (migración 003)
+// ===================================================
+
+// FK compuesta: el rol de un usuario debe pertenecer a su misma empresa.
+// Reemplaza a la antigua FK simple users.role_id -> roles.id.
+// users.company_id -> companies.id (inline arriba) se conserva aparte.
+Ref fk_users_company_role: users.(company_id, role_id) > roles.(company_id, id)

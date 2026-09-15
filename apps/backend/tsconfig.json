@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@apexg/typescript-config/base.json",
+  "compilerOptions": {
+    // NestJS + ESM real ejecutable en Node (el monorepo es ESM).
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    // Backend: sin librerías DOM.
+    "lib": ["ES2023"],
+    "types": ["node"],
+
+    // NestJS necesita metadata de decoradores para su DI.
+    // verbatimModuleSyntax es incompatible con emitDecoratorMetadata
+    // (elide de imports usados solo como tipo -> se pierde el token de DI),
+    // por eso se desactiva SOLO en el backend. strict se mantiene.
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "verbatimModuleSyntax": false,
+
+    // El backend sí emite a dist/.
+    "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

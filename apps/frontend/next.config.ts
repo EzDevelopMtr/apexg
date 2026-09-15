@@ -1,26 +1,21 @@
 import type { NextConfig } from "next";
 
-/*
-  =====================================================
-  CONFIGURACION DE NEXT.JS
-  =====================================================
-*/
-
 const nextConfig: NextConfig = {
-
-  /*
-    Los paquetes internos del monorepo se publican
-    como TypeScript sin compilar, asi que le pedimos
-    a Next.js que los transpile el mismo.
-
-    Ventaja: al editar un paquete el cambio se ve
-    de inmediato, sin pasos de build intermedios.
-  */
-
+  // Internal packages ship as uncompiled TypeScript, so Next transpiles them.
+  // Editing a package is then visible immediately, with no intermediate build.
   transpilePackages: [
     "@apexg/core",
+    "@apexg/data",
     "@apexg/ui",
-    "@apexg/modulo-clientes",
+    "@apexg/module-kit",
+    "@apexg/module-clients",
+    "@apexg/module-memberships",
+    "@apexg/module-payments",
+    "@apexg/module-trainers",
+    "@apexg/module-expenses",
+    "@apexg/module-inventory",
+    "@apexg/module-finances",
+    "@apexg/module-daily-log",
   ],
 };
 

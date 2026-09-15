@@ -1,94 +1,37 @@
 import type { ReactNode } from "react";
 
-/*
-  =====================================================
-  TABLA
-  =====================================================
-
-  Envoltorio con scroll horizontal para que la tabla
-  no rompa el diseno en pantallas pequenas.
-
-  Uso:
-
-    <Table encabezados={["Nombre", "Estado"]}>
-      <TableRow>
-        <TableCell>Juan</TableCell>
-        <TableCell>Activo</TableCell>
-      </TableRow>
-    </Table>
-*/
-
-interface TableProps {
-
-  // Textos de la primera fila.
-  encabezados: string[];
-
-  // Las filas de la tabla.
+export interface TableProps {
+  /** Column headings, in Spanish. */
+  headers: readonly string[];
   children: ReactNode;
 }
 
-export default function Table({
-  encabezados,
-  children,
-}: TableProps) {
-
+export default function Table({ headers, children }: TableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
-
-        <thead className="bg-slate-50">
+        <thead className="bg-surface">
           <tr>
-            {encabezados.map((encabezado) => (
+            {headers.map((header) => (
               <th
-                key={encabezado}
-                className="
-                  px-6
-                  py-4
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  text-slate-500
-                "
+                key={header}
+                scope="col"
+                className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-body-soft"
               >
-                {encabezado}
+                {header}
               </th>
             ))}
           </tr>
         </thead>
-
-        <tbody className="divide-y divide-slate-100">
-          {children}
-        </tbody>
-
+        <tbody className="divide-y divide-line-soft">{children}</tbody>
       </table>
     </div>
   );
 }
 
-/*
-  -----------------------------------------------------
-  FILA
-  -----------------------------------------------------
-*/
-
-export function TableRow({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return (
-    <tr className="transition hover:bg-slate-50">
-      {children}
-    </tr>
-  );
+export function TableRow({ children }: { children: ReactNode }) {
+  return <tr className="transition hover:bg-surface">{children}</tr>;
 }
-
-/*
-  -----------------------------------------------------
-  CELDA
-  -----------------------------------------------------
-*/
 
 export function TableCell({
   children,
@@ -98,32 +41,21 @@ export function TableCell({
   className?: string;
 }) {
   return (
-    <td className={`px-6 py-4 text-slate-700 ${className}`}>
-      {children}
-    </td>
+    <td className={`px-6 py-4 text-body-muted ${className}`}>{children}</td>
   );
 }
 
-/*
-  -----------------------------------------------------
-  MENSAJE DE TABLA VACIA
-  -----------------------------------------------------
-*/
-
 export function TableEmpty({
-  columnas,
-  mensaje,
+  columns,
+  message,
 }: {
-  columnas: number;
-  mensaje: string;
+  columns: number;
+  message: string;
 }) {
   return (
     <tr>
-      <td
-        colSpan={columnas}
-        className="px-6 py-12 text-center text-slate-400"
-      >
-        {mensaje}
+      <td colSpan={columns} className="px-6 py-12 text-center text-body-faint">
+        {message}
       </td>
     </tr>
   );

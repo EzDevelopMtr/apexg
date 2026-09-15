@@ -2,308 +2,81 @@
 
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-
 import { useRouter } from "next/navigation";
-
-import {
-  Dumbbell,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  User,
-} from "lucide-react";
-
-import { useSesion } from "../lib/auth";
-
-/*
-  =====================================================
-  FORMULARIO DE INICIO DE SESION
-  =====================================================
-
-  Es el mismo formulario de antes, con dos cambios
-  propios de Next.js:
-
-    1. Las credenciales ya no estan escritas aqui.
-       Las valida iniciarSesion() en lib/auth.tsx,
-       que sera el unico archivo a cambiar cuando
-       exista el Backend.
-
-    2. Al entrar ya no avisamos a App.tsx mediante
-       una propiedad onLogin: navegamos a la ruta
-       /modulos.
-*/
+import { Dumbbell, User } from "lucide-react";
+import { Button, Card, CardBody, Input } from "@apexg/ui";
+import { useSession } from "../lib/use-session";
+import PasswordField from "./password-field";
 
 export default function LoginForm() {
-  // =====================================
-  // ESTADOS DEL FORMULARIO
-  // =====================================
-
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
-  // Controla si mostramos la contraseña
-  const [showPassword, setShowPassword] = useState(false);
-
-  // Mensaje de error
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // Estado del botón
-  const [loading, setLoading] = useState(false);
-
-  // Para movernos entre rutas
   const router = useRouter();
-
-  // Validacion de credenciales y guardado de sesion
-  const { iniciarSesion, sesion } = useSesion();
-
-  /*
-    Si ya hay sesion abierta no tiene sentido
-    mostrar el formulario: seguimos al selector.
-  */
+  const { signIn, session } = useSession();
 
   useEffect(() => {
-    if (sesion) {
-      router.replace("/modulos");
-    }
-  }, [sesion, router]);
+    if (session) router.replace("/modules");
+  }, [session, router]);
 
-  // =====================================
-  // ENVÍO DEL FORMULARIO
-  // =====================================
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    setError("");
+    if (!username.trim()) return setError("Ingresa tu usuario.");
+    if (!password.trim()) return setError("Ingresa tu contraseña.");
 
-    // Validar usuario
-    if (!username.trim()) {
-      setError("Ingresa tu usuario.");
-      return;
+    setSubmitting(true);
+    const result = await signIn(username, password);
+    setSubmitting(false);
+
+    if (!result.ok) {
+      return setError(result.message);
     }
 
-    // Validar contraseña
-    if (!password.trim()) {
-      setError("Ingresa tu contraseña.");
-      return;
-    }
-
-    setLoading(true);
-
-    /*
-      Mantenemos la pequeña espera para que el boton
-      alcance a mostrar su estado de carga.
-    */
-
-    setTimeout(() => {
-      const correcto = iniciarSesion(username, password);
-
-      if (!correcto) {
-        setLoading(false);
-        setError("Usuario o contraseña incorrectos.");
-        return;
-      }
-
-      // =====================================
-      // LOGIN CORRECTO
-      // =====================================
-
-      router.replace("/modulos");
-    }, 700);
+    router.replace("/modules");
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8">
-
-      {/* =================================
-          CONTENEDOR PRINCIPAL
-      ================================= */}
-
+    <main className="ground-grain flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-
-        {/* =================================
-            LOGO
-        ================================= */}
-
         <div className="mb-8 text-center">
-
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 shadow-lg">
-
-            <Dumbbell
-              size={32}
-              strokeWidth={2}
-              className="text-white"
-            />
-
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-shell shadow-lg">
+            <Dumbbell size={32} strokeWidth={2} className="text-white" />
           </div>
-
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Sistema Gimnasio
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Sistema de gestión
-          </p>
-
+          <h1 className="text-2xl font-bold text-body">APEX GYM</h1>
+          <p className="mt-1 text-body-soft">Sistema de gestión</p>
         </div>
 
-        {/* =================================
-            TARJETA DEL LOGIN
-        ================================= */}
+        <Card>
+          <CardBody>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <Input
+                id="username"
+                label="Usuario"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                icon={<User size={18} />}
+                autoComplete="username"
+                placeholder="Tu usuario"
+              />
 
-        <section className="rounded-2xl bg-white p-7 shadow-xl shadow-slate-200/60">
+              <PasswordField value={password} onChange={setPassword} />
 
-          <div className="mb-7">
+              {error && (
+                <p role="alert" className="text-sm text-danger-ink">
+                  {error}
+                </p>
+              )}
 
-            <h2 className="text-xl font-semibold text-slate-900">
-              Iniciar sesión
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Ingresa tus credenciales para continuar
-            </p>
-
-          </div>
-
-          {/* =================================
-              FORMULARIO
-          ================================= */}
-
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
-
-            {/* USUARIO */}
-
-            <div>
-
-              <label
-                htmlFor="username"
-                className="mb-2 block text-sm font-medium text-slate-700"
-              >
-                Usuario
-              </label>
-
-              <div className="relative">
-
-                <User
-                  size={19}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(event) => {
-                    setUsername(event.target.value);
-                    setError("");
-                  }}
-                  placeholder="Ingresa tu usuario"
-                  autoComplete="username"
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                />
-
-              </div>
-
-            </div>
-
-            {/* CONTRASEÑA */}
-
-            <div>
-
-              <label
-                htmlFor="password"
-                className="mb-2 block text-sm font-medium text-slate-700"
-              >
-                Contraseña
-              </label>
-
-              <div className="relative">
-
-                <LockKeyhole
-                  size={19}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(event) => {
-                    setPassword(event.target.value);
-                    setError("");
-                  }}
-                  placeholder="Ingresa tu contraseña"
-                  autoComplete="current-password"
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-11 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10"
-                />
-
-                {/* Mostrar / ocultar contraseña */}
-
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={
-                    showPassword
-                      ? "Ocultar contraseña"
-                      : "Mostrar contraseña"
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
-                >
-
-                  {showPassword ? (
-                    <EyeOff size={19} />
-                  ) : (
-                    <Eye size={19} />
-                  )}
-
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* MENSAJE DE ERROR */}
-
-            {error && (
-              <div
-                role="alert"
-                className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-              >
-                {error}
-              </div>
-            )}
-
-            {/* BOTÓN */}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-
-              {loading
-                ? "Ingresando..."
-                : "Ingresar"}
-
-            </button>
-
-          </form>
-
-        </section>
-
-        {/* =================================
-            FOOTER
-        ================================= */}
-
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Sistema de Gestión para Gimnasio
-        </p>
-
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Iniciando sesión…" : "Iniciar sesión"}
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
       </div>
-
     </main>
   );
 }
