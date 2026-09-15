@@ -1,6 +1,12 @@
 "use client";
 
-import type { Client, DailyLogNote, IsoDate, Payment } from "@apexg/core";
+import type {
+  Client,
+  DailyLogNote,
+  IsoDate,
+  Payment,
+  ProductSale,
+} from "@apexg/core";
 import { buildDailyLog } from "@apexg/core";
 import { useMembershipTypeCatalog } from "@apexg/module-kit";
 import DailyIncomeCard from "./daily-income-card";
@@ -9,6 +15,7 @@ import NotesCard from "./notes-card";
 
 export interface DailyLogPanelProps {
   payments: readonly Payment[];
+  productSales: readonly ProductSale[];
   clients: readonly Client[];
   notes: readonly DailyLogNote[];
   on: IsoDate;
@@ -23,17 +30,24 @@ export interface DailyLogPanelProps {
  */
 export default function DailyLogPanel({
   payments,
+  productSales,
   clients,
   notes,
   on,
   onAddNote,
 }: DailyLogPanelProps) {
-  const log = buildDailyLog({ payments, clients }, notes, on);
+  const log = buildDailyLog({ payments, productSales, clients }, notes, on);
   const membershipTypes = useMembershipTypeCatalog();
 
   return (
     <div className="space-y-6">
-      <DailyIncomeCard income={log.income} payments={payments} on={on} />
+      <DailyIncomeCard
+        log={log}
+        payments={payments}
+        productSales={productSales}
+        clients={clients}
+        on={on}
+      />
       <NewClientsCard
         clients={log.newClients}
         payments={payments}

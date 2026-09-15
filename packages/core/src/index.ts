@@ -17,6 +17,7 @@ export * from "./domain/payment";
 export * from "./domain/trainer";
 export * from "./domain/expense";
 export * from "./domain/inventory";
+export * from "./domain/product-sale";
 export * from "./domain/finance";
 
 /* Access control */

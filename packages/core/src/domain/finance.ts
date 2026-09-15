@@ -4,8 +4,9 @@ import type { Client } from "./client";
 import { resolveStatus } from "./client";
 import type { Expense } from "./expense";
 import type { Money } from "./money";
-import { ZERO, subtract } from "./money";
+import { ZERO, add, subtract } from "./money";
 import type { Payment } from "./payment";
+import type { ProductSale } from "./product-sale";
 
 export type BalancePeriod = "day" | "week" | "month";
 
@@ -13,10 +14,13 @@ export type BalancePeriod = "day" | "week" | "month";
  * The records every financial figure is computed from.
  *
  * Grouped because they always travel together: a balance, a comparison and the
- * daily log all need the same three collections.
+ * daily log all need the same four collections. Income has two sources —
+ * membership payments and product sales (RF-28/29) — counted separately so
+ * the daily log can show where the money came from, not just the total.
  */
 export interface FinancialRecords {
   readonly payments: readonly Payment[];
+  readonly productSales: readonly ProductSale[];
   readonly expenses: readonly Expense[];
   readonly clients: readonly Client[];
 }
@@ -59,11 +63,9 @@ export function calculateBalance(
 ): Balance {
   const range = rangeFor(period, on);
 
-  const income = sumIn(
-    records.payments,
-    range,
-    (p) => p.paidOn,
-    (p) => p.amount,
+  const income = add(
+    sumIn(records.payments, range, (p) => p.paidOn, (p) => p.amount),
+    sumIn(records.productSales, range, (s) => s.soldOn, (s) => s.amount),
   );
   const spent = sumIn(
     records.expenses,
@@ -139,29 +141,46 @@ export interface DailyLogNote {
   readonly recordedBy: string;
 }
 
-/** What the daily logbook shows for one day (RF-34). */
+/**
+ * What the daily logbook shows for one day (RF-34).
+ *
+ * `income` splits by source so the day's total is never a black box: a
+ * receptionist can see whether it came from membership payments, product
+ * sales, or both.
+ */
 export interface DailyLog {
   readonly on: IsoDate;
   readonly income: Money;
+  readonly incomeFromPayments: Money;
+  readonly incomeFromSales: Money;
   readonly newClients: readonly Client[];
   readonly notes: readonly DailyLogNote[];
 }
 
 export function buildDailyLog(
-  records: Pick<FinancialRecords, "payments" | "clients">,
+  records: Pick<FinancialRecords, "payments" | "clients" | "productSales">,
   notes: readonly DailyLogNote[],
   on: IsoDate,
 ): DailyLog {
   const range = rangeFor("day", on);
+  const incomeFromPayments = sumIn(
+    records.payments,
+    range,
+    (p) => p.paidOn,
+    (p) => p.amount,
+  );
+  const incomeFromSales = sumIn(
+    records.productSales,
+    range,
+    (s) => s.soldOn,
+    (s) => s.amount,
+  );
 
   return {
     on,
-    income: sumIn(
-      records.payments,
-      range,
-      (p) => p.paidOn,
-      (p) => p.amount,
-    ),
+    income: add(incomeFromPayments, incomeFromSales),
+    incomeFromPayments,
+    incomeFromSales,
     newClients: records.clients.filter((client) => client.startDate === on),
     notes: notes.filter((note) => note.on === on),
   };

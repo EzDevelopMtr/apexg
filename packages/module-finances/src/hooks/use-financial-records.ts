@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, Expense, FinancialRecords, Payment } from "@apexg/core";
+import type {
+  Client,
+  Expense,
+  FinancialRecords,
+  Payment,
+  ProductSale,
+} from "@apexg/core";
 import { useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection, LoadState } from "@apexg/module-kit";
 
@@ -22,17 +28,24 @@ export interface UseFinancialRecordsResult {
  * counts are derived, not stored (RF-33).
  */
 export function useFinancialRecords(): UseFinancialRecordsResult {
-  const { payments, expenses, clients } = useRepositories();
+  const { payments, productSales, expenses, clients } = useRepositories();
 
   const loadPayments = useCallback(() => payments.list(), [payments]);
+  const loadSales = useCallback(() => productSales.list(), [productSales]);
   const loadExpenses = useCallback(() => expenses.list(), [expenses]);
   const loadClients = useCallback(() => clients.list(), [clients]);
 
   const paymentCollection = useCollection<Payment>(loadPayments);
+  const saleCollection = useCollection<ProductSale>(loadSales);
   const expenseCollection = useCollection<Expense>(loadExpenses);
   const clientCollection = useCollection<Client>(loadClients);
 
-  const parts = [paymentCollection, expenseCollection, clientCollection];
+  const parts = [
+    paymentCollection,
+    saleCollection,
+    expenseCollection,
+    clientCollection,
+  ];
   const state: LoadState = parts.some((part) => part.state === "error")
     ? "error"
     : parts.some((part) => part.state === "loading")
@@ -45,6 +58,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     paymentCollection.reload,
+    saleCollection.reload,
     expenseCollection.reload,
     clientCollection.reload,
   ]);
@@ -52,12 +66,14 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
   return {
     records: {
       payments: paymentCollection.items,
+      productSales: saleCollection.items,
       expenses: expenseCollection.items,
       clients: clientCollection.items,
     },
     state,
     error:
       paymentCollection.error ??
+      saleCollection.error ??
       expenseCollection.error ??
       clientCollection.error,
     reload,

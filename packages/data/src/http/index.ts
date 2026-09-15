@@ -5,6 +5,7 @@ import { HttpExpenseRepository } from "./http-expense-repository";
 import { HttpInventoryRepository } from "./http-inventory-repository";
 import { HttpMembershipTypeRepository } from "./http-membership-type-repository";
 import { HttpPaymentRepository } from "./http-payment-repository";
+import { HttpProductSaleRepository } from "./http-product-sale-repository";
 import { HttpTrainerRepository } from "./http-trainer-repository";
 
 /** Builds the full repository set backed by the real backend. */
@@ -17,6 +18,7 @@ export function createHttpRepositories(): Repositories {
     expenses: new HttpExpenseRepository(),
     inventory: new HttpInventoryRepository(),
     dailyLog: new HttpDailyLogRepository(),
+    productSales: new HttpProductSaleRepository(),
   };
 }
 
@@ -26,6 +28,7 @@ export { HttpExpenseRepository } from "./http-expense-repository";
 export { HttpInventoryRepository } from "./http-inventory-repository";
 export { HttpMembershipTypeRepository } from "./http-membership-type-repository";
 export { HttpPaymentRepository } from "./http-payment-repository";
+export { HttpProductSaleRepository } from "./http-product-sale-repository";
 export { HttpTrainerRepository } from "./http-trainer-repository";
 export { ApiError, apiFetch } from "./http-client";
 export type { ApiRequestOptions } from "./http-client";

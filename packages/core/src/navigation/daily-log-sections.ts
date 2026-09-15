@@ -1,6 +1,6 @@
 import { createSectionCatalog } from "./section-catalog";
 
-export type DailyLogSectionId = "today" | "history";
+export type DailyLogSectionId = "today" | "history" | "sell";
 
 /**
  * Sections of the Daily log module (RF-34).
@@ -22,5 +22,12 @@ export const dailyLogSections = createSectionCatalog<DailyLogSectionId, never>([
     title: "Historial del apartado diario",
     icon: "list",
     view: { kind: "panel" },
+  },
+  {
+    id: "sell",
+    label: "Registrar venta",
+    title: "Registrar venta de producto",
+    icon: "package",
+    view: { kind: "form" },
   },
 ]);

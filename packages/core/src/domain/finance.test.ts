@@ -5,10 +5,13 @@ import type { Client } from "./client";
 import { toClientId } from "./client";
 import type { Expense } from "./expense";
 import { toExpenseId } from "./expense";
+import { toInventoryItemId } from "./inventory";
 import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 import type { Payment } from "./payment";
 import { toCycleId, toPaymentId } from "./payment";
+import type { ProductSale } from "./product-sale";
+import { toProductSaleId } from "./product-sale";
 import {
   buildDailyLog,
   calculateBalance,
@@ -69,12 +72,26 @@ function expense(id: string, spentOn: string, pesos: number): Expense {
   };
 }
 
+function sale(id: string, soldOn: string, pesos: number): ProductSale {
+  return {
+    id: toProductSaleId(id),
+    inventoryItemId: toInventoryItemId("item-1"),
+    itemName: "Proteína en polvo",
+    quantity: 1,
+    amount: fromPesos(pesos),
+    paymentMethod: "cash",
+    soldOn: date(soldOn),
+    notes: "",
+  };
+}
+
 describe("calculateBalance (RF-31)", () => {
   const payments = [
     payment("p1", "2026-06-18", 65_000),
     payment("p2", "2026-06-16", 50_000),
     payment("p3", "2026-05-30", 45_000),
   ];
+  const productSales: ProductSale[] = [];
   const expenses = [
     expense("e1", "2026-06-18", 20_000),
     expense("e2", "2026-06-02", 100_000),
@@ -82,7 +99,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up only the day in question", () => {
     const balance = calculateBalance(
-      { payments, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [] },
       "day",
       TODAY,
     );
@@ -93,7 +110,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the Monday-to-Sunday week", () => {
     const balance = calculateBalance(
-      { payments, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [] },
       "week",
       TODAY,
     );
@@ -103,7 +120,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the month and excludes the previous one", () => {
     const balance = calculateBalance(
-      { payments, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [] },
       "month",
       TODAY,
     );
@@ -111,6 +128,23 @@ describe("calculateBalance (RF-31)", () => {
     expect(balance.income).toBe(fromPesos(115_000));
     expect(balance.expenses).toBe(fromPesos(120_000));
     expect(balance.profit).toBe(fromPesos(-5_000));
+  });
+
+  it("adds product sales to income, alongside payments (RF-28/29)", () => {
+    const balance = calculateBalance(
+      {
+        payments,
+        productSales: [
+          sale("s1", "2026-06-18", 8_000),
+          sale("s2", "2026-05-30", 100_000), // outside the day in question
+        ],
+        expenses,
+        clients: [],
+      },
+      "day",
+      TODAY,
+    );
+    expect(balance.income).toBe(fromPesos(73_000));
   });
 
   it("counts clients by derived status, not the stored one (RF-33)", () => {
@@ -123,7 +157,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments: [], expenses: [], clients },
+      { payments: [], productSales: [], expenses: [], clients },
       "month",
       TODAY,
     );
@@ -140,7 +174,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
     ];
 
     const comparison = compareWithPreviousMonth(
-      { payments, expenses: [], clients: [] },
+      { payments, productSales: [], expenses: [], clients: [] },
       TODAY,
     );
     expect(comparison.current.income).toBe(fromPesos(100_000));
@@ -151,7 +185,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
   it("steps back correctly from the 31st", () => {
     // previousMonth clamps, so this must not land in March.
     const comparison = compareWithPreviousMonth(
-      { payments: [], expenses: [], clients: [] },
+      { payments: [], productSales: [], expenses: [], clients: [] },
       date("2026-03-31"),
     );
     expect(comparison.previous.range.from).toBe("2026-02-01");
@@ -193,7 +227,11 @@ describe("buildDailyLog (RF-34)", () => {
     ];
 
     const log = buildDailyLog(
-      { payments: [payment("p1", "2026-06-18", 65_000)], clients },
+      {
+        payments: [payment("p1", "2026-06-18", 65_000)],
+        productSales: [],
+        clients,
+      },
       notes,
       TODAY,
     );
@@ -201,5 +239,24 @@ describe("buildDailyLog (RF-34)", () => {
     expect(log.income).toBe(fromPesos(65_000));
     expect(log.newClients.map((c) => c.id as string)).toEqual(["new"]);
     expect(log.notes).toHaveLength(1);
+  });
+
+  it("splits income by source: payments vs product sales", () => {
+    const log = buildDailyLog(
+      {
+        payments: [payment("p1", "2026-06-18", 65_000)],
+        productSales: [
+          sale("s1", "2026-06-18", 8_000),
+          sale("s2", "2026-06-17", 5_000), // a different day, excluded
+        ],
+        clients: [],
+      },
+      [],
+      TODAY,
+    );
+
+    expect(log.incomeFromPayments).toBe(fromPesos(65_000));
+    expect(log.incomeFromSales).toBe(fromPesos(8_000));
+    expect(log.income).toBe(fromPesos(73_000));
   });
 });

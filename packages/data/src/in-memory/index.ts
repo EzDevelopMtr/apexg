@@ -5,6 +5,7 @@ import { InMemoryExpenseRepository } from "./expense-repository";
 import { InMemoryInventoryRepository } from "./inventory-repository";
 import { InMemoryMembershipTypeRepository } from "./membership-type-repository";
 import { InMemoryPaymentRepository } from "./payment-repository";
+import { InMemoryProductSaleRepository } from "./product-sale-repository";
 import { InMemoryTrainerRepository } from "./trainer-repository";
 import {
   buildSeedClients,
@@ -33,6 +34,11 @@ export function createInMemoryRepositories(): Repositories {
     expenses: new InMemoryExpenseRepository(buildSeedExpenses()),
     inventory: new InMemoryInventoryRepository(buildSeedInventory()),
     dailyLog: new InMemoryDailyLogRepository(),
+    productSales: new InMemoryProductSaleRepository(
+      [],
+      buildSeedInventory(),
+      buildSeedClients(),
+    ),
   };
 }
 
@@ -42,6 +48,7 @@ export { InMemoryExpenseRepository } from "./expense-repository";
 export { InMemoryInventoryRepository } from "./inventory-repository";
 export { InMemoryMembershipTypeRepository } from "./membership-type-repository";
 export { InMemoryPaymentRepository } from "./payment-repository";
+export { InMemoryProductSaleRepository } from "./product-sale-repository";
 export { InMemoryTrainerRepository } from "./trainer-repository";
 export { InMemoryStore, newId } from "./in-memory-store";
 export * from "./seed";

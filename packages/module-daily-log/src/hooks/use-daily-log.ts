@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, DailyLogNote, IsoDate, Payment } from "@apexg/core";
+import type {
+  Client,
+  DailyLogNote,
+  IsoDate,
+  Payment,
+  ProductSale,
+} from "@apexg/core";
 import { buildDailyLog } from "@apexg/core";
 import { useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection, LoadState } from "@apexg/module-kit";
@@ -9,6 +15,7 @@ import type { Collection, LoadState } from "@apexg/module-kit";
 export interface UseDailyLogResult {
   readonly notes: readonly DailyLogNote[];
   readonly payments: readonly Payment[];
+  readonly productSales: readonly ProductSale[];
   readonly clients: readonly Client[];
   readonly state: LoadState;
   readonly addNote: (
@@ -21,18 +28,25 @@ export interface UseDailyLogResult {
 
 /** Everything the day's logbook shows (RF-34). */
 export function useDailyLog(): UseDailyLogResult {
-  const { dailyLog, payments, clients } = useRepositories();
+  const { dailyLog, payments, productSales, clients } = useRepositories();
 
   const loadNotes = useCallback(() => dailyLog.listNotes(), [dailyLog]);
   const loadPayments = useCallback(() => payments.list(), [payments]);
+  const loadSales = useCallback(() => productSales.list(), [productSales]);
   const loadClients = useCallback(() => clients.list(), [clients]);
 
   const noteCollection = useCollection<DailyLogNote>(loadNotes);
   const paymentCollection = useCollection<Payment>(loadPayments);
+  const saleCollection = useCollection<ProductSale>(loadSales);
   const clientCollection = useCollection<Client>(loadClients);
   const { apply } = noteCollection;
 
-  const parts = [noteCollection, paymentCollection, clientCollection];
+  const parts = [
+    noteCollection,
+    paymentCollection,
+    saleCollection,
+    clientCollection,
+  ];
   const state: LoadState = parts.some((part) => part.state === "error")
     ? "error"
     : parts.some((part) => part.state === "loading")
@@ -50,6 +64,7 @@ export function useDailyLog(): UseDailyLogResult {
   return {
     notes: noteCollection.items,
     payments: paymentCollection.items,
+    productSales: saleCollection.items,
     clients: clientCollection.items,
     state,
     addNote,

@@ -5,13 +5,17 @@ import type { DailyLogSectionId } from "@apexg/core";
 import { today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
 import { useDailyLog } from "../hooks/use-daily-log";
+import { useProductSales } from "../hooks/use-product-sales";
+import { useSaleCatalogs } from "../hooks/use-sale-catalogs";
 import DailyLogHistory from "./daily-log-history";
 import DailyLogPanel from "./daily-log-panel";
+import RegisterSaleForm from "./register-sale-form";
 
 export interface DailyLogPageProps {
   sectionId: DailyLogSectionId;
   /** Stamped onto each note so the log says who wrote it. */
   recordedBy: string;
+  onNavigate: (sectionId: string) => void;
 }
 
 /**
@@ -23,9 +27,29 @@ export interface DailyLogPageProps {
 export default function DailyLogPage({
   sectionId,
   recordedBy,
+  onNavigate,
 }: DailyLogPageProps) {
   const log = useDailyLog();
+  const sales = useProductSales();
+  const catalogs = useSaleCatalogs();
   const [referenceDate] = useState(today);
+
+  if (sectionId === "sell") {
+    return (
+      <CollectionGate
+        collection={catalogs.gate}
+        loadingMessage="Cargando productos y clientes..."
+        errorMessage="No pudimos cargar los productos disponibles."
+      >
+        <RegisterSaleForm
+          items={catalogs.items}
+          clients={catalogs.clients}
+          onCreate={sales.create}
+          onDone={() => onNavigate("today")}
+        />
+      </CollectionGate>
+    );
+  }
 
   return (
     <CollectionGate
@@ -36,6 +60,7 @@ export default function DailyLogPage({
       {sectionId === "today" ? (
         <DailyLogPanel
           payments={log.payments}
+          productSales={log.productSales}
           clients={log.clients}
           notes={log.notes}
           on={referenceDate}
