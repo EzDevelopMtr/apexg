@@ -15,6 +15,7 @@
     ],
     "typescript/no-explicit-any": "error",
     "typescript/consistent-type-imports": "error",
+    "typescript/no-extraneous-class": ["error", { "allowWithDecorator": true }],
     "eslint/max-lines": [
       "error",
       {
@@ -41,7 +42,7 @@
   },
   "overrides": [
     {
-      "files": ["apps/web/app/**"],
+      "files": ["apps/frontend/app/**"],
       "rules": {
         "react/only-export-components": "off"
       }
@@ -60,6 +61,18 @@
       ],
       "rules": {
         "eslint/max-lines": "off"
+      }
+    },
+    {
+      "files": ["apps/backend/src/database/schema/**"],
+      "rules": {
+        "eslint/max-lines": "off"
+      }
+    },
+    {
+      "files": ["apps/backend/src/**"],
+      "rules": {
+        "typescript/consistent-type-imports": "off"
       }
     }
   ],

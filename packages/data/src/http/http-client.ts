@@ -1,9 +1,9 @@
 /**
  * Shared fetch wrapper for every HTTP repository.
  *
- * Calls go to `/api/backend/...` — a same-origin proxy in `apps/web` that
- * attaches the access token server-side from an httpOnly cookie (see
- * `apps/web/app/api/backend/[...path]/route.ts`). No repository here ever
+ * Calls go to `/api/backend/...` — a same-origin proxy in `apps/frontend`
+ * that attaches the access token server-side from an httpOnly cookie (see
+ * `apps/frontend/app/api/backend/[...path]/route.ts`). No repository here ever
  * sees a token; that boundary lives entirely in the web app.
  */
 

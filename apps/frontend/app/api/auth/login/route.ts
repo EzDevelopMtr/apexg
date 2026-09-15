@@ -6,7 +6,7 @@ import { setSessionCookie } from "../../../../lib/auth-cookie";
 function companyId(): string {
   const value = process.env.APEXG_COMPANY_ID;
   if (!value) {
-    throw new Error("APEXG_COMPANY_ID is not set (see apps/web/.env.local).");
+    throw new Error("APEXG_COMPANY_ID is not set (see apps/frontend/.env.local).");
   }
   return value;
 }

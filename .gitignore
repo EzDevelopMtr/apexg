@@ -21,6 +21,7 @@ next-env.d.ts
 # Cache de herramientas
 .turbo
 *.tsbuildinfo
+.drizzle-introspect
 
 # Variables de entorno
 .env

@@ -2,7 +2,7 @@
  * `@apexg/ui` — presentational primitives.
  *
  * Knows nothing about Next.js, routing or business rules, so it can be reused
- * by any app in the monorepo. Navigation lives in `apps/web`.
+ * by any app in the monorepo. Navigation lives in `apps/frontend`.
  */
 
 /* Form controls */

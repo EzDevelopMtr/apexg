@@ -32,7 +32,7 @@ test de Node sin React, sin Next y sin base de datos.
 
 Cada módulo del negocio es su propio paquete. Cuando se construyan Membresías,
 Pagos, Inventario, Finanzas o Entrenadores, cada uno entra como
-`packages/module-<nombre>` y `apps/web` solo agrega su ruta.
+`packages/module-<nombre>` y `apps/frontend` solo agrega su ruta.
 
 ## Requisitos
 
@@ -82,35 +82,35 @@ componente.
 
 ## Sesión
 
-Credenciales temporales de desarrollo:
+El login es real: `apps/frontend` llama a `POST /api/auth/login`, un Route
+Handler que autentica contra `apps/backend` y guarda el access token en una
+cookie `httpOnly` — el navegador nunca lo ve (`apps/frontend/lib/auth-cookie.ts`).
+`apps/frontend/proxy.ts` (el archivo que reemplaza a `middleware.ts` desde
+Next.js 16) protege las rutas privadas del lado del servidor antes de
+renderizar (RF-02, RNF-03), decodificando el JWT solo para revisar su
+expiración — la firma la revalida siempre el backend real.
+
+Credencial de desarrollo (una sola empresa, ver `apps/frontend/.env.local`):
 
 ```
-apexg     / apex2026    (administrador)
-recepcion / apex2026    (recepcionista)
+apexg / <ver la memoria del proyecto o pedirle la contraseña a quien la generó>
 ```
-
-**Esto no es seguridad real.** La validación ocurre en el navegador y las
-credenciales están escritas en el código (`apps/web/lib/session.tsx`). Cuando
-exista el Backend hay que:
-
-1. Autenticar contra la API con contraseñas cifradas (RF-01, RNF-02).
-2. Guardar la sesión en una cookie `httpOnly`.
-3. Proteger las rutas en `middleware.ts`, no solo con el guardia de interfaz
-   `SessionGuard` (RF-02, RNF-03).
 
 ## Datos
 
-No hay backend todavía. `packages/data` expone el contrato
-`ClientRepository` y una implementación en memoria que se reinicia al
-recargar. Los componentes dependen del contrato, nunca de la
-implementación: cambiarla por un cliente HTTP no toca la interfaz.
+`packages/data` expone los contratos (`ClientRepository`, etc.) y dos
+implementaciones: una en memoria (semilla de desarrollo, sin backend) y una
+HTTP real (`createHttpRepositories()`, usada por `apps/frontend`) que habla
+con `apps/backend` a través del mismo proxy de sesión. Se está migrando
+módulo por módulo — ver el propio código en `packages/data/src/http/` para
+cuáles ya son reales.
 
 ## Notas técnicas
 
 - Los paquetes internos se publican como TypeScript sin compilar y Next.js
   los transpila (`transpilePackages` en `next.config.ts`).
 - Tailwind CSS v4 se configura desde PostCSS. Las carpetas de los paquetes se
-  declaran con `@source` en `apps/web/app/globals.css`; sin eso, las clases
+  declaran con `@source` en `apps/frontend/app/globals.css`; sin eso, las clases
   usadas dentro de `packages/` no se generarían.
 - `packages/ui` es presentacional y no importa nada de Next.js, para poder
   reutilizarse en otras aplicaciones del monorepo.

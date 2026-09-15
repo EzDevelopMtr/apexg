@@ -9,7 +9,7 @@ import "server-only";
 function backendUrl(): string {
   const value = process.env.BACKEND_URL;
   if (!value) {
-    throw new Error("BACKEND_URL is not set (see apps/web/.env.local).");
+    throw new Error("BACKEND_URL is not set (see apps/frontend/.env.local).");
   }
   return value;
 }
