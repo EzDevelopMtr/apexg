@@ -10,10 +10,10 @@ import {
   requiresTrainer,
 } from "./membership";
 import { fromPesos, toPesos } from "./money";
-import type { MembershipTypeId } from "./membership";
+import { toMembershipTypeId } from "./membership";
 
-const get = (id: MembershipTypeId) => {
-  const type = findMembershipType(id);
+const get = (id: string) => {
+  const type = findMembershipType(toMembershipTypeId(id));
   if (!type) throw new Error(`missing membership type: ${id}`);
   return type;
 };

@@ -2,7 +2,11 @@
 
 import { useCallback } from "react";
 import type { MembershipType } from "@apexg/core";
-import { useCollection, upsertById, useRepositories } from "@apexg/module-kit";
+import {
+  upsertById,
+  useMembershipTypeCatalog,
+  useRepositories,
+} from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
 export interface UseMembershipTypesResult extends Collection<MembershipType> {
@@ -14,8 +18,7 @@ export interface UseMembershipTypesResult extends Collection<MembershipType> {
 export function useMembershipTypes(): UseMembershipTypesResult {
   const { membershipTypes } = useRepositories();
 
-  const load = useCallback(() => membershipTypes.list(), [membershipTypes]);
-  const collection = useCollection<MembershipType>(load);
+  const collection = useMembershipTypeCatalog();
   const { apply } = collection;
 
   const save = useCallback(

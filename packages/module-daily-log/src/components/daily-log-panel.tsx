@@ -2,6 +2,7 @@
 
 import type { Client, DailyLogNote, IsoDate, Payment } from "@apexg/core";
 import { buildDailyLog } from "@apexg/core";
+import { useMembershipTypeCatalog } from "@apexg/module-kit";
 import DailyIncomeCard from "./daily-income-card";
 import NewClientsCard from "./new-clients-card";
 import NotesCard from "./notes-card";
@@ -28,11 +29,17 @@ export default function DailyLogPanel({
   onAddNote,
 }: DailyLogPanelProps) {
   const log = buildDailyLog({ payments, clients }, notes, on);
+  const membershipTypes = useMembershipTypeCatalog();
 
   return (
     <div className="space-y-6">
       <DailyIncomeCard income={log.income} payments={payments} on={on} />
-      <NewClientsCard clients={log.newClients} payments={payments} on={on} />
+      <NewClientsCard
+        clients={log.newClients}
+        payments={payments}
+        membershipTypes={membershipTypes.items}
+        on={on}
+      />
       <NotesCard notes={log.notes} onAddNote={onAddNote} />
     </div>
   );

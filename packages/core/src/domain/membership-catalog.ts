@@ -1,19 +1,24 @@
 import type { MembershipType, MembershipTypeId } from "./membership";
+import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 
 /**
  * The default membership catalogue (RF-13), transcribed from SRS §4.1.
  *
- * This is seed data, not a hardcoded rule: RF-12 lets the administrator create,
- * edit and delete types, so once persistence exists this table only supplies
- * the initial rows.
+ * This is seed data, not the catalogue: RF-12 lets the administrator create,
+ * edit and delete types, and the real backend does exactly that against a
+ * table of its own, arbitrary UUIDs and all. `packages/data/src/in-memory/`
+ * uses this array (and `findMembershipType`/`isMembershipTypeId` below) to
+ * back the in-memory `MembershipTypeRepository` — nothing that talks to the
+ * real backend should import it; ask `MembershipTypeRepository.list()`
+ * (via `@apexg/module-kit`'s `useMembershipTypeCatalog`) for the live one.
  *
  * OPEN QUESTION: §4.1 does not state the term of the personal and
  * semi-personal plans. They are assumed monthly here; confirm with the client.
  */
 export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
   {
-    id: "monthly",
+    id: toMembershipTypeId("monthly"),
     name: "Mensualidad (lunes a sábado)",
     price: fromPesos(65_000),
     term: { unit: "month", amount: 1 },
@@ -23,7 +28,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Acceso de lunes a sábado, vigencia de 1 mes.",
   },
   {
-    id: "monthlyThreeDays",
+    id: toMembershipTypeId("monthlyThreeDays"),
     name: "Mes 3 veces por semana",
     price: fromPesos(50_000),
     term: { unit: "month", amount: 1 },
@@ -33,7 +38,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "3 días a la semana, organizables libremente durante 1 mes.",
   },
   {
-    id: "fortnight",
+    id: toMembershipTypeId("fortnight"),
     name: "Quincena",
     price: fromPesos(45_000),
     term: { unit: "day", amount: 15 },
@@ -43,7 +48,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Vigencia de 15 días calendario desde la fecha de inicio.",
   },
   {
-    id: "week",
+    id: toMembershipTypeId("week"),
     name: "Semana",
     price: fromPesos(25_000),
     term: { unit: "day", amount: 7 },
@@ -53,7 +58,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Vigencia de 7 días.",
   },
   {
-    id: "day",
+    id: toMembershipTypeId("day"),
     name: "Día",
     price: fromPesos(6_000),
     term: { unit: "day", amount: 1 },
@@ -63,7 +68,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Vigencia de 1 día.",
   },
   {
-    id: "friendsPromo",
+    id: toMembershipTypeId("friendsPromo"),
     name: "Promo amigos/familiar",
     price: fromPesos(60_000),
     term: { unit: "month", amount: 1 },
@@ -74,7 +79,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
       "Aplica cuando 3 o más clientes pagan su mensualidad en conjunto.",
   },
   {
-    id: "flyerPromo",
+    id: toMembershipTypeId("flyerPromo"),
     name: "Promo folleto físico",
     price: fromPesos(55_000),
     term: { unit: "month", amount: 1 },
@@ -85,7 +90,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
       "Solo para clientes nuevos que presenten el folleto al inscribirse.",
   },
   {
-    id: "personalTraining",
+    id: toMembershipTypeId("personalTraining"),
     name: "Personalizado",
     price: fromPesos(200_000),
     term: { unit: "month", amount: 1 },
@@ -95,7 +100,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Entrenamiento personalizado 1 a 1.",
   },
   {
-    id: "semiPersonal",
+    id: toMembershipTypeId("semiPersonal"),
     name: "Semipersonalizado",
     price: fromPesos(150_000),
     term: { unit: "month", amount: 1 },
@@ -110,14 +115,14 @@ const BY_ID = new Map<MembershipTypeId, MembershipType>(
   DEFAULT_MEMBERSHIP_TYPES.map((type) => [type.id, type]),
 );
 
-/** Looks up a membership type, or `undefined` if the id is unknown. */
+/** Looks up a plan in the SEED catalogue above — see its own doc comment. */
 export function findMembershipType(
   id: MembershipTypeId,
 ): MembershipType | undefined {
   return BY_ID.get(id);
 }
 
-/** Narrows a string to a known {@link MembershipTypeId}. */
+/** Whether `value` is one of the nine seed plans above. */
 export function isMembershipTypeId(value: string): value is MembershipTypeId {
   return BY_ID.has(value as MembershipTypeId);
 }

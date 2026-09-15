@@ -5,15 +5,12 @@ import type {
   Client,
   ClientDraft,
   ClientStatus,
+  MembershipType,
   MembershipTypeId,
 } from "@apexg/core";
-import {
-  calculateExpirationDate,
-  findMembershipType,
-  isIsoDate,
-  isMembershipTypeId,
-  today,
-} from "@apexg/core";
+import { calculateExpirationDate, isIsoDate, today, toMembershipTypeId } from "@apexg/core";
+import type { Collection } from "@apexg/module-kit";
+import { useMembershipTypeCatalog } from "@apexg/module-kit";
 
 export interface ClientFormValues {
   fullName: string;
@@ -33,7 +30,10 @@ function initialValues(client?: Client): ClientFormValues {
     idNumber: client?.idNumber ?? "",
     phone: client?.phone ?? "",
     email: client?.email ?? "",
-    membershipTypeId: client?.membershipTypeId ?? "monthly",
+    // Left blank rather than defaulted to a guessed plan: the real catalogue
+    // is fetched asynchronously, so there is nothing sensible to default to
+    // before it loads. The Select shows a placeholder until the user picks.
+    membershipTypeId: client?.membershipTypeId ?? toMembershipTypeId(""),
     status: client?.status ?? "active",
     // RF-06: defaults to today, but stays editable for a membership that
     // started on a different day.
@@ -53,7 +53,7 @@ function validate(values: ClientFormValues): ClientFormErrors {
   if (!isIsoDate(values.startDate)) {
     errors.startDate = "Selecciona una fecha de inicio válida.";
   }
-  if (!isMembershipTypeId(values.membershipTypeId)) {
+  if (!values.membershipTypeId.trim()) {
     errors.membershipTypeId = "Selecciona un tipo de membresía.";
   }
 
@@ -65,6 +65,8 @@ export interface UseClientFormResult {
   readonly errors: ClientFormErrors;
   /** Expiration derived from start date and plan (RF-07). Read-only for the user. */
   readonly expirationPreview: string | null;
+  /** The real catalogue (RF-13), for the plan `<Select>` — see `useMembershipTypeCatalog`. */
+  readonly membershipTypes: Collection<MembershipType>;
   readonly setValue: <K extends keyof ClientFormValues>(
     field: K,
     value: ClientFormValues[K],
@@ -78,6 +80,7 @@ export function useClientForm(client?: Client): UseClientFormResult {
     initialValues(client),
   );
   const [errors, setErrors] = useState<ClientFormErrors>({});
+  const membershipTypes = useMembershipTypeCatalog();
 
   const setValue = useCallback(
     <K extends keyof ClientFormValues>(
@@ -91,10 +94,10 @@ export function useClientForm(client?: Client): UseClientFormResult {
   );
 
   const expirationPreview = useMemo(() => {
-    const type = findMembershipType(values.membershipTypeId);
+    const type = membershipTypes.items.find((item) => item.id === values.membershipTypeId);
     if (!type || !isIsoDate(values.startDate)) return null;
     return calculateExpirationDate(values.startDate, type.term);
-  }, [values.membershipTypeId, values.startDate]);
+  }, [membershipTypes.items, values.membershipTypeId, values.startDate]);
 
   const submit = useCallback((): ClientDraft | null => {
     const found = validate(values);
@@ -116,5 +119,5 @@ export function useClientForm(client?: Client): UseClientFormResult {
     };
   }, [values]);
 
-  return { values, errors, expirationPreview, setValue, submit };
+  return { values, errors, expirationPreview, membershipTypes, setValue, submit };
 }

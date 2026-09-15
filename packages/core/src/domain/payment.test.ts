@@ -3,7 +3,7 @@ import type { IsoDate } from "./calendar";
 import { isIsoDate } from "./calendar";
 import { toClientId } from "./client";
 import { findMembershipType } from "./membership-catalog";
-import type { MembershipTypeId } from "./membership";
+import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 import type { Money } from "./money";
 import type { Payment, PaymentKind } from "./payment";
@@ -23,8 +23,8 @@ const date = (value: string): IsoDate => {
   return value;
 };
 
-const plan = (id: MembershipTypeId) => {
-  const type = findMembershipType(id);
+const plan = (id: string) => {
+  const type = findMembershipType(toMembershipTypeId(id));
   if (!type) throw new Error(`missing plan: ${id}`);
   return type;
 };
@@ -42,7 +42,7 @@ function makePayment(
     id: toPaymentId(`p-${sequence}`),
     clientId: CLIENT,
     cycleId: CYCLE,
-    membershipTypeId: "monthly",
+    membershipTypeId: toMembershipTypeId("monthly"),
     agreedPrice: fromPesos(65_000),
     amount,
     balanceAfter,

@@ -2,17 +2,22 @@ import type { Term } from "./calendar";
 import type { Money } from "./money";
 import { isLessThan } from "./money";
 
-/** Identifies a membership type in the catalogue (SRS §4.1). */
-export type MembershipTypeId =
-  | "monthly"
-  | "monthlyThreeDays"
-  | "fortnight"
-  | "week"
-  | "day"
-  | "friendsPromo"
-  | "flyerPromo"
-  | "personalTraining"
-  | "semiPersonal";
+declare const membershipTypeIdBrand: unique symbol;
+
+/**
+ * Identifies a membership type in the catalogue (SRS §4.1).
+ *
+ * RF-12 lets the administrator create, edit and delete plans, so this is an
+ * opaque id from the data layer (a real backend hands out a UUID here) —
+ * never a fixed set of slugs. `packages/data/src/in-memory/seed-*.ts` is the
+ * only place still allowed to assume the nine plans SRS §4.1 lists as the
+ * starting catalogue.
+ */
+export type MembershipTypeId = string & { readonly [membershipTypeIdBrand]: true };
+
+export function toMembershipTypeId(value: string): MembershipTypeId {
+  return value as MembershipTypeId;
+}
 
 /**
  * How a plan's payment splits between the assigned trainer and the business

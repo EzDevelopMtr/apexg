@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { Client, ClientDraft, ClientSection, IsoDate } from "@apexg/core";
+import { useMembershipTypeCatalog } from "@apexg/module-kit";
 import { Button, Modal } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
 import ClientForm from "./client-form";
@@ -28,6 +29,7 @@ export default function ClientsListView({
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Client | null>(null);
   const visible = useVisibleClients(clients, section, query, referenceDate);
+  const membershipTypes = useMembershipTypeCatalog();
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -50,6 +52,7 @@ export default function ClientsListView({
       <ClientList
         clients={visible}
         referenceDate={referenceDate}
+        membershipTypes={membershipTypes.items}
         onEdit={setEditing}
       />
 

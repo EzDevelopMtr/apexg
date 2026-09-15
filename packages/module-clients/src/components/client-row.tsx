@@ -1,26 +1,28 @@
 "use client";
 
 import { Pencil, UserRound } from "lucide-react";
-import type { Client, IsoDate } from "@apexg/core";
-import { findMembershipType, resolveStatus } from "@apexg/core";
+import type { Client, IsoDate, MembershipType } from "@apexg/core";
+import { resolveStatus } from "@apexg/core";
 import { Badge, Button, TableCell, TableRow } from "@apexg/ui";
 import { STATUS_LABELS, STATUS_TONES } from "./client-status";
 
 export interface ClientRowProps {
   client: Client;
   referenceDate: IsoDate;
+  /** `undefined` while the catalogue is still loading, or if the plan was since removed. */
+  membershipType: MembershipType | undefined;
   onEdit: (client: Client) => void;
 }
 
 export default function ClientRow({
   client,
   referenceDate,
+  membershipType,
   onEdit,
 }: ClientRowProps) {
   // Derived rather than read from the record, so the row cannot show "active"
   // for a membership that lapsed overnight (RF-21).
   const status = resolveStatus(client, referenceDate);
-  const membership = findMembershipType(client.membershipTypeId);
 
   return (
     <TableRow>
@@ -39,7 +41,7 @@ export default function ClientRow({
       <TableCell className="text-sm">{client.idNumber}</TableCell>
       <TableCell className="text-sm">{client.phone}</TableCell>
       <TableCell className="text-sm">
-        {membership?.name ?? client.membershipTypeId}
+        {membershipType?.name ?? client.membershipTypeId}
       </TableCell>
 
       <TableCell>

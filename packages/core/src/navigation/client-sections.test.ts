@@ -3,6 +3,7 @@ import type { IsoDate } from "../domain/calendar";
 import { isIsoDate } from "../domain/calendar";
 import type { Client } from "../domain/client";
 import { toClientId } from "../domain/client";
+import { toMembershipTypeId } from "../domain/membership";
 import {
   CLIENT_SECTIONS,
   getClientSection,
@@ -24,7 +25,7 @@ function makeClient(id: string, overrides: Partial<Client> = {}): Client {
     idNumber: id,
     phone: "3000000000",
     email: `${id}@email.com`,
-    membershipTypeId: "monthly",
+    membershipTypeId: toMembershipTypeId("monthly"),
     status: "active",
     startDate: date("2026-06-01"),
     expirationDate: date("2026-07-01"),

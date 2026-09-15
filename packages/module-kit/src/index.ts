@@ -12,6 +12,7 @@ export { RepositoriesProvider } from "./repositories-provider";
 export { useRepositories } from "./hooks/use-repositories";
 export { useCollection, upsertById } from "./hooks/use-collection";
 export type { Collection, LoadState } from "./hooks/use-collection";
+export { useMembershipTypeCatalog } from "./hooks/use-membership-type-catalog";
 
 export {
   CollectionGate,

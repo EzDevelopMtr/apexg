@@ -11,7 +11,6 @@ import type {
 import {
   checkPayment,
   classifyPayment,
-  findMembershipType,
   formatCOP,
   fromPesos,
   outstandingBalance,
@@ -20,6 +19,7 @@ import {
   toCycleId,
   today,
 } from "@apexg/core";
+import { useMembershipTypeCatalog } from "@apexg/module-kit";
 
 export interface RecordPaymentValues {
   clientId: string;
@@ -59,6 +59,7 @@ export function useRecordPayment(
 ) {
   const [values, setValues] = useState<RecordPaymentValues>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const membershipTypes = useMembershipTypeCatalog();
 
   const setValue = useCallback(
     <K extends keyof RecordPaymentValues>(
@@ -75,7 +76,7 @@ export function useRecordPayment(
     const client = clients.find((item) => item.id === values.clientId);
     if (!client) return null;
 
-    const type = findMembershipType(client.membershipTypeId);
+    const type = membershipTypes.items.find((item) => item.id === client.membershipTypeId);
     if (!type) return null;
 
     const cycleId = toCycleId(client.id, client.startDate);
@@ -87,7 +88,7 @@ export function useRecordPayment(
       balanceBefore: outstandingBalance(payments, cycleId, type.price),
       previousCount: paymentsInCycle(payments, cycleId).length,
     };
-  }, [clients, payments, values.clientId]);
+  }, [clients, payments, values.clientId, membershipTypes.items]);
 
   const build = useCallback((): Omit<Payment, "id"> | null => {
     if (!cycle) {
@@ -95,7 +96,7 @@ export function useRecordPayment(
       return null;
     }
 
-    const type = findMembershipType(cycle.client.membershipTypeId);
+    const type = membershipTypes.items.find((item) => item.id === cycle.client.membershipTypeId);
     if (!type) {
       setError("El plan del cliente ya no existe en el catálogo.");
       return null;
@@ -132,7 +133,7 @@ export function useRecordPayment(
       recordedBy,
       notes: values.notes.trim(),
     };
-  }, [cycle, values, recordedBy]);
+  }, [cycle, values, recordedBy, membershipTypes.items]);
 
   const reset = useCallback(() => {
     setValues(EMPTY);

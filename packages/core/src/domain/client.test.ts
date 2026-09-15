@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { IsoDate } from "./calendar";
 import { isIsoDate } from "./calendar";
-import type { MembershipTypeId } from "./membership";
+import { toMembershipTypeId } from "./membership";
 import { findMembershipType } from "./membership-catalog";
 import type { Client, ClientStatus } from "./client";
 import {
@@ -29,7 +29,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     idNumber: "1001234567",
     phone: "3001234567",
     email: "juan@email.com",
-    membershipTypeId: "monthly",
+    membershipTypeId: toMembershipTypeId("monthly"),
     status: "active" satisfies ClientStatus,
     startDate: date("2026-06-01"),
     expirationDate: date("2026-07-01"),
@@ -120,8 +120,8 @@ describe("retire (SRS §4.5)", () => {
 });
 
 describe("createClient / withMembership (RF-07)", () => {
-  const plan = (id: MembershipTypeId) => {
-    const type = findMembershipType(id);
+  const plan = (id: string) => {
+    const type = findMembershipType(toMembershipTypeId(id));
     if (!type) throw new Error(`missing membership type: ${id}`);
     return type;
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, IsoDate } from "@apexg/core";
+import type { Client, IsoDate, MembershipType } from "@apexg/core";
 import { Card, Table, TableEmpty } from "@apexg/ui";
 import ClientRow from "./client-row";
 
@@ -17,12 +17,14 @@ const HEADERS = [
 export interface ClientListProps {
   clients: readonly Client[];
   referenceDate: IsoDate;
+  membershipTypes: readonly MembershipType[];
   onEdit: (client: Client) => void;
 }
 
 export default function ClientList({
   clients,
   referenceDate,
+  membershipTypes,
   onEdit,
 }: ClientListProps) {
   return (
@@ -39,6 +41,7 @@ export default function ClientList({
               key={client.id}
               client={client}
               referenceDate={referenceDate}
+              membershipType={membershipTypes.find((type) => type.id === client.membershipTypeId)}
               onEdit={onEdit}
             />
           ))

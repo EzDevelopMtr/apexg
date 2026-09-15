@@ -5,6 +5,7 @@ import type { Client } from "./client";
 import { toClientId } from "./client";
 import type { Expense } from "./expense";
 import { toExpenseId } from "./expense";
+import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 import type { Payment } from "./payment";
 import { toCycleId, toPaymentId } from "./payment";
@@ -29,7 +30,7 @@ function client(id: string, overrides: Partial<Client> = {}): Client {
     idNumber: id,
     phone: "3000000000",
     email: `${id}@email.com`,
-    membershipTypeId: "monthly",
+    membershipTypeId: toMembershipTypeId("monthly"),
     status: "active",
     startDate: date("2026-06-01"),
     expirationDate: date("2026-07-01"),
@@ -43,7 +44,7 @@ function payment(id: string, paidOn: string, pesos: number): Payment {
     id: toPaymentId(id),
     clientId,
     cycleId: toCycleId(clientId, date("2026-06-01")),
-    membershipTypeId: "monthly",
+    membershipTypeId: toMembershipTypeId("monthly"),
     agreedPrice: fromPesos(65_000),
     amount: fromPesos(pesos),
     balanceAfter: fromPesos(0),

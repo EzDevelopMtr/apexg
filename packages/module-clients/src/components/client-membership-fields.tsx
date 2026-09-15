@@ -1,20 +1,10 @@
 "use client";
 
 import type { ClientStatus, MembershipTypeId } from "@apexg/core";
-import { DEFAULT_MEMBERSHIP_TYPES, formatCOP } from "@apexg/core";
+import { formatCOP } from "@apexg/core";
 import { Input, Select, type SelectOption } from "@apexg/ui";
 import type { UseClientFormResult } from "../hooks/use-client-form";
 import { STATUS_LABELS } from "./client-status";
-
-/**
- * Plans come from the catalogue in `@apexg/core` (RF-13), never from hardcoded
- * `<option>` markup — the administrator will be able to edit them (RF-12).
- */
-const MEMBERSHIP_OPTIONS: readonly SelectOption[] =
-  DEFAULT_MEMBERSHIP_TYPES.map((type) => ({
-    value: type.id,
-    label: `${type.name} — ${formatCOP(type.price)}`,
-  }));
 
 const STATUS_OPTIONS: readonly SelectOption[] = (
   Object.keys(STATUS_LABELS) as ClientStatus[]
@@ -22,7 +12,7 @@ const STATUS_OPTIONS: readonly SelectOption[] = (
 
 type Props = Pick<
   UseClientFormResult,
-  "values" | "errors" | "setValue" | "expirationPreview"
+  "values" | "errors" | "setValue" | "expirationPreview" | "membershipTypes"
 >;
 
 /** Plan, status and the dates derived from them (RF-06, RF-07). */
@@ -31,7 +21,17 @@ export default function ClientMembershipFields({
   errors,
   setValue,
   expirationPreview,
+  membershipTypes,
 }: Props) {
+  // Plans come from the real catalogue (RF-13), never hardcoded `<option>`
+  // markup — the administrator can add or retire one at any time (RF-12).
+  const membershipOptions: readonly SelectOption[] = membershipTypes.items.map(
+    (type) => ({
+      value: type.id,
+      label: `${type.name} — ${formatCOP(type.price)}`,
+    }),
+  );
+
   return (
     <>
       <div className="grid gap-5 md:grid-cols-2">
@@ -39,8 +39,14 @@ export default function ClientMembershipFields({
           id="membershipTypeId"
           label="Tipo de membresía"
           value={values.membershipTypeId}
-          error={errors.membershipTypeId}
-          options={MEMBERSHIP_OPTIONS}
+          error={errors.membershipTypeId ?? membershipTypes.error ?? undefined}
+          options={membershipOptions}
+          placeholder={
+            membershipTypes.state === "loading"
+              ? "Cargando planes…"
+              : "Selecciona un tipo de membresía"
+          }
+          disabled={membershipTypes.state !== "ready"}
           onChange={(event) =>
             setValue("membershipTypeId", event.target.value as MembershipTypeId)
           }

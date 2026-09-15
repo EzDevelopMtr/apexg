@@ -1,17 +1,19 @@
 "use client";
 
-import type { Client, IsoDate, Payment } from "@apexg/core";
-import { PAYMENT_METHOD_LABELS, findMembershipType } from "@apexg/core";
+import type { Client, IsoDate, MembershipType, Payment } from "@apexg/core";
+import { PAYMENT_METHOD_LABELS } from "@apexg/core";
 import { Card, CardBody, CardHeader } from "@apexg/ui";
 
 /** Clients registered today, with their plan and how they paid (RF-34). */
 export default function NewClientsCard({
   clients,
   payments,
+  membershipTypes,
   on,
 }: {
   clients: readonly Client[];
   payments: readonly Payment[];
+  membershipTypes: readonly MembershipType[];
   on: IsoDate;
 }) {
   return (
@@ -29,7 +31,7 @@ export default function NewClientsCard({
               const payment = payments.find(
                 (item) => item.clientId === client.id && item.paidOn === on,
               );
-              const plan = findMembershipType(client.membershipTypeId);
+              const plan = membershipTypes.find((type) => type.id === client.membershipTypeId);
 
               return (
                 <li key={client.id} className="py-3">
