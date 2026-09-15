@@ -1,33 +1,31 @@
 import type { Repositories } from "../repositories";
-import {
-  InMemoryClientRepository,
-  InMemoryDailyLogRepository,
-  InMemoryExpenseRepository,
-  InMemoryInventoryRepository,
-  InMemoryPaymentRepository,
-  InMemoryTrainerRepository,
-} from "../in-memory";
+import { HttpClientRepository } from "./http-client-repository";
+import { HttpDailyLogRepository } from "./http-daily-log-repository";
+import { HttpExpenseRepository } from "./http-expense-repository";
+import { HttpInventoryRepository } from "./http-inventory-repository";
 import { HttpMembershipTypeRepository } from "./http-membership-type-repository";
+import { HttpPaymentRepository } from "./http-payment-repository";
+import { HttpTrainerRepository } from "./http-trainer-repository";
 
-/**
- * Builds the repository set backed by the real backend.
- *
- * Filled in one module at a time (see the project's own memory of this
- * effort) — a repository not yet converted stays in-memory here, clearly
- * marked, rather than silently working against fixture data.
- */
+/** Builds the full repository set backed by the real backend. */
 export function createHttpRepositories(): Repositories {
   return {
-    clients: new InMemoryClientRepository(), // TODO(http): not yet connected
+    clients: new HttpClientRepository(),
     membershipTypes: new HttpMembershipTypeRepository(),
-    payments: new InMemoryPaymentRepository(), // TODO(http): not yet connected
-    trainers: new InMemoryTrainerRepository(), // TODO(http): not yet connected
-    expenses: new InMemoryExpenseRepository(), // TODO(http): not yet connected
-    inventory: new InMemoryInventoryRepository(), // TODO(http): not yet connected
-    dailyLog: new InMemoryDailyLogRepository(), // TODO(http): not yet connected
+    payments: new HttpPaymentRepository(),
+    trainers: new HttpTrainerRepository(),
+    expenses: new HttpExpenseRepository(),
+    inventory: new HttpInventoryRepository(),
+    dailyLog: new HttpDailyLogRepository(),
   };
 }
 
+export { HttpClientRepository } from "./http-client-repository";
+export { HttpDailyLogRepository } from "./http-daily-log-repository";
+export { HttpExpenseRepository } from "./http-expense-repository";
+export { HttpInventoryRepository } from "./http-inventory-repository";
 export { HttpMembershipTypeRepository } from "./http-membership-type-repository";
+export { HttpPaymentRepository } from "./http-payment-repository";
+export { HttpTrainerRepository } from "./http-trainer-repository";
 export { ApiError, apiFetch } from "./http-client";
 export type { ApiRequestOptions } from "./http-client";
