@@ -5,6 +5,7 @@ import type {
   Client,
   ClientDraft,
   ClientStatus,
+  IsoDate,
   MembershipType,
   MembershipTypeId,
   Trainer,
@@ -31,6 +32,13 @@ export interface ClientFormValues {
   startDate: string;
   /** Empty string when no trainer is picked yet — required only for RF-24 plans. */
   trainerId: TrainerId | "";
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  bloodType: string;
+  /** Empty until set. Only settable at registration — see `Client.birthDate`. */
+  birthDate: string;
+  medicalCondition: string;
+  comments: string;
 }
 
 export type ClientFormErrors = Partial<Record<keyof ClientFormValues, string>>;
@@ -50,6 +58,12 @@ function initialValues(client?: Client): ClientFormValues {
     // started on a different day.
     startDate: client?.startDate ?? today(),
     trainerId: client?.trainerId ?? toTrainerId(""),
+    emergencyContactName: client?.emergencyContactName ?? "",
+    emergencyContactPhone: client?.emergencyContactPhone ?? "",
+    bloodType: client?.bloodType ?? "",
+    birthDate: client?.birthDate ?? "",
+    medicalCondition: client?.medicalCondition ?? "",
+    comments: client?.comments ?? "",
   };
 }
 
@@ -76,6 +90,11 @@ function validate(
   const type = membershipTypes.find((item) => item.id === values.membershipTypeId);
   if (type && requiresTrainer(type) && !values.trainerId.trim()) {
     errors.trainerId = "Selecciona un entrenador.";
+  }
+
+  // Optional, but must be a real date if the user did enter one.
+  if (values.birthDate && !isIsoDate(values.birthDate)) {
+    errors.birthDate = "La fecha de nacimiento no es válida.";
   }
 
   return errors;
@@ -156,6 +175,12 @@ export function useClientForm(client?: Client): UseClientFormResult {
       status: values.status,
       startDate,
       trainerId,
+      emergencyContactName: values.emergencyContactName.trim(),
+      emergencyContactPhone: values.emergencyContactPhone.trim(),
+      bloodType: values.bloodType,
+      birthDate: values.birthDate ? (values.birthDate as IsoDate) : undefined,
+      medicalCondition: values.medicalCondition.trim(),
+      comments: values.comments.trim(),
     };
   }, [values, membershipTypes.items]);
 

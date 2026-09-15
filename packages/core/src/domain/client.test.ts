@@ -33,6 +33,11 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     status: "active" satisfies ClientStatus,
     startDate: date("2026-06-01"),
     expirationDate: date("2026-07-01"),
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    bloodType: "",
+    medicalCondition: "",
+    comments: "",
     ...overrides,
   };
 }

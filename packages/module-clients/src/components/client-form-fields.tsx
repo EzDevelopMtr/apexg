@@ -1,6 +1,7 @@
 "use client";
 
 import type { UseClientFormResult } from "../hooks/use-client-form";
+import ClientAdditionalFields from "./client-additional-fields";
 import ClientContactFields from "./client-contact-fields";
 import ClientMembershipFields from "./client-membership-fields";
 
@@ -9,6 +10,7 @@ export default function ClientFormFields(form: UseClientFormResult) {
   return (
     <div className="space-y-5">
       <ClientContactFields {...form} />
+      <ClientAdditionalFields {...form} />
       <ClientMembershipFields {...form} />
     </div>
   );

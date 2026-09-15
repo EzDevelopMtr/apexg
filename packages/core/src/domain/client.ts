@@ -23,6 +23,26 @@ export function toClientId(value: string): ClientId {
  */
 export type ClientStatus = "active" | "inactive" | "overdue";
 
+/**
+ * The blood types offered when registering a client.
+ *
+ * Free text on the backend (no CHECK constraint) — offered as a closed list
+ * here so every client's record uses the same eight values, not near-misses
+ * like "0+" or "A positivo".
+ */
+export const BLOOD_TYPES = [
+  "A+",
+  "A-",
+  "B+",
+  "B-",
+  "AB+",
+  "AB-",
+  "O+",
+  "O-",
+] as const;
+
+export type BloodType = (typeof BLOOD_TYPES)[number];
+
 /** A gym client. */
 export interface Client {
   readonly id: ClientId;
@@ -41,6 +61,16 @@ export interface Client {
    * plans, which are the ones `requiresTrainer` identifies.
    */
   readonly trainerId?: TrainerId;
+  readonly emergencyContactName: string;
+  readonly emergencyContactPhone: string;
+  readonly bloodType: string;
+  /**
+   * Set only at registration — the backend does not allow editing it
+   * afterwards (`PATCH /clients/:id` has no `birthDate` field).
+   */
+  readonly birthDate?: IsoDate;
+  readonly medicalCondition: string;
+  readonly comments: string;
 }
 
 /**

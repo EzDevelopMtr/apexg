@@ -29,6 +29,11 @@ function makeClient(id: string, overrides: Partial<Client> = {}): Client {
     status: "active",
     startDate: date("2026-06-01"),
     expirationDate: date("2026-07-01"),
+    emergencyContactName: "",
+    emergencyContactPhone: "",
+    bloodType: "",
+    medicalCondition: "",
+    comments: "",
     ...overrides,
   };
 }

@@ -39,7 +39,10 @@ export function buildSeedTrainers(): Trainer[] {
   ];
 }
 
-type SeedDraft = ClientDraft & { readonly seedId: string };
+type SeedDraft = Omit<
+  ClientDraft,
+  "emergencyContactName" | "emergencyContactPhone" | "bloodType" | "medicalCondition" | "comments"
+> & { readonly seedId: string };
 
 const CLIENT_DRAFTS: readonly SeedDraft[] = [
   {
@@ -118,6 +121,17 @@ export function buildSeedClients(): Client[] {
         `Seed references unknown plan: ${draft.membershipTypeId}`,
       );
     }
-    return createClient(toClientId(seedId), draft, type);
+    return createClient(
+      toClientId(seedId),
+      {
+        ...draft,
+        emergencyContactName: "",
+        emergencyContactPhone: "",
+        bloodType: "",
+        medicalCondition: "",
+        comments: "",
+      },
+      type,
+    );
   });
 }
