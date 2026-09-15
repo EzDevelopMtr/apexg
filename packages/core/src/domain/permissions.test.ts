@@ -5,6 +5,7 @@ import {
   canManageMemberships,
   canViewFinancialReports,
   modulesFor,
+  roleFromName,
 } from "./permissions";
 
 const ROLES: Role[] = ["admin", "receptionist"];
@@ -49,5 +50,14 @@ describe("permission matrix (SRS §2.2)", () => {
     for (const moduleId of modulesFor("receptionist")) {
       expect(canAccessModule("admin", moduleId)).toBe(true);
     }
+  });
+
+  it("maps the backend's seeded role names back to a Role", () => {
+    expect(roleFromName("Administrador")).toBe("admin");
+    expect(roleFromName("Recepcionista")).toBe("receptionist");
+  });
+
+  it("returns undefined for a role name outside the seed", () => {
+    expect(roleFromName("Gerente")).toBeUndefined();
   });
 });

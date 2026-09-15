@@ -15,6 +15,21 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 /**
+ * The backend has no fixed "admin"/"receptionist" union — `roleId` is an
+ * arbitrary per-company row, and the real authorization decision is a
+ * permission-code lookup, not this name (see AuthorizationService on the
+ * backend). This only maps the seeded role name the session carries back to
+ * the `Role` this module already understands, so the existing matrix above
+ * keeps working unchanged. `undefined` for any name outside that seed.
+ */
+export function roleFromName(name: string): Role | undefined {
+  const match = (Object.entries(ROLE_LABELS) as [Role, string][]).find(
+    ([, label]) => label === name,
+  );
+  return match?.[0];
+}
+
+/**
  * Modules each role may open, transcribed from the matrix in SRS §2.2.
  *
  * The receptionist gets clients, payments and the daily log. Memberships,

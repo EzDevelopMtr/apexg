@@ -6,6 +6,17 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@apexg/web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "-C",
+        "C:/Users/evila/Downloads/apexg-backend-worktree/apps/backend",
+        "run",
+        "start:dev"
+      ],
+      "port": 3001
     }
   ]
 }

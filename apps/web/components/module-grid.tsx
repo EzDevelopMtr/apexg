@@ -41,8 +41,11 @@ export default function ModuleGrid() {
     ? MODULES.filter((module) => canAccessModule(session.role, module.id))
     : [];
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    // Awaited: signOut() clears the httpOnly cookie server-side, and
+    // navigating before that finishes could race proxy.ts into seeing the
+    // still-valid cookie and bouncing straight back here.
+    await signOut();
     router.replace("/login");
   };
 

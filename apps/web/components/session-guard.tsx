@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 import { useSession } from "../lib/use-session";
 
 /**
- * Keeps signed-out visitors out of private pages.
+ * Waits for the client's session view to hydrate from the httpOnly cookie
+ * (`GET /api/auth/me`) before rendering private children.
  *
- * This is a usability guard, not a security boundary: the server still renders
- * and ships the page. RF-02/RNF-03 need this enforced in `middleware.ts` once
- * sessions are real.
+ * `proxy.ts` is the real gate now — a signed-out request never reaches
+ * this component's page. This just avoids a flash of content before the
+ * session (role, name) is known client-side.
  */
 export default function SessionGuard({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
