@@ -13,8 +13,8 @@ import { fromPesos } from "./money";
  * real backend should import it; ask `MembershipTypeRepository.list()`
  * (via `@apexg/module-kit`'s `useMembershipTypeCatalog`) for the live one.
  *
- * OPEN QUESTION: §4.1 does not state the term of the personal and
- * semi-personal plans. They are assumed monthly here; confirm with the client.
+ * The personal and semi-personal plans' term is not in §4.1 itself;
+ * confirmed monthly, matching every other recurring plan in this catalogue.
  */
 export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
   {
@@ -68,6 +68,10 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     conditions: "Vigencia de 1 día.",
   },
   {
+    // RF-14 vs. §4.1 se contradecían ("el mismo día" vs. "un lapso de 3
+    // días"); resuelto a favor de §4.1 (más flexible). Sin validación
+    // automática todavía — la recepcionista aplica el criterio al vender
+    // el plan, igual que antes de resolver la contradicción.
     id: toMembershipTypeId("friendsPromo"),
     name: "Promo amigos/familiar",
     price: fromPesos(60_000),
@@ -76,7 +80,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     isPromotional: true,
     trainerSplit: null,
     conditions:
-      "Aplica cuando 3 o más clientes pagan su mensualidad en conjunto.",
+      "Aplica cuando 3 o más clientes pagan su mensualidad dentro de un lapso de 3 días.",
   },
   {
     id: toMembershipTypeId("flyerPromo"),
