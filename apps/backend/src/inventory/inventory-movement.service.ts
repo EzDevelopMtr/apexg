@@ -35,55 +35,76 @@ export class InventoryMovementService {
     itemId: string,
     input: CreateInventoryMovementDto,
   ): Promise<InventoryMovementResult> {
-    return this.db.transaction(async (tx) => {
-      const item = await this.loadItemLocked(tx, companyId, itemId);
+    return this.db.transaction((tx) =>
+      this.applyMovement(tx, { companyId, userId, itemId, input }),
+    );
+  }
 
-      const requestedMilli = toMilliUnits(input.quantity);
-      if (input.movementType === 'adjustment') {
-        if (requestedMilli === 0) {
-          throw new BadRequestException('quantity no puede ser cero en un ajuste.');
-        }
-      } else if (requestedMilli <= 0) {
-        throw new BadRequestException('quantity debe ser mayor que cero para in/out.');
+  /**
+   * El mismo bloqueo/cálculo que `register()`, pero recibiendo la `tx` de
+   * afuera — para que otro service (ej. `ProductSalesService`) pueda sumar
+   * el descuento de stock a SU PROPIA transacción en vez de anidar una
+   * nueva (mismo patrón que `PaymentsService` + `PaymentCommissionService`).
+   * Los demás parámetros van en un objeto (no 4 sueltos) para no chocar con
+   * el `max-params` de oxlint una vez sumada la `tx`.
+   */
+  async applyMovement(
+    tx: DatabaseTransaction,
+    params: {
+      companyId: string;
+      userId: string;
+      itemId: string;
+      input: CreateInventoryMovementDto;
+    },
+  ): Promise<InventoryMovementResult> {
+    const { companyId, userId, itemId, input } = params;
+    const item = await this.loadItemLocked(tx, companyId, itemId);
+
+    const requestedMilli = toMilliUnits(input.quantity);
+    if (input.movementType === 'adjustment') {
+      if (requestedMilli === 0) {
+        throw new BadRequestException('quantity no puede ser cero en un ajuste.');
       }
+    } else if (requestedMilli <= 0) {
+      throw new BadRequestException('quantity debe ser mayor que cero para in/out.');
+    }
 
-      const previousStockMilli = toMilliUnits(item.currentStock);
-      const signedDelta = input.movementType === 'out' ? -requestedMilli : requestedMilli;
-      const resultingStockMilli = previousStockMilli + signedDelta;
+    const previousStockMilli = toMilliUnits(item.currentStock);
+    const signedDelta = input.movementType === 'out' ? -requestedMilli : requestedMilli;
+    const resultingStockMilli = previousStockMilli + signedDelta;
 
-      if (resultingStockMilli < 0) {
-        throw new BadRequestException(
-          'El movimiento dejaría el inventario en negativo; no hay existencia suficiente.',
-        );
-      }
-
-      const resultingStock = fromMilliUnits(resultingStockMilli);
-
-      const [insertedMovement] = await tx
-        .insert(inventoryMovements)
-        .values({
-          companyId,
-          inventoryItemId: itemId,
-          movementType: input.movementType,
-          quantity: input.quantity,
-          previousStock: item.currentStock,
-          resultingStock,
-          reason: input.reason ?? null,
-          createdBy: userId,
-        })
-        .returning();
-      const movement = assertDefined(
-        insertedMovement,
-        'INSERT into inventory_movements did not return a row.',
+    if (resultingStockMilli < 0) {
+      throw new BadRequestException(
+        'El movimiento dejaría el inventario en negativo; no hay existencia suficiente.',
       );
+    }
 
-      await tx
-        .update(inventoryItems)
-        .set({ currentStock: resultingStock, updatedAt: new Date().toISOString() })
-        .where(eq(inventoryItems.id, itemId));
+    const resultingStock = fromMilliUnits(resultingStockMilli);
 
-      return this.toResult(movement);
-    });
+    const [insertedMovement] = await tx
+      .insert(inventoryMovements)
+      .values({
+        companyId,
+        inventoryItemId: itemId,
+        movementType: input.movementType,
+        quantity: input.quantity,
+        previousStock: item.currentStock,
+        resultingStock,
+        reason: input.reason ?? null,
+        createdBy: userId,
+      })
+      .returning();
+    const movement = assertDefined(
+      insertedMovement,
+      'INSERT into inventory_movements did not return a row.',
+    );
+
+    await tx
+      .update(inventoryItems)
+      .set({ currentStock: resultingStock, updatedAt: new Date().toISOString() })
+      .where(eq(inventoryItems.id, itemId));
+
+    return this.toResult(movement);
   }
 
   async listFor(companyId: string, itemId: string): Promise<InventoryMovementResult[]> {

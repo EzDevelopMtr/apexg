@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 const NONNEGATIVE_QUANTITY_PATTERN = /^\d+(\.\d{1,3})?$/;
 
@@ -11,6 +11,11 @@ export class CreateInventoryItemDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  /** Opcional: un ítem puede quedar sin categoría (migración 005). */
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 
   /**
    * Texto libre: la tabla no tiene un CHECK de catálogo cerrado. El
