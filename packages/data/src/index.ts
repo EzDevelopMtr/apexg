@@ -7,3 +7,4 @@
 
 export * from "./repositories";
 export * from "./in-memory";
+export * from "./http";

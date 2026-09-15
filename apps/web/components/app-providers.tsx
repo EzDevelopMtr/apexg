@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createInMemoryRepositories } from "@apexg/data";
+import { createHttpRepositories } from "@apexg/data";
 import { RepositoriesProvider } from "@apexg/module-kit";
 
 /**
@@ -11,10 +11,11 @@ import { RepositoriesProvider } from "@apexg/module-kit";
  * server/client boundary — so they are constructed here, inside the client
  * bundle, rather than handed down from a server layout.
  *
- * Module scope, not component scope: a new set per render would reset the
- * in-memory stores on every navigation.
+ * Module scope, not component scope: a new set per render would reset
+ * client-side state (in-memory repositories still awaiting their HTTP
+ * counterpart) on every navigation.
  */
-const repositories = createInMemoryRepositories();
+const repositories = createHttpRepositories();
 
 export default function AppProviders({ children }: { children: ReactNode }) {
   return (
