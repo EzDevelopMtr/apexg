@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Save } from "lucide-react";
-import type { InventoryItem } from "@apexg/core";
+import type { InventoryCategory, InventoryItem } from "@apexg/core";
 import { Button } from "@apexg/ui";
 import type { InventoryDraft } from "./inventory-draft";
 import { initialDraft, validateDraft } from "./inventory-draft";
@@ -11,12 +11,14 @@ import InventoryFields from "./inventory-fields";
 
 export interface InventoryFormProps {
   item?: InventoryItem;
+  categories: readonly InventoryCategory[];
   onSave: (draft: InventoryDraft, existing?: InventoryItem) => Promise<void>;
   onCancel: () => void;
 }
 
 export default function InventoryForm({
   item,
+  categories,
   onSave,
   onCancel,
 }: InventoryFormProps) {
@@ -50,7 +52,7 @@ export default function InventoryForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <InventoryFields draft={draft} update={update} />
+      <InventoryFields draft={draft} categories={categories} update={update} />
 
       {failure && (
         <p role="alert" className="text-sm text-danger-ink">

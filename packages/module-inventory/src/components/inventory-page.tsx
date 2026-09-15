@@ -1,13 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { InventoryItem, InventorySectionId } from "@apexg/core";
 import { inventorySections, itemsBelowMinimum, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
 import { Card, CardBody, Modal } from "@apexg/ui";
-import { useInventory } from "../hooks/use-inventory";
+import { useInventory, useInventoryCategories } from "../hooks/use-inventory";
+import { useVisibleInventory } from "../hooks/use-visible-inventory";
+import CategoryPanel from "./category-panel";
 import InventoryForm from "./inventory-form";
 import InventoryList from "./inventory-list";
+import InventorySearch from "./inventory-search";
 import LowStockNotice from "./low-stock-notice";
 
 export interface InventoryPageProps {
@@ -21,28 +24,43 @@ export default function InventoryPage({
 }: InventoryPageProps) {
   const section = inventorySections.getSection(sectionId);
   const inventory = useInventory();
+  const categories = useInventoryCategories();
   const [editing, setEditing] = useState<InventoryItem | null>(null);
   const [referenceDate] = useState(today);
+  const [query, setQuery] = useState("");
 
-  const visible = useMemo(() => {
-    if (section.view.kind !== "list") return [];
-    const { includes } = section.view;
-    return inventory.items.filter((item) => includes(item, referenceDate));
-  }, [inventory.items, section, referenceDate]);
+  const visible = useVisibleInventory(
+    inventory.items,
+    section,
+    query,
+    referenceDate,
+  );
 
-  if (section.view.kind === "form") {
+  // Form and panel both need the category catalogue loaded — one gate.
+  if (section.view.kind === "form" || section.view.kind === "panel") {
     return (
-      <Card>
-        <CardBody>
-          <InventoryForm
-            onSave={async (draft) => {
-              await inventory.save(draft);
-              onNavigate("all");
-            }}
-            onCancel={() => onNavigate("all")}
-          />
-        </CardBody>
-      </Card>
+      <CollectionGate
+        collection={categories}
+        loadingMessage="Cargando categorías..."
+        errorMessage="No pudimos cargar las categorías."
+      >
+        {section.view.kind === "panel" ? (
+          <CategoryPanel categories={categories.items} onSave={categories.save} />
+        ) : (
+          <Card>
+            <CardBody>
+              <InventoryForm
+                categories={categories.items}
+                onSave={async (draft) => {
+                  await inventory.save(draft);
+                  onNavigate("all");
+                }}
+                onCancel={() => onNavigate("all")}
+              />
+            </CardBody>
+          </Card>
+        )}
+      </CollectionGate>
     );
   }
 
@@ -56,7 +74,13 @@ export default function InventoryPage({
         <LowStockNotice items={itemsBelowMinimum(inventory.items)} />
       )}
 
-      <InventoryList items={visible} onEdit={setEditing} />
+      <InventorySearch value={query} onChange={setQuery} />
+
+      <InventoryList
+        items={visible}
+        categories={categories.items}
+        onEdit={setEditing}
+      />
 
       <Modal
         open={editing !== null}
@@ -66,6 +90,7 @@ export default function InventoryPage({
         {editing && (
           <InventoryForm
             item={editing}
+            categories={categories.items}
             onSave={async (draft, existing) => {
               await inventory.save(draft, existing);
               setEditing(null);

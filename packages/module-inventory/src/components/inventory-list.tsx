@@ -1,8 +1,8 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import type { InventoryItem } from "@apexg/core";
-import { UNIT_LABELS, isBelowMinimum } from "@apexg/core";
+import type { InventoryCategory, InventoryItem } from "@apexg/core";
+import { UNIT_LABELS, findInventoryCategory, isBelowMinimum } from "@apexg/core";
 import {
   Badge,
   Button,
@@ -15,6 +15,7 @@ import {
 
 const HEADERS = [
   "Ítem",
+  "Categoría",
   "Existencias",
   "Mínimo",
   "Estado",
@@ -23,6 +24,7 @@ const HEADERS = [
 
 export interface InventoryListProps {
   items: readonly InventoryItem[];
+  categories: readonly InventoryCategory[];
   onEdit: (item: InventoryItem) => void;
 }
 
@@ -33,7 +35,11 @@ function stockBadge(item: InventoryItem) {
   return <Badge tone="success">Disponible</Badge>;
 }
 
-export default function InventoryList({ items, onEdit }: InventoryListProps) {
+export default function InventoryList({
+  items,
+  categories,
+  onEdit,
+}: InventoryListProps) {
   return (
     <Card className="overflow-hidden">
       <Table headers={HEADERS}>
@@ -47,6 +53,10 @@ export default function InventoryList({ items, onEdit }: InventoryListProps) {
             <TableRow key={item.id}>
               <TableCell>
                 <p className="font-semibold text-body">{item.name}</p>
+              </TableCell>
+              <TableCell className="text-sm">
+                {findInventoryCategory(categories, item.categoryId)?.name ??
+                  "Sin categoría"}
               </TableCell>
               <TableCell className="text-sm">
                 {item.stock} {UNIT_LABELS[item.unit]}

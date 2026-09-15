@@ -14,6 +14,7 @@ export function initialDraft(item?: InventoryItem): InventoryDraft {
     stock: item?.stock ?? 0,
     minimumStock: item?.minimumStock ?? 0,
     active: item?.active ?? true,
+    categoryId: item?.categoryId,
   };
 }
 

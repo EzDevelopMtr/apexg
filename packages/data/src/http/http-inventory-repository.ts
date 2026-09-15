@@ -1,4 +1,9 @@
-import type { InventoryItem, InventoryItemId, UnitOfMeasure } from "@apexg/core";
+import type {
+  InventoryCategory,
+  InventoryItem,
+  InventoryItemId,
+  UnitOfMeasure,
+} from "@apexg/core";
 import { toInventoryItemId } from "@apexg/core";
 import type { InventoryRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
@@ -13,8 +18,16 @@ interface ApiInventoryItemResult {
   currentStock: string;
   minimumStock: string;
   state: ApiItemState;
+  categoryId: string | null;
 }
 
+interface ApiInventoryCategoryResult {
+  id: string;
+  name: string;
+  state: ApiItemState;
+}
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const KNOWN_UNITS = new Set<string>(["unit", "box", "kilogram", "litre", "pack"]);
 
 /** `unit_of_measure` is free text on the backend (no CHECK) — anything outside our 5 options falls back safely. */
@@ -34,6 +47,15 @@ function fromResult(row: ApiInventoryItemResult): InventoryItem {
     unit: toUnit(row.unitOfMeasure),
     stock: Number(row.currentStock),
     minimumStock: Number(row.minimumStock),
+    active: row.state === 1,
+    categoryId: row.categoryId ?? undefined,
+  };
+}
+
+function fromCategoryResult(row: ApiInventoryCategoryResult): InventoryCategory {
+  return {
+    id: row.id,
+    name: row.name,
     active: row.state === 1,
   };
 }
@@ -64,6 +86,7 @@ export class HttpInventoryRepository implements InventoryRepository {
         unitOfMeasure: draft.unit,
         initialStock: toQuantityString(draft.stock),
         minimumStock: toQuantityString(draft.minimumStock),
+        categoryId: draft.categoryId,
       },
     });
     return fromResult(row);
@@ -100,8 +123,30 @@ export class HttpInventoryRepository implements InventoryRepository {
         unitOfMeasure: item.unit,
         minimumStock: toQuantityString(item.minimumStock),
         state: item.active ? 1 : 2,
+        // Explicit `null` (not omitted) so clearing the category in the
+        // form actually clears it — an absent field means "leave as is".
+        categoryId: item.categoryId ?? null,
       },
     });
     return fromResult(row);
+  }
+
+  async listCategories(): Promise<readonly InventoryCategory[]> {
+    const rows = await apiFetch<ApiInventoryCategoryResult[]>("/inventory-categories");
+    return rows.map(fromCategoryResult);
+  }
+
+  /** Same id trick as `HttpExpenseRepository`: a slug means "new", a UUID means "existing". */
+  async saveCategory(category: InventoryCategory): Promise<InventoryCategory> {
+    const row = UUID_PATTERN.test(category.id)
+      ? await apiFetch<ApiInventoryCategoryResult>(`/inventory-categories/${category.id}`, {
+          method: "PATCH",
+          body: { name: category.name, state: category.active ? 1 : 2 },
+        })
+      : await apiFetch<ApiInventoryCategoryResult>("/inventory-categories", {
+          method: "POST",
+          body: { name: category.name },
+        });
+    return fromCategoryResult(row);
   }
 }

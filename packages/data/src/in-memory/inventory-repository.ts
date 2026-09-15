@@ -1,4 +1,4 @@
-import type { InventoryItem, InventoryItemId } from "@apexg/core";
+import type { InventoryCategory, InventoryItem, InventoryItemId } from "@apexg/core";
 import { toInventoryItemId } from "@apexg/core";
 import type { InventoryRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
@@ -6,9 +6,14 @@ import { InMemoryStore, newId } from "./in-memory-store";
 
 export class InMemoryInventoryRepository implements InventoryRepository {
   readonly #store: InMemoryStore<InventoryItemId, InventoryItem>;
+  readonly #categories: InMemoryStore<string, InventoryCategory>;
 
-  constructor(initial: readonly InventoryItem[] = []) {
+  constructor(
+    initial: readonly InventoryItem[] = [],
+    categories: readonly InventoryCategory[] = [],
+  ) {
     this.#store = new InMemoryStore(initial);
+    this.#categories = new InMemoryStore(categories);
   }
 
   list(): Promise<readonly InventoryItem[]> {
@@ -28,5 +33,13 @@ export class InMemoryInventoryRepository implements InventoryRepository {
       throw new RecordNotFoundError("inventory item", item.id);
     }
     return this.#store.save(item);
+  }
+
+  listCategories(): Promise<readonly InventoryCategory[]> {
+    return this.#categories.list();
+  }
+
+  saveCategory(category: InventoryCategory): Promise<InventoryCategory> {
+    return this.#categories.save(category);
   }
 }

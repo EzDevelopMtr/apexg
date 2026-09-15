@@ -1,8 +1,16 @@
 import type { InventoryItem } from "../domain/inventory";
 import { isBelowMinimum } from "../domain/inventory";
+import type { ModuleSection } from "./section-catalog";
 import { createSectionCatalog } from "./section-catalog";
 
-export type InventorySectionId = "all" | "add" | "lowStock" | "outOfStock";
+export type InventorySectionId =
+  | "all"
+  | "add"
+  | "lowStock"
+  | "outOfStock"
+  | "categories";
+
+export type InventorySection = ModuleSection<InventorySectionId, InventoryItem>;
 
 /** Sections of the Inventory module (RF-28, RF-29, RF-30). */
 export const inventorySections = createSectionCatalog<
@@ -39,5 +47,12 @@ export const inventorySections = createSectionCatalog<
     title: "Ítems agotados",
     icon: "userX",
     view: { kind: "list", includes: (item) => item.stock <= 0 },
+  },
+  {
+    id: "categories",
+    label: "Categorías",
+    title: "Categorías de inventario",
+    icon: "package",
+    view: { kind: "panel" },
   },
 ]);

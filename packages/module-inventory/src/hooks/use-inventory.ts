@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { InventoryItem } from "@apexg/core";
+import type { InventoryCategory, InventoryItem } from "@apexg/core";
 import { useCollection, upsertById, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
@@ -24,6 +24,30 @@ export function useInventory(): UseInventoryResult {
       const saved = existing
         ? await inventory.update({ ...existing, ...draft })
         : await inventory.create(draft);
+      apply((current) => upsertById(current, saved));
+    },
+    [inventory, apply],
+  );
+
+  return { ...collection, save };
+}
+
+export interface UseInventoryCategoriesResult
+  extends Collection<InventoryCategory> {
+  /** The admin may add a category or retire one, same as Egresos (RF-27). */
+  readonly save: (category: InventoryCategory) => Promise<void>;
+}
+
+export function useInventoryCategories(): UseInventoryCategoriesResult {
+  const { inventory } = useRepositories();
+
+  const load = useCallback(() => inventory.listCategories(), [inventory]);
+  const collection = useCollection<InventoryCategory>(load);
+  const { apply } = collection;
+
+  const save = useCallback(
+    async (category: InventoryCategory) => {
+      const saved = await inventory.saveCategory(category);
       apply((current) => upsertById(current, saved));
     },
     [inventory, apply],

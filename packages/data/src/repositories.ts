@@ -6,12 +6,14 @@ import type {
   DailyLogNote,
   Expense,
   ExpenseCategory,
+  InventoryCategory,
   InventoryItem,
   InventoryItemId,
   MembershipType,
   MembershipTypeId,
   MonthlyClosure,
   Payment,
+  ProductSale,
   Trainer,
   TrainerId,
 } from "@apexg/core";
@@ -74,6 +76,8 @@ export interface InventoryRepository {
   findById(id: InventoryItemId): Promise<InventoryItem | undefined>;
   create(draft: Omit<InventoryItem, "id">): Promise<InventoryItem>;
   update(item: InventoryItem): Promise<InventoryItem>;
+  listCategories(): Promise<readonly InventoryCategory[]>;
+  saveCategory(category: InventoryCategory): Promise<InventoryCategory>;
 }
 
 export interface DailyLogRepository {
@@ -81,6 +85,12 @@ export interface DailyLogRepository {
   addNote(draft: Omit<DailyLogNote, "id">): Promise<DailyLogNote>;
   listClosures(): Promise<readonly MonthlyClosure[]>;
   saveClosure(closure: MonthlyClosure): Promise<MonthlyClosure>;
+}
+
+export interface ProductSaleRepository {
+  list(): Promise<readonly ProductSale[]>;
+  /** Records a sale and discounts the item's stock (RF-28/29), atomically on the backend. */
+  create(draft: Omit<ProductSale, "id" | "itemName" | "clientName">): Promise<ProductSale>;
 }
 
 /** Everything the application needs to read and write. */
@@ -92,6 +102,7 @@ export interface Repositories {
   readonly expenses: ExpenseRepository;
   readonly inventory: InventoryRepository;
   readonly dailyLog: DailyLogRepository;
+  readonly productSales: ProductSaleRepository;
 }
 
 /** Raised when a write targets a record that no longer exists. */
