@@ -1,9 +1,10 @@
 "use client";
 
 import type { ClientStatus, MembershipTypeId } from "@apexg/core";
-import { formatCOP } from "@apexg/core";
+import { formatCOP, requiresTrainer } from "@apexg/core";
 import { Input, Select, type SelectOption } from "@apexg/ui";
 import type { UseClientFormResult } from "../hooks/use-client-form";
+import ClientTrainerField from "./client-trainer-field";
 import { STATUS_LABELS } from "./client-status";
 
 const STATUS_OPTIONS: readonly SelectOption[] = (
@@ -12,16 +13,22 @@ const STATUS_OPTIONS: readonly SelectOption[] = (
 
 type Props = Pick<
   UseClientFormResult,
-  "values" | "errors" | "setValue" | "expirationPreview" | "membershipTypes"
+  | "values"
+  | "errors"
+  | "setValue"
+  | "expirationPreview"
+  | "membershipTypes"
+  | "trainers"
 >;
 
-/** Plan, status and the dates derived from them (RF-06, RF-07). */
+/** Plan, status, trainer and the dates derived from them (RF-06, RF-07). */
 export default function ClientMembershipFields({
   values,
   errors,
   setValue,
   expirationPreview,
   membershipTypes,
+  trainers,
 }: Props) {
   // Plans come from the real catalogue (RF-13), never hardcoded `<option>`
   // markup — the administrator can add or retire one at any time (RF-12).
@@ -31,6 +38,11 @@ export default function ClientMembershipFields({
       label: `${type.name} — ${formatCOP(type.price)}`,
     }),
   );
+
+  const selectedType = membershipTypes.items.find(
+    (type) => type.id === values.membershipTypeId,
+  );
+  const needsTrainer = selectedType ? requiresTrainer(selectedType) : false;
 
   return (
     <>
@@ -62,6 +74,15 @@ export default function ClientMembershipFields({
           }
         />
       </div>
+
+      {needsTrainer && (
+        <ClientTrainerField
+          trainerId={values.trainerId}
+          error={errors.trainerId}
+          trainers={trainers}
+          onChange={(trainerId) => setValue("trainerId", trainerId)}
+        />
+      )}
 
       <div className="grid gap-5 md:grid-cols-2">
         <Input
