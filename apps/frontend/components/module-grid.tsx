@@ -50,17 +50,34 @@ export default function ModuleGrid() {
   };
 
   return (
-    <main className="ground-grid min-h-screen px-6 py-10">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-10 flex items-start justify-between gap-4">
-          <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-ink">
-              APEX GYM
-            </p>
-            <h1 className="text-3xl font-bold text-body">
-              Selecciona un módulo
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-line bg-panel">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+                <Icon name="dumbbell" size={22} />
+              </div>
+              <span className="text-sm font-bold uppercase tracking-wider text-brand-ink">
+                APEX GYM
+              </span>
+            </div>
+            <span className="hidden h-6 border-l border-line sm:block" />
+            <h1 className="hidden text-lg font-semibold text-body sm:block">
+              Selector de módulos
             </h1>
-            <p className="mt-2 text-body-soft">
+          </div>
+          <Button variant="secondary" onClick={handleSignOut}>
+            <LogOut size={18} />
+            Cerrar sesión
+          </Button>
+        </div>
+      </header>
+
+      <main className="ground-grid flex-1 px-6 py-10">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8">
+            <p className="text-body-soft">
               Selecciona el área que deseas administrar.
             </p>
             {session && (
@@ -69,34 +86,30 @@ export default function ModuleGrid() {
               </p>
             )}
           </div>
-          <Button variant="secondary" onClick={handleSignOut}>
-            <LogOut size={18} />
-            Cerrar sesión
-          </Button>
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleModules.map((module) =>
-            module.available && module.route ? (
-              <Link
-                key={module.id}
-                href={module.route}
-                className={`${CARD_BASE} ${CARD_AVAILABLE}`}
-              >
-                <ModuleCard module={module} />
-              </Link>
-            ) : (
-              <div
-                key={module.id}
-                aria-disabled="true"
-                className={`${CARD_BASE} ${CARD_DISABLED}`}
-              >
-                <ModuleCard module={module} />
-              </div>
-            ),
-          )}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleModules.map((module) =>
+              module.available && module.route ? (
+                <Link
+                  key={module.id}
+                  href={module.route}
+                  className={`${CARD_BASE} ${CARD_AVAILABLE}`}
+                >
+                  <ModuleCard module={module} />
+                </Link>
+              ) : (
+                <div
+                  key={module.id}
+                  aria-disabled="true"
+                  className={`${CARD_BASE} ${CARD_DISABLED}`}
+                >
+                  <ModuleCard module={module} />
+                </div>
+              ),
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
