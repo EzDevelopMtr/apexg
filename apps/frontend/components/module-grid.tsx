@@ -6,13 +6,24 @@ import { ArrowRight, LogOut } from "lucide-react";
 import type { Module } from "@apexg/core";
 import { MODULES, ROLE_LABELS, canAccessModule } from "@apexg/core";
 import { ACCENT_GLOW, ACCENT_TILE, Button, Icon, Logo } from "@apexg/ui";
+import type { Session } from "../lib/session-context";
 import { useSession } from "../lib/use-session";
-import SelectorSidebar from "./selector-sidebar";
 
 const CARD_BASE =
-  "group relative overflow-hidden rounded-2xl border border-line bg-panel p-6 text-left transition duration-300";
+  "group relative overflow-hidden rounded-2xl border border-line bg-panel p-5 text-left transition duration-300";
 const CARD_AVAILABLE = "hover:-translate-y-1 hover:shadow-xl";
 const CARD_DISABLED = "cursor-not-allowed opacity-50";
+
+/**
+ * The page holds every module at once, so its rhythm answers to the height of
+ * the screen rather than to fixed steps. Only spacing scales: type stays in
+ * rem so browser zoom keeps working and nothing shrinks below legibility.
+ */
+const PAGE_TOP = "pt-[clamp(1.25rem,3vh,2.5rem)]";
+const GRID_TOP = "mt-[clamp(1.75rem,5vh,3rem)]";
+const GRID_GAP = "gap-[clamp(0.875rem,1.8vh,1.25rem)]";
+const PAGE_BOTTOM = "pb-[clamp(1.5rem,4vh,3rem)]";
+const SHELL = "mx-auto w-full max-w-7xl px-6 lg:px-10";
 
 function ModuleCard({ module }: { module: Module }) {
   return (
@@ -25,12 +36,12 @@ function ModuleCard({ module }: { module: Module }) {
 
       <span className="relative block">
         <span
-          className={`flex h-14 w-14 items-center justify-center rounded-2xl ${ACCENT_TILE[module.accent]}`}
+          className={`flex h-12 w-12 items-center justify-center rounded-2xl ${ACCENT_TILE[module.accent]}`}
         >
-          <Icon name={module.icon} size={26} />
+          <Icon name={module.icon} size={22} />
         </span>
 
-        <span className="mt-6 flex items-end justify-between gap-4">
+        <span className="mt-4 flex items-end justify-between gap-4">
           <span className="block">
             <span className="block text-lg font-bold text-body">
               {module.name}
@@ -56,6 +67,42 @@ function ModuleCard({ module }: { module: Module }) {
   );
 }
 
+function SessionBar({
+  session,
+  onSignOut,
+}: {
+  session: Session;
+  onSignOut: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand-ink text-sm font-bold uppercase text-brand-ink">
+        {session.username.slice(0, 2)}
+      </span>
+      <span className="hidden text-left sm:block">
+        <span className="block text-sm font-semibold text-body">
+          {session.username}
+        </span>
+        <span className="block text-xs text-body-soft">
+          {ROLE_LABELS[session.role]}
+        </span>
+      </span>
+      {/* The pull cancels the button's own padding, so its label ends on the
+          same axis as the cards below instead of 1rem inside them. */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onSignOut}
+        className="-mr-4"
+        aria-label="Cerrar sesión"
+      >
+        <LogOut size={18} />
+        <span className="hidden sm:inline">Cerrar sesión</span>
+      </Button>
+    </div>
+  );
+}
+
 export default function ModuleGrid() {
   const router = useRouter();
   const { session, signOut } = useSession();
@@ -75,72 +122,63 @@ export default function ModuleGrid() {
   };
 
   return (
-    <div className="flex min-h-screen bg-canvas">
-      <SelectorSidebar onSignOut={handleSignOut} />
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Below lg the rail is gone, so the logo and the way out come here. */}
-        <header className="flex items-center justify-between gap-4 border-b border-line px-6 py-4 lg:justify-end lg:border-0 lg:px-10 lg:py-6">
-          <Logo size="sm" markOnly className="lg:hidden" />
+    // The dot grid belongs to this screen alone: it is the only one with no
+    // table for the pattern to compete with.
+    <div className="ground-grid flex min-h-dvh flex-col">
+      {/* `my-auto` rather than `justify-center` on the parent: an auto margin
+          only ever absorbs POSITIVE free space, so a screen too short for the
+          eight cards scrolls normally instead of clipping the greeting off the
+          top — which is exactly what centring would do. */}
+      <main className={`${SHELL} ${PAGE_TOP} ${PAGE_BOTTOM} my-auto`}>
+        {/* One row: the greeting and the session sit on the same baseline and
+            end on the same two edges as the cards below. Reversed when it
+            stacks, so the account stays above the greeting rather than under
+            it. */}
+        <header className="flex flex-col-reverse items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-6">
+            <Logo size="md" />
+            <span aria-hidden className="hidden h-14 w-px bg-line sm:block" />
+            <div>
+              <h1 className="text-3xl font-bold text-body">
+                ¡Hola, {session?.username}!
+              </h1>
+              <p className="mt-2 text-body-soft">
+                Selecciona el módulo al que deseas ingresar.
+              </p>
+            </div>
+          </div>
 
           {session && (
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand-ink text-sm font-bold uppercase text-brand-ink">
-                {session.username.slice(0, 2)}
-              </span>
-              <span className="hidden text-left sm:block">
-                <span className="block text-sm font-semibold text-body">
-                  {session.username}
-                </span>
-                <span className="block text-xs text-body-soft">
-                  {ROLE_LABELS[session.role]}
-                </span>
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="lg:hidden"
-                aria-label="Cerrar sesión"
-              >
-                <LogOut size={18} />
-              </Button>
-            </div>
+            <SessionBar session={session} onSignOut={handleSignOut} />
           )}
         </header>
 
-        <main className="flex-1 px-6 pb-12 pt-8 lg:px-10 lg:pt-2">
-          <span className="block h-1 w-10 rounded-full bg-brand" />
-          <h1 className="mt-5 text-3xl font-bold text-body">
-            ¡Hola, {session?.username}!
-          </h1>
-          <p className="mt-2 text-body-soft">
-            Selecciona el módulo al que deseas ingresar.
-          </p>
-
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-            {visibleModules.map((module) =>
-              module.available && module.route ? (
-                <Link
-                  key={module.id}
-                  href={module.route}
-                  className={`${CARD_BASE} ${CARD_AVAILABLE}`}
-                >
-                  <ModuleCard module={module} />
-                </Link>
-              ) : (
-                <div
-                  key={module.id}
-                  aria-disabled="true"
-                  className={`${CARD_BASE} ${CARD_DISABLED}`}
-                >
-                  <ModuleCard module={module} />
-                </div>
-              ),
-            )}
-          </div>
-        </main>
-      </div>
+        {/* Four across from xl: eight modules then land in two rows, which is
+            what keeps the whole selector on one screen without scrolling. */}
+        <div
+          className={`${GRID_TOP} ${GRID_GAP} grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`}
+        >
+          {visibleModules.map((module) =>
+            module.available && module.route ? (
+              <Link
+                key={module.id}
+                href={module.route}
+                className={`${CARD_BASE} ${CARD_AVAILABLE}`}
+              >
+                <ModuleCard module={module} />
+              </Link>
+            ) : (
+              <div
+                key={module.id}
+                aria-disabled="true"
+                className={`${CARD_BASE} ${CARD_DISABLED}`}
+              >
+                <ModuleCard module={module} />
+              </div>
+            ),
+          )}
+        </div>
+      </main>
     </div>
   );
 }
