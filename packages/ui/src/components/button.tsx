@@ -3,13 +3,14 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md";
 
-// The accent and the danger fill are both light: what sits on top of them is
-// near-black (`brand-contrast`), never white.
+// The two filled variants take opposite foregrounds, and neither is a matter
+// of taste: the brand blue carries white at 5.5:1, while the danger fill is a
+// pale salmon that only reaches 2.3:1 against it and needs the dark ink.
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-brand text-brand-contrast hover:bg-brand-strong",
   secondary: "border border-line bg-panel text-body-muted hover:bg-surface",
   ghost: "text-body-soft hover:bg-surface hover:text-body",
-  danger: "bg-danger-ink text-brand-contrast hover:bg-danger-strong",
+  danger: "bg-danger-ink text-ink-on-light hover:bg-danger-strong",
 };
 
 const SIZES: Record<ButtonSize, string> = {

@@ -5,15 +5,14 @@
   names below, never a raw palette value, so a change of direction is a change
   of values here rather than a sweep across eight modules.
 
-  The product is dark by default: near-black surfaces, one bright lime accent.
+  The product is dark by default: near-black surfaces, one blue accent.
   Two families, kept deliberately apart:
 
-  - Brand (shell, brand, canvas) carries identity — the lime accent marks what
+  - Brand (shell, brand, canvas) carries identity — the blue accent marks what
     is actionable or current, nothing else.
   - Status (ok, warn, danger, idle) carries meaning — the client states of
-    SRS §4.2. Because the brand is now itself a green, the status green is kept
-    deliberately mint/emerald and never lime, so "Activo" still reads as a
-    signal and not as a brand flourish.
+    SRS §4.2. Blue is not among them, which is the point: the brand can appear
+    beside an "Activo" badge without either one borrowing the other's meaning.
 */
 
 @theme {
@@ -30,12 +29,27 @@
   --color-line: #262a30;
   --color-line-soft: #1e2228;
 
-  /* Brand accent — lime. Text on top of it is near-black, never white. */
-  --color-brand: #c6f24e;
-  --color-brand-strong: #b4e63a;
-  --color-brand-ink: #c6f24e;
-  --color-brand-soft: #2c3a17;
-  --color-brand-contrast: #0f1215;
+  /*
+    Brand accent — blue.
+
+    Two values, because one blue cannot do both jobs on a near-black page:
+    - `brand` fills things (buttons, the active pill). White sits on it.
+    - `brand-ink` is the same hue lightened, for the accent used as TEXT or a
+      thin line. `brand` as text only reaches 3.4:1 against the canvas, under
+      the 4.5:1 a body-sized word needs; `brand-ink` clears 7:1.
+  */
+  --color-brand: #306e9d;
+  --color-brand-strong: #3880b7;
+  --color-brand-ink: #75acd7;
+  --color-brand-soft: #17354d;
+  --color-brand-contrast: #ffffff;
+
+  /*
+    What sits on top of a LIGHT fill — the bright accent tiles and the danger
+    button. Kept apart from `brand-contrast`: the brand is dark enough to carry
+    white, these are not.
+  */
+  --color-ink-on-light: #0f1215;
 
   /* Text */
   --color-body: #f2f5f7;
@@ -49,15 +63,18 @@
     They exist so eight cards on the selector are told apart at a glance, and
     they appear on no other screen. That is why a green tile here does not
     collide with the green below: the two never share a surface.
+
+    None of them is blue — that hue belongs to the brand, and a card wearing it
+    would read as the selected one.
   */
   --color-accent-green: #22c55e;
-  --color-accent-blue: #3b82f6;
   --color-accent-violet: #8b5cf6;
+  --color-accent-fuchsia: #d946ef;
   --color-accent-orange: #f97316;
   --color-accent-teal: #14b8a6;
   --color-accent-rose: #f43f5e;
   --color-accent-lime: #c6f24e;
-  --color-accent-sky: #38bdf8;
+  --color-accent-amber: #f59e0b;
 
   /* Status — reserved for the client states of SRS §4.2 */
   --color-ok-soft: #12331f;

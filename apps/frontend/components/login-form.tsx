@@ -32,7 +32,7 @@ function BrandPanel() {
         <Logo size="lg" className="mb-10" />
         <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-body">
           TU MEJOR VERSIÓN
-          <span className="mt-1 block text-brand">EMPIEZA AQUÍ</span>
+          <span className="mt-1 block text-brand-ink">EMPIEZA AQUÍ</span>
         </h2>
         <p className="mt-4 text-body-soft">
           Entrena, avanza, supera tus límites.
@@ -42,7 +42,7 @@ function BrandPanel() {
       <p className="absolute bottom-10 left-10 text-left text-sm font-bold uppercase leading-snug tracking-wider text-body-faint">
         Disciplina hoy,
         <br />
-        resultados <span className="text-brand">mañana</span>
+        resultados <span className="text-brand-ink">mañana</span>
       </p>
     </section>
   );

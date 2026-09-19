@@ -43,11 +43,11 @@ export default function SelectorSidebar({ onSignOut }: SelectorSidebarProps) {
       </nav>
 
       <div className="mt-10 px-8">
-        <span className="block h-px w-12 bg-brand" />
+        <span className="block h-px w-12 bg-brand-ink" />
         <p className="mt-5 text-sm font-bold uppercase leading-snug tracking-wider text-body-faint">
           Disciplina hoy,
           <br />
-          resultados <span className="text-brand">mañana</span>
+          resultados <span className="text-brand-ink">mañana</span>
         </p>
       </div>
 

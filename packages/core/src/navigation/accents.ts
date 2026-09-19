@@ -7,13 +7,16 @@
  * They mark identity, never state. The status family (ok / warn / danger)
  * still owns meaning — a module tile and an "Activo" badge never share a
  * screen, so a green tile cannot be mistaken for a green signal.
+ *
+ * No blue: the brand accent is one, and a card that borrowed it would read as
+ * "the current one" rather than as itself.
  */
 export type AccentName =
   | "green"
-  | "blue"
   | "violet"
+  | "fuchsia"
   | "orange"
   | "teal"
   | "rose"
   | "lime"
-  | "sky";
+  | "amber";

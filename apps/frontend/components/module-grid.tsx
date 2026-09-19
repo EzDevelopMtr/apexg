@@ -85,7 +85,7 @@ export default function ModuleGrid() {
 
           {session && (
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand text-sm font-bold uppercase text-brand">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand-ink text-sm font-bold uppercase text-brand-ink">
                 {session.username.slice(0, 2)}
               </span>
               <span className="hidden text-left sm:block">
