@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import type { Module } from "@apexg/core";
-import { MODULES, ROLE_LABELS, canAccessModule } from "@apexg/core";
+import { MODULES, canAccessModule } from "@apexg/core";
 import { Button, Icon } from "@apexg/ui";
 import { useSession } from "../lib/use-session";
 
@@ -76,17 +76,6 @@ export default function ModuleGrid() {
 
       <main className="ground-grid flex-1 px-6 py-10">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-8">
-            <p className="text-body-soft">
-              Selecciona el área que deseas administrar.
-            </p>
-            {session && (
-              <p className="mt-1 text-sm text-body-faint">
-                {session.username} · {ROLE_LABELS[session.role]}
-              </p>
-            )}
-          </div>
-
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {visibleModules.map((module) =>
               module.available && module.route ? (
