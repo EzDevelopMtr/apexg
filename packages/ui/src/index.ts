@@ -33,6 +33,9 @@ export type {
 export { default as Card, CardHeader, CardBody } from "./components/card";
 export type { CardProps } from "./components/card";
 
+export { default as Logo } from "./components/logo";
+export type { LogoProps, LogoSize } from "./components/logo";
+
 export { default as Modal } from "./components/modal";
 export type { ModalProps } from "./components/modal";
 

@@ -5,53 +5,56 @@
   names below, never a raw palette value, so a change of direction is a change
   of values here rather than a sweep across eight modules.
 
+  The product is dark by default: near-black surfaces, one bright lime accent.
   Two families, kept deliberately apart:
 
-  - Brand (shell, brand, canvas) carries identity. It lives in the cool half of
-    the wheel on purpose.
+  - Brand (shell, brand, canvas) carries identity — the lime accent marks what
+    is actionable or current, nothing else.
   - Status (ok, warn, danger, idle) carries meaning — the client states of
-    SRS §4.2. Green, amber and red belong to them alone; if the brand accent
-    drifted into those hues, "Activo" would stop reading as a signal.
+    SRS §4.2. Because the brand is now itself a green, the status green is kept
+    deliberately mint/emerald and never lime, so "Activo" still reads as a
+    signal and not as a brand flourish.
 */
 
 @theme {
-  /* Structure */
-  --color-shell: #15181d;
-  --color-shell-soft: #22262d;
-  --color-shell-line: #262a31;
-  --color-shell-muted: #868e97;
+  /* Structure — the sidebar and other app chrome, the deepest layer. */
+  --color-shell: #0a0c0e;
+  --color-shell-soft: #14171b;
+  --color-shell-line: #23272d;
+  --color-shell-muted: #8a9199;
 
-  /* Surfaces */
-  --color-canvas: #f4f6f7;
-  --color-panel: #ffffff;
-  --color-surface: #f7f9fa;
-  --color-line: #dde3e6;
-  --color-line-soft: #eef2f4;
+  /* Surfaces — page, cards, raised controls. */
+  --color-canvas: #0f1215;
+  --color-panel: #171a1f;
+  --color-surface: #1c2026;
+  --color-line: #262a30;
+  --color-line-soft: #1e2228;
 
-  /* Brand accent */
-  --color-brand: #0e8ba3;
-  --color-brand-strong: #0b7286;
-  --color-brand-ink: #0e7490;
-  --color-brand-soft: #e2f0f3;
+  /* Brand accent — lime. Text on top of it is near-black, never white. */
+  --color-brand: #c6f24e;
+  --color-brand-strong: #b4e63a;
+  --color-brand-ink: #c6f24e;
+  --color-brand-soft: #2c3a17;
+  --color-brand-contrast: #0f1215;
 
   /* Text */
-  --color-body: #15181d;
-  --color-body-muted: #4e575d;
-  --color-body-soft: #6b767c;
-  --color-body-faint: #8b949a;
+  --color-body: #f2f5f7;
+  --color-body-muted: #c4cbd2;
+  --color-body-soft: #9ba3ab;
+  --color-body-faint: #6e767e;
 
   /* Status — reserved for the client states of SRS §4.2 */
-  --color-ok-soft: #dcf2e3;
-  --color-ok-ink: #14532d;
-  --color-warn-soft: #fbeed3;
-  --color-warn-ink: #713f12;
-  --color-warn-line: #f0dcae;
-  --color-danger-soft: #fadfdf;
-  --color-danger-ink: #7f1d1d;
-  --color-danger-line: #f0bcbc;
-  --color-danger-strong: #641717;
-  --color-idle-soft: #e8ecee;
-  --color-idle-ink: #374151;
+  --color-ok-soft: #12331f;
+  --color-ok-ink: #6ee7a0;
+  --color-warn-soft: #3a2e12;
+  --color-warn-ink: #fbd24e;
+  --color-warn-line: #5a4a1e;
+  --color-danger-soft: #3a1a1c;
+  --color-danger-ink: #f98a8a;
+  --color-danger-line: #5c2a2c;
+  --color-danger-strong: #fca5a5;
+  --color-idle-soft: #23272d;
+  --color-idle-ink: #a8b0b8;
 }
 
 /*
@@ -62,12 +65,12 @@
 */
 
 /*
-  Fine grain. Keeps a flat fill from reading as plastic and helps the white
-  panels lift off the page. Used everywhere data is dense.
+  Fine grain. Keeps a flat fill from reading as plastic and helps the panels
+  lift off the page. Used everywhere data is dense.
 */
 .ground-grain {
   background-color: var(--color-canvas);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
 /*
@@ -76,6 +79,6 @@
 */
 .ground-grid {
   background-color: var(--color-canvas);
-  background-image: radial-gradient(circle, #c8d4d8 1.1px, transparent 1.1px);
+  background-image: radial-gradient(circle, #1f252b 1.1px, transparent 1.1px);
   background-size: 20px 20px;
 }

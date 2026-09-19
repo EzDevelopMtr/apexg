@@ -3,11 +3,13 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md";
 
+// The accent and the danger fill are both light: what sits on top of them is
+// near-black (`brand-contrast`), never white.
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-white hover:bg-brand-strong",
+  primary: "bg-brand text-brand-contrast hover:bg-brand-strong",
   secondary: "border border-line bg-panel text-body-muted hover:bg-surface",
-  ghost: "text-body-soft hover:bg-canvas hover:text-body",
-  danger: "bg-danger-ink text-white hover:bg-danger-strong",
+  ghost: "text-body-soft hover:bg-surface hover:text-body",
+  danger: "bg-danger-ink text-brand-contrast hover:bg-danger-strong",
 };
 
 const SIZES: Record<ButtonSize, string> = {

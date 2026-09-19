@@ -65,6 +65,13 @@ export function proxy(request: NextRequest): NextResponse {
   return NextResponse.next();
 }
 
+/**
+ * Anything with a file extension is a static asset from `public/` and must not
+ * be guarded: the login page's own background and the favicon live there, and
+ * a signed-out visitor — the only kind that ever sees the login — would have
+ * them redirected to `/login` instead of served. No route in this app has a
+ * dot in it, so matching on the extension is safe.
+ */
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next|.*\\..*).*)"],
 };

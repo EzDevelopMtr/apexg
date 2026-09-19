@@ -33,6 +33,15 @@ body {
   margin: 0;
 }
 
+/*
+  The product only ships a dark theme. Declaring it lets the browser draw its
+  own chrome to match — date pickers, scrollbars and autofill would otherwise
+  render as light boxes dropped onto a near-black page.
+*/
+html {
+  color-scheme: dark;
+}
+
 body {
   font-family:
     Inter,
