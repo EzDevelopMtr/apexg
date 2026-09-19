@@ -24,6 +24,7 @@ export * from "./domain/finance";
 export * from "./domain/permissions";
 
 /* Navigation */
+export * from "./navigation/accents";
 export * from "./navigation/icons";
 export * from "./navigation/modules";
 export * from "./navigation/client-sections";

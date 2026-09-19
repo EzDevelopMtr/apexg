@@ -56,6 +56,9 @@ export type { SidebarShellProps } from "./layout/sidebar";
 
 export { sidebarItemClasses } from "./layout/sidebar-classes";
 
+/* Accents */
+export { ACCENT_TILE, ACCENT_GLOW } from "./accents";
+
 /* Icons */
 export { getIcon } from "./icons";
 export { default as Icon } from "./components/icon";

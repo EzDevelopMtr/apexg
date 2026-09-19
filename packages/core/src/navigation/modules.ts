@@ -1,3 +1,4 @@
+import type { AccentName } from "./accents";
 import type { IconName } from "./icons";
 
 /** A business module of the system. */
@@ -9,6 +10,8 @@ export interface Module {
   /** Short description shown on the module card, in Spanish. */
   readonly description: string;
   readonly icon: IconName;
+  /** Tells the module apart on the selector. Identity, never state. */
+  readonly accent: AccentName;
   /**
    * Whether the module is built. Unavailable ones render as "Próximamente".
    * `route` is `null` exactly when `available` is false.
@@ -29,6 +32,7 @@ export const MODULES: readonly Module[] = [
     name: "Clientes",
     description: "Gestiona los clientes del gimnasio",
     icon: "users",
+    accent: "green",
     available: true,
     route: "/modules/clients/all",
   },
@@ -37,6 +41,7 @@ export const MODULES: readonly Module[] = [
     name: "Membresías",
     description: "Planes, tarifas y condiciones",
     icon: "card",
+    accent: "blue",
     available: true,
     route: "/modules/memberships/all",
   },
@@ -45,6 +50,7 @@ export const MODULES: readonly Module[] = [
     name: "Pagos",
     description: "Pagos, abonos y saldos",
     icon: "wallet",
+    accent: "violet",
     available: true,
     route: "/modules/payments/all",
   },
@@ -53,6 +59,7 @@ export const MODULES: readonly Module[] = [
     name: "Entrenadores",
     description: "Entrenadores y comisiones",
     icon: "dumbbell",
+    accent: "orange",
     available: true,
     route: "/modules/trainers/all",
   },
@@ -61,6 +68,7 @@ export const MODULES: readonly Module[] = [
     name: "Egresos",
     description: "Gastos y categorías",
     icon: "receipt",
+    accent: "teal",
     available: true,
     route: "/modules/expenses/all",
   },
@@ -69,6 +77,7 @@ export const MODULES: readonly Module[] = [
     name: "Inventario",
     description: "Ítems y existencias",
     icon: "package",
+    accent: "rose",
     available: true,
     route: "/modules/inventory/all",
   },
@@ -77,6 +86,7 @@ export const MODULES: readonly Module[] = [
     name: "Finanzas",
     description: "Balances y reportes",
     icon: "chart",
+    accent: "lime",
     available: true,
     route: "/modules/finances/dashboard",
   },
@@ -85,6 +95,7 @@ export const MODULES: readonly Module[] = [
     name: "Apartado diario",
     description: "Bitácora del día",
     icon: "notebook",
+    accent: "sky",
     available: true,
     route: "/modules/daily-log/today",
   },

@@ -43,6 +43,22 @@
   --color-body-soft: #9ba3ab;
   --color-body-faint: #6e767e;
 
+  /*
+    Module accents — identity only.
+
+    They exist so eight cards on the selector are told apart at a glance, and
+    they appear on no other screen. That is why a green tile here does not
+    collide with the green below: the two never share a surface.
+  */
+  --color-accent-green: #22c55e;
+  --color-accent-blue: #3b82f6;
+  --color-accent-violet: #8b5cf6;
+  --color-accent-orange: #f97316;
+  --color-accent-teal: #14b8a6;
+  --color-accent-rose: #f43f5e;
+  --color-accent-lime: #c6f24e;
+  --color-accent-sky: #38bdf8;
+
   /* Status — reserved for the client states of SRS §4.2 */
   --color-ok-soft: #12331f;
   --color-ok-ink: #6ee7a0;
