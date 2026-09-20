@@ -410,6 +410,23 @@ export const expenses = pgTable("expenses", {
 		}),
 ]);
 
+export const inventoryCategories = pgTable("inventory_categories", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	name: varchar({ length: 100 }).notNull(),
+	description: text(),
+	state: integer().default(1).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "inventory_categories_company_id_fkey"
+		}),
+	unique("uq_inventory_categories_company_name").on(table.companyId, table.name),
+]);
+
 export const inventoryItems = pgTable("inventory_items", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	companyId: uuid("company_id").notNull(),
@@ -421,14 +438,58 @@ export const inventoryItems = pgTable("inventory_items", {
 	state: integer().default(1).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	categoryId: uuid("category_id"),
 }, (table) => [
 	index("idx_inventory_items_company_state").using("btree", table.companyId.asc().nullsLast().op("int4_ops"), table.state.asc().nullsLast().op("uuid_ops")),
+	index("idx_inventory_items_category").using("btree", table.categoryId.asc().nullsLast().op("uuid_ops")),
 	foreignKey({
 			columns: [table.companyId],
 			foreignColumns: [companies.id],
 			name: "inventory_items_company_id_fkey"
 		}),
+	foreignKey({
+			columns: [table.categoryId],
+			foreignColumns: [inventoryCategories.id],
+			name: "inventory_items_category_id_fkey"
+		}),
 	unique("uq_inventory_items_company_name").on(table.companyId, table.name),
+]);
+
+export const productSales = pgTable("product_sales", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	inventoryItemId: uuid("inventory_item_id").notNull(),
+	clientId: uuid("client_id"),
+	quantity: numeric({ precision: 12, scale:  3 }).notNull(),
+	amount: numeric({ precision: 12, scale:  2 }).notNull(),
+	paymentMethod: varchar("payment_method", { length: 20 }).notNull(),
+	soldAt: timestamp("sold_at", { withTimezone: true, mode: 'string' }).notNull(),
+	notes: text(),
+	createdBy: uuid("created_by"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_product_sales_company_sold").using("btree", table.companyId.asc().nullsLast().op("timestamptz_ops"), table.soldAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_product_sales_item").using("btree", table.inventoryItemId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "product_sales_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.inventoryItemId],
+			foreignColumns: [inventoryItems.id],
+			name: "product_sales_inventory_item_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [clients.id],
+			name: "product_sales_client_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "product_sales_created_by_fkey"
+		}),
 ]);
 
 export const inventoryMovements = pgTable("inventory_movements", {

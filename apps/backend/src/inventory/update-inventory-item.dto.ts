@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 
 const NONNEGATIVE_QUANTITY_PATTERN = /^\d+(\.\d{1,3})?$/;
 
@@ -32,4 +32,9 @@ export class UpdateInventoryItemDto {
   @IsOptional()
   @IsIn([1, 2])
   state?: 1 | 2;
+
+  /** `null` limpia la categoría; ausente deja la actual sin tocar. */
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string | null;
 }

@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsOptional, IsUUID } from 'class-validator';
 
 /** Query string de `GET /inventory-items`. */
 export class ListInventoryItemsQueryDto {
@@ -14,4 +14,8 @@ export class ListInventoryItemsQueryDto {
   @Transform(({ value }: { value: unknown }) => (value === undefined ? undefined : value === 'true'))
   @IsBoolean()
   belowMinimum?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
 }

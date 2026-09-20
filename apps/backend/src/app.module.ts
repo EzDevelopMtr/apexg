@@ -10,6 +10,7 @@ import { FinanceModule } from './finance/finance.module.js';
 import { InventoryModule } from './inventory/inventory.module.js';
 import { MembershipTypesModule } from './membership-types/membership-types.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { ProductSalesModule } from './product-sales/product-sales.module.js';
 import { ProvisioningModule } from './provisioning/provisioning.module.js';
 import { TrainersModule } from './trainers/trainers.module.js';
 
@@ -27,6 +28,7 @@ import { TrainersModule } from './trainers/trainers.module.js';
     InventoryModule,
     FinanceModule,
     DailyLogModule,
+    ProductSalesModule,
   ],
 })
 export class AppModule {}

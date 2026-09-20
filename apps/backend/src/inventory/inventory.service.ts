@@ -9,6 +9,7 @@ import { PG_FOREIGN_KEY_VIOLATION, PG_UNIQUE_VIOLATION, pgErrorCode } from '../s
 import { toMilliUnits } from '../shared/quantity.util.js';
 
 import type { CreateInventoryItemDto } from './create-inventory-item.dto.js';
+import { InventoryCategoryService } from './inventory-category.service.js';
 import type {
   InventoryItemResult,
   InventoryItemState,
@@ -18,16 +19,17 @@ import type { UpdateInventoryItemDto } from './update-inventory-item.dto.js';
 
 type InventoryItemRow = typeof inventoryItems.$inferSelect;
 
-/** RF-28 a RF-30. Registrar/listar movimientos (RF-28/29) vive en `InventoryMovementService`. */
+// RF-28 a RF-30. Movimientos en `InventoryMovementService`; catálogo de
+// categorías (agrupación simple, no del ERS) en `InventoryCategoryService`.
 @Injectable()
 export class InventoryService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly categories: InventoryCategoryService,
+  ) {}
 
-  /**
-   * RF-28: registra el ítem y, si trae existencia inicial, su primer
-   * movimiento — así `inventory_movements` sigue siendo el único origen de
-   * cada cambio de stock, incluido el inicial.
-   */
+  // RF-28: registra el ítem y, si trae existencia inicial, su primer
+  // movimiento — así `inventory_movements` sigue siendo el único origen.
   async create(
     companyId: string,
     userId: string,
@@ -35,6 +37,9 @@ export class InventoryService {
   ): Promise<InventoryItemResult> {
     const initialStock = input.initialStock ?? '0.000';
     const minimumStock = input.minimumStock ?? '0.000';
+    const category = input.categoryId
+      ? await this.categories.load(companyId, input.categoryId)
+      : null;
 
     try {
       return await this.db.transaction(async (tx) => {
@@ -47,6 +52,7 @@ export class InventoryService {
             unitOfMeasure: input.unitOfMeasure,
             currentStock: initialStock,
             minimumStock,
+            categoryId: category?.id ?? null,
           })
           .returning();
         const row = assertDefined(insertedRow, 'INSERT into inventory_items did not return a row.');
@@ -64,7 +70,7 @@ export class InventoryService {
           });
         }
 
-        return this.toResult(row);
+        return this.toResult(row, category?.name ?? null);
       });
     } catch (error) {
       if (pgErrorCode(error) === PG_UNIQUE_VIOLATION) {
@@ -85,6 +91,9 @@ export class InventoryService {
     if (filter.belowMinimum) {
       conditions.push(sql`${inventoryItems.currentStock} <= ${inventoryItems.minimumStock}`);
     }
+    if (filter.categoryId !== undefined) {
+      conditions.push(eq(inventoryItems.categoryId, filter.categoryId));
+    }
 
     const rows = await this.db
       .select()
@@ -92,11 +101,20 @@ export class InventoryService {
       .where(and(...conditions))
       .orderBy(inventoryItems.name);
 
-    return rows.map((row) => this.toResult(row));
+    const categories = await this.categories.list(companyId);
+    const nameById = new Map(categories.map((category) => [category.id, category.name]));
+
+    return rows.map((row) =>
+      this.toResult(row, row.categoryId ? (nameById.get(row.categoryId) ?? null) : null),
+    );
   }
 
   async findOne(companyId: string, id: string): Promise<InventoryItemResult> {
-    return this.toResult(await this.loadItem(companyId, id));
+    const row = await this.loadItem(companyId, id);
+    const categoryName = row.categoryId
+      ? (await this.categories.load(companyId, row.categoryId)).name
+      : null;
+    return this.toResult(row, categoryName);
   }
 
   async update(
@@ -112,6 +130,12 @@ export class InventoryService {
     if (input.unitOfMeasure !== undefined) patch.unitOfMeasure = input.unitOfMeasure;
     if (input.minimumStock !== undefined) patch.minimumStock = input.minimumStock;
     if (input.state !== undefined) patch.state = input.state;
+    if (input.categoryId !== undefined) {
+      if (input.categoryId !== null) {
+        await this.categories.load(companyId, input.categoryId);
+      }
+      patch.categoryId = input.categoryId;
+    }
 
     try {
       if (Object.keys(patch).length > 0) {
@@ -130,11 +154,8 @@ export class InventoryService {
     return this.findOne(companyId, id);
   }
 
-  /**
-   * DELETE real: sin `ON DELETE CASCADE` en `inventory_movements` (ver
-   * migración 001), Postgres protege el historial de movimientos de un
-   * ítem que ya tuvo actividad.
-   */
+  // DELETE real: sin ON DELETE CASCADE en inventory_movements (migración
+  // 001), Postgres protege el historial de un ítem que ya tuvo actividad.
   async remove(companyId: string, id: string): Promise<void> {
     await this.loadItem(companyId, id);
 
@@ -163,7 +184,7 @@ export class InventoryService {
     return row;
   }
 
-  private toResult(row: InventoryItemRow): InventoryItemResult {
+  private toResult(row: InventoryItemRow, categoryName: string | null): InventoryItemResult {
     return {
       id: row.id,
       name: row.name,
@@ -172,6 +193,8 @@ export class InventoryService {
       currentStock: row.currentStock,
       minimumStock: row.minimumStock,
       state: row.state as InventoryItemState,
+      categoryId: row.categoryId,
+      categoryName,
     };
   }
 }
