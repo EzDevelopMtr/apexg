@@ -2,7 +2,7 @@
 
 import type { PaymentMethod } from "@apexg/core";
 import { PAYMENT_METHOD_LABELS } from "@apexg/core";
-import { Input, Select, Textarea } from "@apexg/ui";
+import { FileInput, Input, Select, Textarea } from "@apexg/ui";
 import type { SelectOption } from "@apexg/ui";
 import type { RecordPaymentValues } from "../hooks/use-record-payment";
 
@@ -18,7 +18,7 @@ export interface PaymentFormFieldsProps {
   ) => void;
 }
 
-/** Amount, method, reference and notes for a payment (RF-17). */
+/** Amount, method, reference, receipt and notes for a payment (RF-17). */
 export default function PaymentFormFields({
   values,
   setValue,
@@ -53,6 +53,15 @@ export default function PaymentFormFields({
         value={values.reference}
         onChange={(event) => setValue("reference", event.target.value)}
         placeholder="Ej. TRX-20260905-001"
+      />
+
+      <FileInput
+        id="receipt"
+        label="Comprobante"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        hint="Obligatorio en todo pago. JPG, PNG, WEBP o PDF, hasta 5 MB."
+        file={values.receipt}
+        onChange={(file) => setValue("receipt", file)}
       />
 
       <Textarea

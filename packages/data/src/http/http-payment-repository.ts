@@ -20,7 +20,8 @@ import {
 import type { PaymentRepository } from "../repositories";
 import { apiFetch } from "./http-client";
 
-type ApiPaymentType = "full" | "first_installment" | "second_installment" | "final_installment";
+type ApiPaymentType =
+  "full" | "first_installment" | "second_installment" | "final_installment";
 
 interface ApiPaymentResult {
   id: string;
@@ -84,7 +85,25 @@ function splitNotes(raw: string | null): { reference: string; notes: string } {
   return { reference: match[1] ?? "", notes: match[2] ?? "" };
 }
 
-function fromResult(row: ApiPaymentResult, context: MembershipContext): Payment {
+/**
+ * The payment fields plus its receipt, as one multipart body.
+ *
+ * Every value goes in as a string: multipart has no types, and the backend's
+ * DTO already treats `amount` as a string it validates by pattern.
+ */
+function toFormData(fields: Record<string, string>, receipt: Blob): FormData {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    form.append(key, value);
+  }
+  // The field name the endpoint's FileInterceptor listens on.
+  form.append("receipt", receipt);
+  return form;
+}
+function fromResult(
+  row: ApiPaymentResult,
+  context: MembershipContext,
+): Payment {
   const { reference, notes } = splitNotes(row.notes);
   return {
     id: toPaymentId(row.id),
@@ -119,7 +138,9 @@ export class HttpPaymentRepository implements PaymentRepository {
    * "current" and "the one every existing payment belongs to" are the same
    * thing — this will need revisiting once renewals exist.
    */
-  private async loadMembershipContexts(): Promise<Map<string, MembershipContext>> {
+  private async loadMembershipContexts(): Promise<
+    Map<string, MembershipContext>
+  > {
     const rows = await apiFetch<ClientLookupRow[]>("/clients");
     const contexts = new Map<string, MembershipContext>();
     for (const row of rows) {
@@ -153,27 +174,42 @@ export class HttpPaymentRepository implements PaymentRepository {
     });
   }
 
-  async record(draft: Omit<Payment, "id">): Promise<Payment> {
-    const client = await apiFetch<ClientLookupRow>(`/clients/${draft.clientId}`);
+  async record(draft: Omit<Payment, "id">, receipt?: Blob): Promise<Payment> {
+    const client = await apiFetch<ClientLookupRow>(
+      `/clients/${draft.clientId}`,
+    );
     const membership = client.currentMembership;
     if (!membership) {
-      throw new Error("El cliente no tiene una membresía vigente para registrar un pago.");
+      throw new Error(
+        "El cliente no tiene una membresía vigente para registrar un pago.",
+      );
     }
 
-    const row = await apiFetch<ApiPaymentResult>("/payments", {
-      method: "POST",
-      body: {
-        clientMembershipId: membership.id,
-        amount: toApiString(draft.amount),
-        paymentMethod: draft.method,
-        // No `paidAt`: the form never lets `paidOn` be anything but today
-        // (see `use-record-payment.ts`), so the backend's own default (the
-        // server's current instant) already means the same thing — and
-        // sidesteps reconstructing a timestamp whose UTC offset would need
-        // to land on the right LOCAL calendar day (see `paidOn` above).
-        notes: composeNotes(draft.reference, draft.notes),
-      },
-    });
+    const fields: Record<string, string> = {
+      clientMembershipId: membership.id,
+      amount: toApiString(draft.amount),
+      paymentMethod: draft.method,
+      // No `paidAt`: the form never lets `paidOn` be anything but today
+      // (see `use-record-payment.ts`), so the backend's own default (the
+      // server's current instant) already means the same thing — and
+      // sidesteps reconstructing a timestamp whose UTC offset would need
+      // to land on the right LOCAL calendar day (see `paidOn` above).
+    };
+    const notes = composeNotes(draft.reference, draft.notes);
+    if (notes !== undefined) fields.notes = notes;
+
+    // Multipart whenever there is a file. The endpoint reads both shapes, so
+    // a cash payment stays a plain JSON POST rather than paying for a
+    // multipart envelope it has nothing to put in.
+    const row = receipt
+      ? await apiFetch<ApiPaymentResult>("/payments", {
+          method: "POST",
+          formData: toFormData(fields, receipt),
+        })
+      : await apiFetch<ApiPaymentResult>("/payments", {
+          method: "POST",
+          body: fields,
+        });
 
     const context: MembershipContext = {
       clientId: draft.clientId,

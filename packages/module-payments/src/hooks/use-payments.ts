@@ -7,7 +7,10 @@ import type { Collection } from "@apexg/module-kit";
 
 export interface UsePaymentsResult extends Collection<Payment> {
   /** Appends a payment (RF-17). Payments are never rewritten (RNF-07). */
-  readonly record: (draft: Omit<Payment, "id">) => Promise<Payment>;
+  readonly record: (
+    draft: Omit<Payment, "id">,
+    receipt?: Blob,
+  ) => Promise<Payment>;
 }
 
 export function usePayments(): UsePaymentsResult {
@@ -18,8 +21,8 @@ export function usePayments(): UsePaymentsResult {
   const { apply } = collection;
 
   const record = useCallback(
-    async (draft: Omit<Payment, "id">) => {
-      const saved = await payments.record(draft);
+    async (draft: Omit<Payment, "id">, receipt?: Blob) => {
+      const saved = await payments.record(draft, receipt);
       apply((current) => [...current, saved]);
       return saved;
     },

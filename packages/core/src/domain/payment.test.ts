@@ -208,27 +208,16 @@ describe("cyclesWithBalance (RF-18)", () => {
 });
 
 describe("requiresReceipt", () => {
-  it("does not ask for a receipt when the client paid cash", () => {
-    expect(requiresReceipt("cash")).toBe(false);
-  });
-
-  it("asks for one for every electronic method", () => {
-    const electronic: PaymentMethod[] = [
-      "transfer",
-      "card",
-      "nequi",
-      "bancolombia",
-    ];
-    for (const method of electronic) {
+  // Every method, including cash: the exception was dropped on purpose, so a
+  // future one silently reintroducing it should break this.
+  it("asks for a receipt for every method in the catalogue", () => {
+    const methods = Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[];
+    for (const method of methods) {
       expect(requiresReceipt(method)).toBe(true);
     }
   });
 
-  // Guards the rule against a method being added to the union and silently
-  // defaulting to "no evidence needed": every non-cash method must be covered.
-  it("covers every method in the catalogue", () => {
-    const methods = Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[];
-    const needing = methods.filter(requiresReceipt);
-    expect(needing).toHaveLength(methods.length - 1);
+  it("covers cash too", () => {
+    expect(requiresReceipt("cash")).toBe(true);
   });
 });

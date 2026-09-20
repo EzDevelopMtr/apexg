@@ -39,18 +39,24 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 };
 
 /**
- * Whether a payment has to carry a photo of its receipt.
+ * Whether a payment has to carry a photo of its receipt. Today: always.
  *
- * Cash changes hands in person with the receptionist as witness, so there is
- * nothing to capture. Every other method leaves a screen on the payer's phone,
- * and that screenshot is the only thing the gym can check a disputed transfer
- * against months later (RNF-07: financial records stay traceable).
+ * It started as "everything except cash", on the reasoning that cash changes
+ * hands with the receptionist as witness. That was dropped deliberately: an
+ * exception is the one row nobody can audit later, and the gym would rather
+ * photograph the signed slip than keep a category of payment with no trace at
+ * all (RNF-07: financial records stay traceable).
+ *
+ * Kept as a function of the method rather than folded away as a constant,
+ * because the question it answers is still "does THIS method need evidence" —
+ * bringing an exception back is changing this line, not re-threading a rule
+ * through five layers.
  *
  * A rule, not a form detail: the API has to reject exactly what the form
  * rejects, or the requirement only holds while people use our UI.
  */
-export function requiresReceipt(method: PaymentMethod): boolean {
-  return method !== "cash";
+export function requiresReceipt(_method: PaymentMethod): boolean {
+  return true;
 }
 
 /**

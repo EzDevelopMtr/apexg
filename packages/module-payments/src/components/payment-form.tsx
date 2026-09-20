@@ -14,7 +14,7 @@ export interface PaymentFormProps {
   clients: readonly Client[];
   payments: readonly Payment[];
   recordedBy: string;
-  onRecord: (draft: Omit<Payment, "id">) => Promise<void>;
+  onRecord: (draft: Omit<Payment, "id">, receipt?: Blob) => Promise<void>;
   onDone: () => void;
 }
 
@@ -46,7 +46,7 @@ export default function PaymentForm({
 
     setSaving(true);
     try {
-      await onRecord(draft);
+      await onRecord(draft, form.values.receipt ?? undefined);
       form.reset();
       onDone();
     } catch (cause) {

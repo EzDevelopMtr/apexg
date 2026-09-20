@@ -63,3 +63,42 @@ export function backendErrorMessage(body: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+/**
+ * Forwards a request to the backend and returns its response untouched.
+ *
+ * Used by the `/api/backend/*` proxy, which must not assume JSON in either
+ * direction: a payment carries its receipt up as `multipart/form-data`, and
+ * comes back down as an image. `callBackend` parses both ends as JSON, which
+ * throws on the way up and corrupts the file on the way down.
+ */
+export async function callBackendRaw(
+  path: string,
+  options: {
+    method: string;
+    accessToken: string;
+    body?: BodyInit | null;
+    contentType?: string | null;
+    searchParams?: URLSearchParams;
+  },
+): Promise<Response> {
+  const url = new URL(path, backendUrl());
+  if (options.searchParams) {
+    url.search = options.searchParams.toString();
+  }
+
+  return fetch(url, {
+    method: options.method,
+    headers: {
+      Authorization: `Bearer ${options.accessToken}`,
+      // Passed through verbatim so multipart keeps its boundary parameter;
+      // rebuilding the header would drop it and the backend would see one
+      // unparseable blob.
+      ...(options.contentType ? { "Content-Type": options.contentType } : {}),
+    },
+    body: options.body ?? undefined,
+    cache: "no-store",
+    // Required by undici whenever a request carries a stream body.
+    ...(options.body ? { duplex: "half" } : {}),
+  } as RequestInit);
+}

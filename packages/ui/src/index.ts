@@ -11,6 +11,9 @@ export { controlClasses } from "./components/control-classes";
 export { useFirstInvalidFocus } from "./hooks/use-first-invalid-focus";
 export type { FieldProps } from "./components/field";
 
+export { default as FileInput } from "./components/file-input";
+export type { FileInputProps } from "./components/file-input";
+
 export { default as Input } from "./components/input";
 export type { InputProps } from "./components/input";
 

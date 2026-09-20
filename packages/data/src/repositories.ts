@@ -51,8 +51,12 @@ export interface PaymentRepository {
    *
    * Payments are append-only: RNF-07 forbids editing financial records
    * retroactively without a trace, so there is deliberately no `update`.
+   *
+   * The receipt travels in the SAME request as the payment, not a follow-up
+   * call: between two calls an electronic payment would exist with no
+   * evidence attached, which is the state the rule exists to prevent.
    */
-  record(draft: Omit<Payment, "id">): Promise<Payment>;
+  record(draft: Omit<Payment, "id">, receipt?: Blob): Promise<Payment>;
 }
 
 export interface TrainerRepository {
@@ -90,7 +94,9 @@ export interface DailyLogRepository {
 export interface ProductSaleRepository {
   list(): Promise<readonly ProductSale[]>;
   /** Records a sale and discounts the item's stock (RF-28/29), atomically on the backend. */
-  create(draft: Omit<ProductSale, "id" | "itemName" | "clientName">): Promise<ProductSale>;
+  create(
+    draft: Omit<ProductSale, "id" | "itemName" | "clientName">,
+  ): Promise<ProductSale>;
 }
 
 /** Everything the application needs to read and write. */

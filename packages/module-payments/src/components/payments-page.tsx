@@ -58,8 +58,8 @@ export default function PaymentsPage({
               clients={clients.items}
               payments={payments.items}
               recordedBy={recordedBy}
-              onRecord={async (draft) => {
-                await payments.record(draft);
+              onRecord={async (draft, receipt) => {
+                await payments.record(draft, receipt);
               }}
               onDone={() => onNavigate("all")}
             />

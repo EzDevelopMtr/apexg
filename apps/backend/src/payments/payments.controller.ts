@@ -71,10 +71,7 @@ export class PaymentsController {
     @Body() dto: CreatePaymentDto,
     @UploadedFile() receipt?: UploadedReceipt,
   ): Promise<PaymentResult> {
-    const receiptPath = await this.receipts.storeFor(
-      dto.paymentMethod,
-      receipt,
-    );
+    const receiptPath = await this.receipts.storeFor(receipt);
     try {
       return await this.payments.create(
         user.companyId,
@@ -85,7 +82,7 @@ export class PaymentsController {
     } catch (error) {
       // El archivo ya está en disco pero el pago no llegó a existir: sin esto
       // cada intento fallido dejaría un huérfano que nadie volvería a mirar.
-      if (receiptPath) await this.receipts.discard(receiptPath);
+      await this.receipts.discard(receiptPath);
       throw error;
     }
   }

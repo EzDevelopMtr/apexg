@@ -23,11 +23,22 @@ export class ApiError extends Error {
 export interface ApiRequestOptions {
   readonly method?: "GET" | "POST" | "PATCH" | "DELETE";
   readonly body?: unknown;
+  /**
+   * Sent instead of `body` when the request carries a file.
+   *
+   * No `Content-Type` is set for it on purpose: only the browser knows the
+   * multipart boundary it generated, and naming the type by hand drops that
+   * parameter, leaving the server one unparseable blob.
+   */
+  readonly formData?: FormData;
   /** `undefined` values are omitted, so an optional filter can be passed through as-is. */
   readonly searchParams?: Record<string, string | undefined>;
 }
 
-function buildUrl(path: string, searchParams?: Record<string, string | undefined>): string {
+function buildUrl(
+  path: string,
+  searchParams?: Record<string, string | undefined>,
+): string {
   if (!searchParams) {
     return `${API_BASE}${path}`;
   }
@@ -58,11 +69,19 @@ function backendMessage(body: unknown, fallback: string): string {
  * refresh token yet) — it signals the session provider to sign the user out
  * rather than throwing an error a component would need to render.
  */
-export async function apiFetch<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<T> {
   const response = await fetch(buildUrl(path, options.searchParams), {
     method: options.method ?? "GET",
-    headers: options.body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    headers:
+      options.body === undefined
+        ? undefined
+        : { "Content-Type": "application/json" },
+    body:
+      options.formData ??
+      (options.body === undefined ? undefined : JSON.stringify(options.body)),
   });
 
   if (response.status === 401) {
@@ -80,7 +99,10 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
   const body: unknown = text.length > 0 ? JSON.parse(text) : null;
 
   if (!response.ok) {
-    throw new ApiError(response.status, backendMessage(body, `Error ${response.status}`));
+    throw new ApiError(
+      response.status,
+      backendMessage(body, `Error ${response.status}`),
+    );
   }
 
   return body as T;

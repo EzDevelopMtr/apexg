@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type {
   Client,
   ClientId,
+  MembershipType,
   Money,
   Payment,
   PaymentMethod,
@@ -11,6 +12,7 @@ import type {
 import {
   checkPayment,
   classifyPayment,
+  requiresReceipt,
   formatCOP,
   fromPesos,
   outstandingBalance,
@@ -27,6 +29,8 @@ export interface RecordPaymentValues {
   method: PaymentMethod;
   reference: string;
   notes: string;
+  /** Photo of the receipt. Required unless the client paid cash. */
+  receipt: File | null;
 }
 
 /** What the form knows about the selected client's current cycle. */
@@ -44,7 +48,38 @@ const EMPTY: RecordPaymentValues = {
   method: "cash",
   reference: "",
   notes: "",
+  receipt: null,
 };
+
+/**
+ * Every reason the form can refuse, in one place and outside the hook.
+ *
+ * Returns the message to show, or null when the values pass. Gathered here so
+ * `build` reads as a mapping from a valid form to a draft, instead of that
+ * mapping interleaved with the ways it can bail out.
+ */
+function rejectionFor(
+  values: RecordPaymentValues,
+  type: MembershipType,
+  cycle: CycleSummary,
+): string | null {
+  const check = checkPayment(
+    type,
+    fromPesos(Number(values.amountPesos || 0)),
+    cycle.balanceBefore,
+  );
+  if (!check.accepted) {
+    return rejectionMessage(check.reason, type.name, type.minimumInstallment);
+  }
+  if (!values.reference.trim()) {
+    return "La referencia del pago es obligatoria.";
+  }
+  // Mirrors the API, which rejects the same thing (PaymentReceiptService).
+  if (requiresReceipt(values.method) && !values.receipt) {
+    return "Adjunta el comprobante: es obligatorio si el pago no es en efectivo.";
+  }
+  return null;
+}
 
 /**
  * Turns a form into a payment record (RF-17 to RF-20).
@@ -76,7 +111,9 @@ export function useRecordPayment(
     const client = clients.find((item) => item.id === values.clientId);
     if (!client) return null;
 
-    const type = membershipTypes.items.find((item) => item.id === client.membershipTypeId);
+    const type = membershipTypes.items.find(
+      (item) => item.id === client.membershipTypeId,
+    );
     if (!type) return null;
 
     const cycleId = toCycleId(client.id, client.startDate);
@@ -96,26 +133,21 @@ export function useRecordPayment(
       return null;
     }
 
-    const type = membershipTypes.items.find((item) => item.id === cycle.client.membershipTypeId);
+    const type = membershipTypes.items.find(
+      (item) => item.id === cycle.client.membershipTypeId,
+    );
     if (!type) {
       setError("El plan del cliente ya no existe en el catálogo.");
       return null;
     }
 
+    const rejection = rejectionFor(values, type, cycle);
+    if (rejection) {
+      setError(rejection);
+      return null;
+    }
+
     const amount = fromPesos(Number(values.amountPesos || 0));
-    const check = checkPayment(type, amount, cycle.balanceBefore);
-    if (!check.accepted) {
-      setError(
-        rejectionMessage(check.reason, type.name, type.minimumInstallment),
-      );
-      return null;
-    }
-
-    if (!values.reference.trim()) {
-      setError("La referencia del pago es obligatoria.");
-      return null;
-    }
-
     const balanceAfter = subtract(cycle.balanceBefore, amount);
 
     return {
