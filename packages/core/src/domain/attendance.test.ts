@@ -22,6 +22,7 @@ function visit(id: string, leftAt = ""): Attendance {
   return {
     id: toAttendanceId(id),
     clientId: toClientId("c-1"),
+    clientName: "Laura Gómez",
     day: "2026-09-21" as IsoDate,
     enteredAt: "18:30",
     leftAt,
@@ -42,7 +43,7 @@ describe("visitQuota", () => {
   const capped = plan("monthlyThreeDays");
 
   it("reports nothing used before the first visit", () => {
-    expect(visitQuota(capped, 0)).toEqual({
+    expect(visitQuota(weeklyAllowance(capped), 0)).toEqual({
       used: 0,
       allowed: 3,
       exhausted: false,
@@ -50,21 +51,21 @@ describe("visitQuota", () => {
   });
 
   it("is not exhausted while a visit is left", () => {
-    expect(visitQuota(capped, 2).exhausted).toBe(false);
+    expect(visitQuota(weeklyAllowance(capped), 2).exhausted).toBe(false);
   });
 
   it("is exhausted on the last allowed visit", () => {
-    expect(visitQuota(capped, 3).exhausted).toBe(true);
+    expect(visitQuota(weeklyAllowance(capped), 3).exhausted).toBe(true);
   });
 
   // The receptionist can wave someone through, so the count can pass the cap.
   // It must keep reading as exhausted rather than wrapping around.
   it("stays exhausted past the cap", () => {
-    expect(visitQuota(capped, 5).exhausted).toBe(true);
+    expect(visitQuota(weeklyAllowance(capped), 5).exhausted).toBe(true);
   });
 
   it("never exhausts an uncapped plan", () => {
-    const quota = visitQuota(plan("monthly"), 40);
+    const quota = visitQuota(weeklyAllowance(plan("monthly")), 40);
     expect(quota.allowed).toBeNull();
     expect(quota.exhausted).toBe(false);
   });

@@ -1,4 +1,5 @@
 import type { Repositories } from "../repositories";
+import { HttpAttendanceRepository } from "./http-attendance-repository";
 import { HttpClientRepository } from "./http-client-repository";
 import { HttpDailyLogRepository } from "./http-daily-log-repository";
 import { HttpExpenseRepository } from "./http-expense-repository";
@@ -14,6 +15,7 @@ export function createHttpRepositories(): Repositories {
     clients: new HttpClientRepository(),
     membershipTypes: new HttpMembershipTypeRepository(),
     payments: new HttpPaymentRepository(),
+    attendances: new HttpAttendanceRepository(),
     trainers: new HttpTrainerRepository(),
     expenses: new HttpExpenseRepository(),
     inventory: new HttpInventoryRepository(),
@@ -22,6 +24,7 @@ export function createHttpRepositories(): Repositories {
   };
 }
 
+export { HttpAttendanceRepository } from "./http-attendance-repository";
 export { HttpClientRepository } from "./http-client-repository";
 export { HttpDailyLogRepository } from "./http-daily-log-repository";
 export { HttpExpenseRepository } from "./http-expense-repository";

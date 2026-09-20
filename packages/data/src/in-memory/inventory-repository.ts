@@ -1,4 +1,8 @@
-import type { InventoryCategory, InventoryItem, InventoryItemId } from "@apexg/core";
+import type {
+  InventoryCategory,
+  InventoryItem,
+  InventoryItemId,
+} from "@apexg/core";
 import { toInventoryItemId } from "@apexg/core";
 import type { InventoryRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";

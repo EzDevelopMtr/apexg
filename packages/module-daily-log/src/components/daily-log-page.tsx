@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { DailyLogSectionId } from "@apexg/core";
+import type { ClientId, DailyLogSectionId } from "@apexg/core";
 import { today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
 import { useDailyLog } from "../hooks/use-daily-log";
 import { useProductSales } from "../hooks/use-product-sales";
 import { useSaleCatalogs } from "../hooks/use-sale-catalogs";
+import CheckInPanel from "./check-in-panel";
 import DailyLogHistory from "./daily-log-history";
 import DailyLogPanel from "./daily-log-panel";
 import RegisterSaleForm from "./register-sale-form";
@@ -16,6 +17,13 @@ export interface DailyLogPageProps {
   /** Stamped onto each note so the log says who wrote it. */
   recordedBy: string;
   onNavigate: (sectionId: string) => void;
+  /**
+   * Sends the receptionist to charge a client who has run out of days.
+   *
+   * The app owns routing, so the module asks rather than navigates — Payments
+   * is a different module and this package must not know its URL.
+   */
+  onCharge: (clientId: ClientId) => void;
 }
 
 /**
@@ -28,11 +36,16 @@ export default function DailyLogPage({
   sectionId,
   recordedBy,
   onNavigate,
+  onCharge,
 }: DailyLogPageProps) {
   const log = useDailyLog();
   const sales = useProductSales();
   const catalogs = useSaleCatalogs();
   const [referenceDate] = useState(today);
+
+  if (sectionId === "checkin") {
+    return <CheckInPanel onCharge={onCharge} />;
+  }
 
   if (sectionId === "sell") {
     return (

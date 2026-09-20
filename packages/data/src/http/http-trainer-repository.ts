@@ -45,7 +45,9 @@ interface ApiCommissionRecord {
 const NO_CERTIFICATIONS = "N/A";
 
 function toCertificationsBody(certifications: string): string | null {
-  return certifications.trim().toUpperCase() === NO_CERTIFICATIONS ? null : certifications;
+  return certifications.trim().toUpperCase() === NO_CERTIFICATIONS
+    ? null
+    : certifications;
 }
 
 function fromResult(row: ApiTrainerResult): Trainer {
@@ -78,7 +80,10 @@ function fromResult(row: ApiTrainerResult): Trainer {
   };
 }
 
-function fromCommissionResult(trainerId: TrainerId, row: ApiCommissionRecord): Commission {
+function fromCommissionResult(
+  trainerId: TrainerId,
+  row: ApiCommissionRecord,
+): Commission {
   return {
     id: row.id,
     trainerId,
@@ -170,7 +175,9 @@ export class HttpTrainerRepository implements TrainerRepository {
         const commissions = await apiFetch<ApiCommissionRecord[]>(
           `/trainers/${row.id}/commissions`,
         );
-        return commissions.map((commission) => fromCommissionResult(trainerId, commission));
+        return commissions.map((commission) =>
+          fromCommissionResult(trainerId, commission),
+        );
       }),
     );
     return perTrainer.flat();

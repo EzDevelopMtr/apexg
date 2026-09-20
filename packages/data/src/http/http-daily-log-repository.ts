@@ -53,13 +53,20 @@ function parseNotes(date: string, observations: string | null): DailyLogNote[] {
 
   const markerIndex = trimmed.indexOf(NOTE_MARKER);
   if (markerIndex === -1) {
-    return [{ id: `${date}#0`, on: date as IsoDate, text: trimmed, recordedBy: "" }];
+    return [
+      { id: `${date}#0`, on: date as IsoDate, text: trimmed, recordedBy: "" },
+    ];
   }
 
   const notes: DailyLogNote[] = [];
   const preamble = trimmed.slice(0, markerIndex).trim();
   if (preamble) {
-    notes.push({ id: `${date}#0`, on: date as IsoDate, text: preamble, recordedBy: "" });
+    notes.push({
+      id: `${date}#0`,
+      on: date as IsoDate,
+      text: preamble,
+      recordedBy: "",
+    });
   }
 
   const blocks = trimmed
@@ -68,9 +75,16 @@ function parseNotes(date: string, observations: string | null): DailyLogNote[] {
     .filter((b) => b.trim());
   for (const block of blocks) {
     const newlineIndex = block.indexOf("\n");
-    const recordedBy = newlineIndex === -1 ? block.trim() : block.slice(0, newlineIndex).trim();
-    const text = newlineIndex === -1 ? "" : block.slice(newlineIndex + 1).trim();
-    notes.push({ id: `${date}#${notes.length}`, on: date as IsoDate, text, recordedBy });
+    const recordedBy =
+      newlineIndex === -1 ? block.trim() : block.slice(0, newlineIndex).trim();
+    const text =
+      newlineIndex === -1 ? "" : block.slice(newlineIndex + 1).trim();
+    notes.push({
+      id: `${date}#${notes.length}`,
+      on: date as IsoDate,
+      text,
+      recordedBy,
+    });
   }
   return notes;
 }
@@ -106,7 +120,11 @@ export class HttpDailyLogRepository implements DailyLogRepository {
     const summary = await apiFetch<ApiDailyLogSummary>("/daily-log", {
       searchParams: { date: draft.on },
     });
-    const composed = composeObservations(summary.observations, draft.recordedBy, draft.text);
+    const composed = composeObservations(
+      summary.observations,
+      draft.recordedBy,
+      draft.text,
+    );
     const index = parseNotes(draft.on, summary.observations).length;
 
     if (summary.updatedAt === null) {
@@ -121,21 +139,31 @@ export class HttpDailyLogRepository implements DailyLogRepository {
       });
     }
 
-    return { id: `${draft.on}#${index}`, on: draft.on, text: draft.text, recordedBy: draft.recordedBy };
+    return {
+      id: `${draft.on}#${index}`,
+      on: draft.on,
+      text: draft.text,
+      recordedBy: draft.recordedBy,
+    };
   }
 
   async listClosures(): Promise<readonly MonthlyClosure[]> {
-    const rows = await apiFetch<ApiMonthlyClosureResult[]>("/finance/monthly-closures");
+    const rows = await apiFetch<ApiMonthlyClosureResult[]>(
+      "/finance/monthly-closures",
+    );
     return rows.map(fromClosureResult);
   }
 
   /** Always creates: `POST /finance/monthly-closures` has no matching PATCH (a month closes once, RNF-07). */
   async saveClosure(closure: MonthlyClosure): Promise<MonthlyClosure> {
     const [year, month] = closure.month.split("-").map(Number);
-    const row = await apiFetch<ApiMonthlyClosureResult>("/finance/monthly-closures", {
-      method: "POST",
-      body: { year, month, observations: closure.notes || undefined },
-    });
+    const row = await apiFetch<ApiMonthlyClosureResult>(
+      "/finance/monthly-closures",
+      {
+        method: "POST",
+        body: { year, month, observations: closure.notes || undefined },
+      },
+    );
     return fromClosureResult(row);
   }
 }

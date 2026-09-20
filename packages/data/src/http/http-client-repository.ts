@@ -1,4 +1,10 @@
-import type { Client, ClientDraft, ClientId, ClientStatus, IsoDate } from "@apexg/core";
+import type {
+  Client,
+  ClientDraft,
+  ClientId,
+  ClientStatus,
+  IsoDate,
+} from "@apexg/core";
 import { toClientId, toMembershipTypeId, toTrainerId } from "@apexg/core";
 import type { ClientRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
@@ -56,7 +62,10 @@ function fromResult(row: ApiClientResult): Client {
     status: STATE_TO_STATUS[row.state],
     startDate: membership.startDate as IsoDate,
     expirationDate: membership.endDate as IsoDate,
-    trainerId: membership.trainerId === null ? undefined : toTrainerId(membership.trainerId),
+    trainerId:
+      membership.trainerId === null
+        ? undefined
+        : toTrainerId(membership.trainerId),
     emergencyContactName: row.emergencyContactName ?? "",
     emergencyContactPhone: row.emergencyContactPhone ?? "",
     bloodType: row.bloodType ?? "",
@@ -165,9 +174,12 @@ export class HttpClientRepository implements ClientRepository {
       if (client.status !== "inactive") {
         throw new Error(UNSUPPORTED_STATUS_MESSAGE);
       }
-      const retired = await apiFetch<ApiClientResult>(`/clients/${client.id}/retire`, {
-        method: "POST",
-      });
+      const retired = await apiFetch<ApiClientResult>(
+        `/clients/${client.id}/retire`,
+        {
+          method: "POST",
+        },
+      );
       return fromResult(retired);
     }
 

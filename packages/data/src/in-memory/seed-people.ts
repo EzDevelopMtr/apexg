@@ -41,7 +41,10 @@ export function buildSeedTrainers(): Trainer[] {
 
 type SeedDraft = Omit<
   ClientDraft,
-  "emergencyContactName" | "emergencyContactPhone" | "bloodType" | "medicalCondition"
+  | "emergencyContactName"
+  | "emergencyContactPhone"
+  | "bloodType"
+  | "medicalCondition"
 > & { readonly seedId: string };
 
 const CLIENT_DRAFTS: readonly SeedDraft[] = [

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { Client, DailyLog, IsoDate, Payment, ProductSale } from "@apexg/core";
+import type {
+  Client,
+  DailyLog,
+  IsoDate,
+  Payment,
+  ProductSale,
+} from "@apexg/core";
 import { formatCOP } from "@apexg/core";
 import { Card, CardBody, CardHeader } from "@apexg/ui";
 import IncomeSourceBreakdown from "./income-source-breakdown";
@@ -37,13 +43,15 @@ export default function DailyIncomeCard({
   const salesToday = productSales.filter((sale) => sale.soldOn === on);
   const count = paymentsToday.length + salesToday.length;
 
-  const paymentRows: readonly IncomeSourceRow[] = paymentsToday.map((payment) => ({
-    key: payment.id,
-    label:
-      clients.find((client) => client.id === payment.clientId)?.fullName ??
-      "Cliente",
-    amount: payment.amount,
-  }));
+  const paymentRows: readonly IncomeSourceRow[] = paymentsToday.map(
+    (payment) => ({
+      key: payment.id,
+      label:
+        clients.find((client) => client.id === payment.clientId)?.fullName ??
+        "Cliente",
+      amount: payment.amount,
+    }),
+  );
 
   const saleRows: readonly IncomeSourceRow[] = salesToday.map((sale) => ({
     key: sale.id,
@@ -64,9 +72,14 @@ export default function DailyIncomeCard({
           className="flex w-full items-center justify-between text-left"
         >
           <div>
-            <p className="text-3xl font-bold text-body">{formatCOP(log.income)}</p>
+            <p className="text-3xl font-bold text-body">
+              {formatCOP(log.income)}
+            </p>
             <p className="mt-1 text-sm text-body-soft">
-              {count} {count === 1 ? "movimiento registrado" : "movimientos registrados"}
+              {count}{" "}
+              {count === 1
+                ? "movimiento registrado"
+                : "movimientos registrados"}
             </p>
           </div>
           {expanded ? (

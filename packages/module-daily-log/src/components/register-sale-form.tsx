@@ -29,8 +29,10 @@ const INITIAL_VALUES: RegisterSaleValues = {
 /** Mirrors what the API must also enforce (RNF-07). */
 function validate(values: RegisterSaleValues): string | null {
   if (!values.inventoryItemId) return "Selecciona un producto.";
-  if (Number(values.quantity) <= 0) return "La cantidad debe ser mayor que cero.";
-  if (Number(values.amountPesos) <= 0) return "El valor debe ser mayor que cero.";
+  if (Number(values.quantity) <= 0)
+    return "La cantidad debe ser mayor que cero.";
+  if (Number(values.amountPesos) <= 0)
+    return "El valor debe ser mayor que cero.";
   return null;
 }
 
@@ -71,7 +73,9 @@ export default function RegisterSaleForm({
       onDone();
     } catch (cause) {
       setFailure(
-        cause instanceof Error ? cause.message : "No se pudo registrar la venta.",
+        cause instanceof Error
+          ? cause.message
+          : "No se pudo registrar la venta.",
       );
     } finally {
       setSaving(false);

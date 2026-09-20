@@ -21,6 +21,12 @@ export function toAttendanceId(value: string): AttendanceId {
 export interface Attendance {
   readonly id: AttendanceId;
   readonly clientId: ClientId;
+  /**
+   * Denormalised so the day's list can render without a second lookup, the
+   * same way `ProductSale` carries its item name. The list is read far more
+   * often than a client is renamed.
+   */
+  readonly clientName: string;
   /** Local calendar day of the entry, for counting against the allowance. */
   readonly day: IsoDate;
   /** `HH:MM`, local, for the day's list. */
@@ -62,14 +68,17 @@ export interface VisitQuota {
 /**
  * The client's standing for the week.
  *
+ * Takes the allowance rather than the plan: the check-in panel reads that
+ * number off a search result that never carries a whole `MembershipType`, and
+ * asking for one only to pull a single field forced a cast at the call site.
+ *
  * Counting is left to the caller, which knows the week's boundaries — this
- * only decides what the number means against the plan.
+ * only decides what the number means.
  */
 export function visitQuota(
-  type: MembershipType,
+  allowed: number | null,
   usedThisWeek: number,
 ): VisitQuota {
-  const allowed = weeklyAllowance(type);
   return {
     used: usedThisWeek,
     allowed,

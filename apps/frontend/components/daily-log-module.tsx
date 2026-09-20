@@ -34,6 +34,12 @@ export default function DailyLogModule({
           sectionId={sectionId}
           recordedBy={session.username}
           onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          // Payments owns the charge; the daily log only asks for it. The
+          // client travels in the URL so the form opens already pointed at
+          // the person standing at the counter.
+          onCharge={(clientId) =>
+            router.push(`/modules/payments/record?client=${clientId}`)
+          }
         />
       </div>
     </div>

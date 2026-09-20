@@ -1,4 +1,9 @@
-import type { Client, InventoryItem, ProductSale, ProductSaleId } from "@apexg/core";
+import type {
+  Client,
+  InventoryItem,
+  ProductSale,
+  ProductSaleId,
+} from "@apexg/core";
 import { toProductSaleId } from "@apexg/core";
 import type { ProductSaleRepository } from "../repositories";
 import { InMemoryStore, newId } from "./in-memory-store";
@@ -25,7 +30,9 @@ export class InMemoryProductSaleRepository implements ProductSaleRepository {
   async create(
     draft: Omit<ProductSale, "id" | "itemName" | "clientName">,
   ): Promise<ProductSale> {
-    const item = this.#items.find((candidate) => candidate.id === draft.inventoryItemId);
+    const item = this.#items.find(
+      (candidate) => candidate.id === draft.inventoryItemId,
+    );
     const client = draft.clientId
       ? this.#clients.find((candidate) => candidate.id === draft.clientId)
       : undefined;

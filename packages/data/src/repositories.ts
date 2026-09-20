@@ -1,4 +1,5 @@
 import type {
+  Attendance,
   Client,
   ClientDraft,
   ClientId,
@@ -69,6 +70,43 @@ export interface PaymentRepository {
   receiptUrl(paymentId: PaymentId): string;
 }
 
+/**
+ * A client as the check-in panel needs them: who they are, what plan they
+ * carry, and how much of this week's allowance they have spent.
+ *
+ * A read model, not a domain entity — it exists because the panel would
+ * otherwise make three round trips per keystroke to assemble the same row.
+ */
+export interface AttendanceCandidate {
+  readonly clientId: ClientId;
+  readonly clientName: string;
+  readonly idNumber: string;
+  /** Plan name, or "Sin membresía" when the client has none. */
+  readonly membershipName: string;
+  /** `YYYY-MM-DD`, or null when there is no membership. */
+  readonly expiresOn: string | null;
+  /** Visits the plan grants per week, or null when uncapped. */
+  readonly weeklyVisits: number | null;
+  readonly usedThisWeek: number;
+  /** Already in the gym and not yet marked out. */
+  readonly inside: boolean;
+}
+
+export interface AttendanceRepository {
+  /** Today's entries, most recent first. */
+  listToday(): Promise<readonly Attendance[]>;
+  /** Clients matching a name fragment, with their week's standing. */
+  search(query: string): Promise<readonly AttendanceCandidate[]>;
+  /**
+   * Records an entry (the server stamps the time).
+   *
+   * Each entry spends a day of the weekly allowance, so signing someone back
+   * in after a check-out counts again — which is what the gym is selling.
+   */
+  checkIn(clientId: ClientId): Promise<Attendance>;
+  /** Closes the client's open entry. */
+  checkOut(clientId: ClientId): Promise<Attendance>;
+}
 export interface TrainerRepository {
   list(): Promise<readonly Trainer[]>;
   findById(id: TrainerId): Promise<Trainer | undefined>;
@@ -114,6 +152,7 @@ export interface Repositories {
   readonly clients: ClientRepository;
   readonly membershipTypes: MembershipTypeRepository;
   readonly payments: PaymentRepository;
+  readonly attendances: AttendanceRepository;
   readonly trainers: TrainerRepository;
   readonly expenses: ExpenseRepository;
   readonly inventory: InventoryRepository;

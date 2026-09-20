@@ -1,4 +1,5 @@
 import type { Repositories } from "../repositories";
+import { InMemoryAttendanceRepository } from "./attendance-repository";
 import { InMemoryClientRepository } from "./client-repository";
 import { InMemoryDailyLogRepository } from "./daily-log-repository";
 import { InMemoryExpenseRepository } from "./expense-repository";
@@ -27,6 +28,7 @@ export function createInMemoryRepositories(): Repositories {
     clients: new InMemoryClientRepository(buildSeedClients()),
     membershipTypes: new InMemoryMembershipTypeRepository(),
     payments: new InMemoryPaymentRepository(buildSeedPayments()),
+    attendances: new InMemoryAttendanceRepository(),
     trainers: new InMemoryTrainerRepository(
       buildSeedTrainers(),
       buildSeedCommissions(),

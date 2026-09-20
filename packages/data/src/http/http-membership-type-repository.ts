@@ -76,9 +76,17 @@ function toRequestBody(type: MembershipType): Record<string, unknown> {
     durationValue: type.term.amount,
     durationUnit: type.term.unit,
     minimumPayment:
-      type.minimumInstallment === null ? null : toApiString(type.minimumInstallment),
-    trainerShare: type.trainerSplit === null ? null : toApiString(type.trainerSplit.trainer),
-    businessShare: type.trainerSplit === null ? null : toApiString(type.trainerSplit.business),
+      type.minimumInstallment === null
+        ? null
+        : toApiString(type.minimumInstallment),
+    trainerShare:
+      type.trainerSplit === null
+        ? null
+        : toApiString(type.trainerSplit.trainer),
+    businessShare:
+      type.trainerSplit === null
+        ? null
+        : toApiString(type.trainerSplit.business),
     allowsPartialPayment: type.minimumInstallment !== null,
     isPromotional: type.isPromotional,
   };
@@ -93,15 +101,20 @@ export class HttpMembershipTypeRepository implements MembershipTypeRepository {
     // deleting one that already has clients — see the backend's own 409
     // message) must not come back as a selectable option. `MembershipType`
     // has no `state` field at all, so this is the only place to draw the line.
-    const rows = await apiFetch<MembershipTypeApiResult[]>("/membership-types", {
-      searchParams: { state: "1" },
-    });
+    const rows = await apiFetch<MembershipTypeApiResult[]>(
+      "/membership-types",
+      {
+        searchParams: { state: "1" },
+      },
+    );
     return rows.map(fromResult);
   }
 
   async findById(id: MembershipTypeId): Promise<MembershipType | undefined> {
     try {
-      const row = await apiFetch<MembershipTypeApiResult>(`/membership-types/${id}`);
+      const row = await apiFetch<MembershipTypeApiResult>(
+        `/membership-types/${id}`,
+      );
       return fromResult(row);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
@@ -119,10 +132,13 @@ export class HttpMembershipTypeRepository implements MembershipTypeRepository {
             method: "POST",
             body,
           })
-        : await apiFetch<MembershipTypeApiResult>(`/membership-types/${type.id}`, {
-            method: "PATCH",
-            body,
-          });
+        : await apiFetch<MembershipTypeApiResult>(
+            `/membership-types/${type.id}`,
+            {
+              method: "PATCH",
+              body,
+            },
+          );
     return fromResult(row);
   }
 

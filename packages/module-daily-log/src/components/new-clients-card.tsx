@@ -31,7 +31,9 @@ export default function NewClientsCard({
               const payment = payments.find(
                 (item) => item.clientId === client.id && item.paidOn === on,
               );
-              const plan = membershipTypes.find((type) => type.id === client.membershipTypeId);
+              const plan = membershipTypes.find(
+                (type) => type.id === client.membershipTypeId,
+              );
 
               return (
                 <li key={client.id} className="py-3">
