@@ -24,6 +24,8 @@ export interface MembershipTypeResult {
   businessShare: string | null;
   allowsPartialPayment: boolean;
   isPromotional: boolean;
+  /** Visitas que el plan permite por semana, o null si no tiene tope. */
+  weeklyVisits: number | null;
   state: MembershipTypeState;
 }
 

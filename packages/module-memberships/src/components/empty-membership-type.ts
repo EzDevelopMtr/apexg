@@ -11,6 +11,7 @@ export function emptyMembershipType(): MembershipType {
     minimumInstallment: null,
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions: "",
   };
 }

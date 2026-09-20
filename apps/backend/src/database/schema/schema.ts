@@ -185,6 +185,7 @@ export const membershipTypes = pgTable("membership_types", {
 	durationValue: integer("duration_value").notNull(),
 	durationUnit: varchar("duration_unit", { length: 20 }).notNull(),
 	minimumPayment: numeric("minimum_payment", { precision: 12, scale:  2 }),
+	weeklyVisits: integer("weekly_visits"),
 	trainerShare: numeric("trainer_share", { precision: 12, scale:  2 }),
 	businessShare: numeric("business_share", { precision: 12, scale:  2 }),
 	allowsPartialPayment: boolean("allows_partial_payment").default(false).notNull(),

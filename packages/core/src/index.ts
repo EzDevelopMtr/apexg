@@ -11,6 +11,7 @@ export * from "./domain/calendar";
 
 /* Entities */
 export * from "./domain/client";
+export * from "./domain/attendance";
 export * from "./domain/membership";
 export * from "./domain/membership-catalog";
 export * from "./domain/payment";

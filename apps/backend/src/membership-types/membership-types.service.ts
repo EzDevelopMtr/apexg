@@ -218,6 +218,7 @@ export class MembershipTypesService {
       businessShare: row.businessShare,
       allowsPartialPayment: row.allowsPartialPayment,
       isPromotional: row.isPromotional,
+      weeklyVisits: row.weeklyVisits,
       state: row.state as MembershipTypeState,
     };
   }

@@ -13,7 +13,9 @@ declare const membershipTypeIdBrand: unique symbol;
  * only place still allowed to assume the nine plans SRS §4.1 lists as the
  * starting catalogue.
  */
-export type MembershipTypeId = string & { readonly [membershipTypeIdBrand]: true };
+export type MembershipTypeId = string & {
+  readonly [membershipTypeIdBrand]: true;
+};
 
 export function toMembershipTypeId(value: string): MembershipTypeId {
   return value as MembershipTypeId;
@@ -42,6 +44,14 @@ export interface MembershipType {
   readonly minimumInstallment: Money | null;
   readonly isPromotional: boolean;
   readonly trainerSplit: TrainerSplit | null;
+  /**
+   * Visits the plan grants per week, or `null` when there is no weekly cap.
+   *
+   * `null` rather than a large number: the monthly plan has no cap at all, and
+   * writing 7 would invent a limit nobody agreed to, besides making
+   * "unlimited" indistinguishable from "seven".
+   */
+  readonly weeklyVisits: number | null;
   /** User-facing conditions, in Spanish. */
   readonly conditions: string;
 }

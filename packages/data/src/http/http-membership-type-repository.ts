@@ -16,6 +16,7 @@ interface MembershipTypeApiResult {
   trainerShare: string | null;
   businessShare: string | null;
   allowsPartialPayment: boolean;
+  weeklyVisits: number | null;
   isPromotional: boolean;
   state: 1 | 2;
 }
@@ -46,6 +47,7 @@ function fromResult(row: MembershipTypeApiResult): MembershipType {
     minimumInstallment:
       row.minimumPayment === null ? null : fromApiString(row.minimumPayment),
     isPromotional: row.isPromotional,
+    weeklyVisits: row.weeklyVisits ?? null,
     trainerSplit: hasSplit
       ? {
           trainer: fromApiString(row.trainerShare as string),

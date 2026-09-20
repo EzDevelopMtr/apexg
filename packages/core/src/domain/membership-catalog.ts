@@ -25,6 +25,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: fromPesos(30_000),
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions: "Acceso de lunes a sábado, vigencia de 1 mes.",
   },
   {
@@ -35,6 +36,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: fromPesos(30_000),
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: 3,
     conditions: "3 días a la semana, organizables libremente durante 1 mes.",
   },
   {
@@ -45,6 +47,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: null,
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions: "Vigencia de 15 días calendario desde la fecha de inicio.",
   },
   {
@@ -55,6 +58,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: null,
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions: "Vigencia de 7 días.",
   },
   {
@@ -65,6 +69,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: null,
     isPromotional: false,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions: "Vigencia de 1 día.",
   },
   {
@@ -79,6 +84,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: null,
     isPromotional: true,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions:
       "Aplica cuando 3 o más clientes pagan su mensualidad dentro de un lapso de 3 días.",
   },
@@ -90,6 +96,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: null,
     isPromotional: true,
     trainerSplit: null,
+    weeklyVisits: null,
     conditions:
       "Solo para clientes nuevos que presenten el folleto al inscribirse.",
   },
@@ -101,6 +108,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: fromPesos(100_000),
     isPromotional: false,
     trainerSplit: { trainer: fromPesos(100_000), business: fromPesos(100_000) },
+    weeklyVisits: null,
     conditions: "Entrenamiento personalizado 1 a 1.",
   },
   {
@@ -111,6 +119,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: fromPesos(75_000),
     isPromotional: false,
     trainerSplit: { trainer: fromPesos(75_000), business: fromPesos(75_000) },
+    weeklyVisits: null,
     conditions: "Entrenamiento semipersonalizado.",
   },
 ];
