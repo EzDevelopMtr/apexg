@@ -9,6 +9,21 @@ const TERM_UNITS = [
   { value: "day", label: "Días" },
 ] as const;
 
+/**
+ * Hasta 6, no 7: el gimnasio no abre los domingos, así que una semana completa
+ * son seis días de acceso y un séptimo no significaría nada.
+ *
+ * La opción vacía es "sin límite", y va primera porque es lo que corresponde a
+ * los planes que caducan por fecha (Día, Semana, Quincena).
+ */
+const WEEKLY_VISITS = [
+  { value: "", label: "Sin límite" },
+  ...Array.from({ length: 6 }, (_, index) => ({
+    value: String(index + 1),
+    label: index === 0 ? "1 día por semana" : `${index + 1} días por semana`,
+  })),
+];
+
 export interface MembershipFieldsProps {
   draft: MembershipType;
   update: <K extends keyof MembershipType>(
@@ -63,29 +78,23 @@ export default function MembershipFields({
       </div>
 
       {/* Vigencia y cupo responden preguntas distintas: la vigencia es cuánto
-          dura el plan, esto es cuántos de esos días puede venir. Vacío no es
-          cero, es "sin tope" — por eso el texto de ayuda lo dice, en vez de
-          dejar que un campo numérico vacío se lea como ninguno. */}
-      <Input
+          dura el plan, esto es cuántos de esos días puede venir.
+
+          Una lista y no un campo numérico: así no existe la entrada inválida.
+          Un número libre admitía 0, 30 o letras, y cada uno habría necesitado
+          su propio mensaje de error. */}
+      <Select
         id="weeklyVisits"
         label="Días por semana"
-        type="number"
-        min={1}
-        max={7}
-        value={draft.weeklyVisits ?? ""}
+        value={draft.weeklyVisits === null ? "" : String(draft.weeklyVisits)}
+        options={WEEKLY_VISITS}
         onChange={(event) =>
           update(
             "weeklyVisits",
             event.target.value === "" ? null : Number(event.target.value),
           )
         }
-        placeholder="Sin límite"
-        aria-describedby="weeklyVisits-hint"
       />
-      <p id="weeklyVisits-hint" className="-mt-3 text-sm text-body-soft">
-        Déjalo vacío si el plan no limita los días. Ej. 3 para un plan de tres
-        veces por semana, 6 para uno de lunes a sábado.
-      </p>
 
       <Textarea
         id="conditions"

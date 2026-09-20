@@ -77,13 +77,15 @@ export class UpdateMembershipTypeDto {
   /**
    * Días que el plan permite por semana. Ausente o null = sin tope.
    *
-   * Un máximo de 7 porque una semana no tiene más: sin ese límite alguien
-   * escribiría 30 pensando en el mes y el plan quedaría, de hecho, ilimitado.
+   * Hasta 6 porque el gimnasio no abre domingos: una semana completa son seis
+   * días de acceso. El formulario ofrece una lista, pero la API tiene que
+   * rechazar lo mismo — si no, la restricción solo vale mientras se use
+   * nuestra pantalla.
    */
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(7)
+  @Max(6)
   weeklyVisits?: number | null;
 
   @IsOptional()
