@@ -97,7 +97,7 @@ function SessionBar({
         aria-label="Cerrar sesión"
       >
         <LogOut size={18} />
-        <span className="hidden sm:inline">Cerrar sesión</span>
+        <span className="hidden whitespace-nowrap sm:inline">Cerrar sesión</span>
       </Button>
     </div>
   );
