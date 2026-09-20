@@ -5,7 +5,7 @@ import type { MembershipSectionId } from "@apexg/core";
 import { membershipSections } from "@apexg/core";
 import { MembershipsPage } from "@apexg/module-memberships";
 import { useSession } from "../lib/use-session";
-import ModulePageHeader from "./module-page-header";
+import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/memberships";
 
@@ -25,7 +25,7 @@ export default function MembershipsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <ModulePageHeader
+        <PageHeader
           eyebrow="Catálogo"
           title={section.title}
           description="Planes, tarifas y condiciones del gimnasio."

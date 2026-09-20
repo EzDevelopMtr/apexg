@@ -41,7 +41,9 @@ export default function ClientList({
               key={client.id}
               client={client}
               referenceDate={referenceDate}
-              membershipType={membershipTypes.find((type) => type.id === client.membershipTypeId)}
+              membershipType={membershipTypes.find(
+                (type) => type.id === client.membershipTypeId,
+              )}
               onEdit={onEdit}
             />
           ))

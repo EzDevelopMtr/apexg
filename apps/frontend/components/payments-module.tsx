@@ -5,7 +5,7 @@ import type { PaymentSectionId } from "@apexg/core";
 import { paymentSections } from "@apexg/core";
 import { PaymentsPage } from "@apexg/module-payments";
 import { useSession } from "../lib/use-session";
-import ModulePageHeader from "./module-page-header";
+import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/payments";
 
@@ -25,7 +25,7 @@ export default function PaymentsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <ModulePageHeader
+        <PageHeader
           eyebrow="Cobros"
           title={section.title}
           description="Registra pagos completos y abonos, y consulta los saldos."

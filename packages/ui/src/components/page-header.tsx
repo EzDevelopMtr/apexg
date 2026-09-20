@@ -8,6 +8,13 @@ export interface PageHeaderProps {
   action?: ReactNode;
 }
 
+/**
+ * The heading block every module page shares.
+ *
+ * Lives here rather than in the app because `module-*` packages cannot import
+ * from `web` — which is why this block existed twice, once in each place, with
+ * nothing keeping the two in step.
+ */
 export default function PageHeader({
   eyebrow,
   title,

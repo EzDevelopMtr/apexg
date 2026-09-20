@@ -29,7 +29,9 @@ export default function ClientAdditionalFields({
           label="Contacto de emergencia"
           value={values.emergencyContactName}
           error={errors.emergencyContactName}
-          onChange={(event) => setValue("emergencyContactName", event.target.value)}
+          onChange={(event) =>
+            setValue("emergencyContactName", event.target.value)
+          }
           placeholder="Nombre de a quién avisar"
         />
         <Input
@@ -38,7 +40,9 @@ export default function ClientAdditionalFields({
           type="tel"
           value={values.emergencyContactPhone}
           error={errors.emergencyContactPhone}
-          onChange={(event) => setValue("emergencyContactPhone", event.target.value)}
+          onChange={(event) =>
+            setValue("emergencyContactPhone", event.target.value)
+          }
           placeholder="300 000 0000"
         />
       </div>

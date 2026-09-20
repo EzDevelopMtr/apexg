@@ -31,10 +31,14 @@ export type {
 } from "./components/button";
 
 export { default as Card, CardHeader, CardBody } from "./components/card";
+export type { CardPadding } from "./components/card";
 export type { CardProps } from "./components/card";
 
 export { default as Logo } from "./components/logo";
 export type { LogoProps, LogoSize } from "./components/logo";
+
+export { default as PageHeader } from "./components/page-header";
+export type { PageHeaderProps } from "./components/page-header";
 
 export { default as Modal } from "./components/modal";
 export type { ModalProps } from "./components/modal";

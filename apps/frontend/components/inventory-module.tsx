@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import type { InventorySectionId } from "@apexg/core";
 import { inventorySections } from "@apexg/core";
 import { InventoryPage } from "@apexg/module-inventory";
-import ModulePageHeader from "./module-page-header";
+import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/inventory";
 
@@ -19,7 +19,7 @@ export default function InventoryModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <ModulePageHeader
+        <PageHeader
           eyebrow="Existencias"
           title={section.title}
           description="Ítems, existencias y alertas de stock mínimo."

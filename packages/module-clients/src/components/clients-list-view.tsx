@@ -4,12 +4,11 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import type { Client, ClientDraft, ClientSection, IsoDate } from "@apexg/core";
 import { useMembershipTypeCatalog } from "@apexg/module-kit";
-import { Button, Modal } from "@apexg/ui";
+import { Button, Modal, PageHeader } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
 import ClientForm from "./client-form";
 import ClientList from "./client-list";
 import ClientSearch from "./client-search";
-import PageHeader from "./page-header";
 
 export interface ClientsListViewProps {
   clients: readonly Client[];

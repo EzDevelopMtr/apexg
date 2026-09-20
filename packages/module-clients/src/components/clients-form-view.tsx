@@ -1,9 +1,8 @@
 "use client";
 
 import type { ClientDraft } from "@apexg/core";
-import { Card, CardBody } from "@apexg/ui";
+import { Card, CardBody, PageHeader } from "@apexg/ui";
 import ClientForm from "./client-form";
-import PageHeader from "./page-header";
 
 export interface ClientsFormViewProps {
   title: string;

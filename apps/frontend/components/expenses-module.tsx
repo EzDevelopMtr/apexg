@@ -5,7 +5,7 @@ import type { ExpenseSectionId } from "@apexg/core";
 import { expenseSections } from "@apexg/core";
 import { ExpensesPage } from "@apexg/module-expenses";
 import { useSession } from "../lib/use-session";
-import ModulePageHeader from "./module-page-header";
+import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/expenses";
 
@@ -25,7 +25,7 @@ export default function ExpensesModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <ModulePageHeader
+        <PageHeader
           eyebrow="Gastos"
           title={section.title}
           description="Registra los egresos del gimnasio y administra sus categorías."

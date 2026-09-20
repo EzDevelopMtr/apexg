@@ -11,7 +11,7 @@ export interface ClientSearchProps {
 export default function ClientSearch({ value, onChange }: ClientSearchProps) {
   return (
     <Card className="mb-6">
-      <CardBody className="p-4">
+      <CardBody padding="sm">
         <Input
           id="client-search"
           type="search"

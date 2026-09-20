@@ -8,10 +8,13 @@ export interface InventorySearchProps {
   onChange: (value: string) => void;
 }
 
-export default function InventorySearch({ value, onChange }: InventorySearchProps) {
+export default function InventorySearch({
+  value,
+  onChange,
+}: InventorySearchProps) {
   return (
     <Card className="mb-6">
-      <CardBody className="p-4">
+      <CardBody padding="sm">
         <Input
           id="inventory-search"
           type="search"
