@@ -8,12 +8,7 @@ export default function DailyLogLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="dailyLog">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="dailyLog"
-            title="APARTADO DIARIO"
-            icon="notebook"
-            basePath="/modules/daily-log"
-          />
+          <ModuleSidebar moduleId="dailyLog" basePath="/modules/daily-log" />
         }
       >
         {children}

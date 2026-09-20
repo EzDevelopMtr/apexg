@@ -8,12 +8,7 @@ export default function TrainersLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="trainers">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="trainers"
-            title="ENTRENADORES"
-            icon="dumbbell"
-            basePath="/modules/trainers"
-          />
+          <ModuleSidebar moduleId="trainers" basePath="/modules/trainers" />
         }
       >
         {children}

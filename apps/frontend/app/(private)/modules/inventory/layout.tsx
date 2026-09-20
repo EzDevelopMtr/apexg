@@ -8,12 +8,7 @@ export default function InventoryLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="inventory">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="inventory"
-            title="INVENTARIO"
-            icon="package"
-            basePath="/modules/inventory"
-          />
+          <ModuleSidebar moduleId="inventory" basePath="/modules/inventory" />
         }
       >
         {children}

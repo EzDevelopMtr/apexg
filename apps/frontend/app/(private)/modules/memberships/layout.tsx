@@ -14,8 +14,6 @@ export default function MembershipsLayout({
         sidebar={
           <ModuleSidebar
             moduleId="memberships"
-            title="MEMBRESÍAS"
-            icon="card"
             basePath="/modules/memberships"
           />
         }

@@ -8,12 +8,7 @@ export default function ClientsLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="clients">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="clients"
-            title="CLIENTES"
-            icon="users"
-            basePath="/modules/clients"
-          />
+          <ModuleSidebar moduleId="clients" basePath="/modules/clients" />
         }
       >
         {children}

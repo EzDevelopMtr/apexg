@@ -8,12 +8,7 @@ export default function FinancesLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="finances">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="finances"
-            title="FINANZAS"
-            icon="chart"
-            basePath="/modules/finances"
-          />
+          <ModuleSidebar moduleId="finances" basePath="/modules/finances" />
         }
       >
         {children}

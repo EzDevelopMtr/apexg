@@ -8,12 +8,7 @@ export default function ExpensesLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="expenses">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="expenses"
-            title="EGRESOS"
-            icon="receipt"
-            basePath="/modules/expenses"
-          />
+          <ModuleSidebar moduleId="expenses" basePath="/modules/expenses" />
         }
       >
         {children}

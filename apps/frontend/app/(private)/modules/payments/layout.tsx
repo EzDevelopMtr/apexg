@@ -8,12 +8,7 @@ export default function PaymentsLayout({ children }: { children: ReactNode }) {
     <RequireModule moduleId="payments">
       <ModuleLayout
         sidebar={
-          <ModuleSidebar
-            moduleId="payments"
-            title="PAGOS"
-            icon="wallet"
-            basePath="/modules/payments"
-          />
+          <ModuleSidebar moduleId="payments" basePath="/modules/payments" />
         }
       >
         {children}
