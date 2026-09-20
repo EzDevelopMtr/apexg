@@ -118,7 +118,17 @@ export class AttendanceQueryService {
       })
       .from(attendances)
       .innerJoin(clients, eq(clients.id, attendances.clientId))
-      .leftJoin(clientMemberships, eq(clientMemberships.clientId, clients.id))
+      .leftJoin(
+        clientMemberships,
+        and(
+          eq(clientMemberships.clientId, clients.id),
+          // Solo la vigente: desde que renovar abre una nueva y cierra la
+          // anterior, un cliente tiene varias filas, y sin este filtro el
+          // join devolvia una por cada una — la misma persona repetida, cada
+          // copia con el plan de un periodo distinto.
+          eq(clientMemberships.state, 1),
+        ),
+      )
       .leftJoin(
         membershipTypes,
         eq(membershipTypes.id, clientMemberships.membershipTypeId),

@@ -32,16 +32,16 @@ export class ClientOverdueSyncService {
       SET state = 3, updated_at = NOW()
       WHERE c.company_id = ${companyId}
         AND c.state = 1
+        -- Solo la membresia ACTIVA. Antes buscaba la de mayor start_date, que
+        -- empata en cuanto alguien cambia de plan el mismo dia en que empezo
+        -- el anterior: el desempate quedaba al azar y podia marcar en mora
+        -- mirando un periodo ya cerrado. closeCurrent garantiza que solo una
+        -- este en estado 1.
         AND EXISTS (
           SELECT 1 FROM client_memberships cm
           WHERE cm.client_id = c.id
+            AND cm.state = 1
             AND cm.end_date < CURRENT_DATE
-            AND cm.id = (
-              SELECT cm2.id FROM client_memberships cm2
-              WHERE cm2.client_id = c.id
-              ORDER BY cm2.start_date DESC
-              LIMIT 1
-            )
         )
     `);
   }
