@@ -208,16 +208,20 @@ describe("cyclesWithBalance (RF-18)", () => {
 });
 
 describe("requiresReceipt", () => {
-  // Every method, including cash: the exception was dropped on purpose, so a
-  // future one silently reintroducing it should break this.
-  it("asks for a receipt for every method in the catalogue", () => {
-    const methods = Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[];
-    for (const method of methods) {
-      expect(requiresReceipt(method)).toBe(true);
-    }
+  it("does not ask for one when the client paid cash", () => {
+    expect(requiresReceipt("cash")).toBe(false);
   });
 
-  it("covers cash too", () => {
-    expect(requiresReceipt("cash")).toBe(true);
+  it("asks for one on a transfer", () => {
+    expect(requiresReceipt("transfer")).toBe(true);
+  });
+
+  // Cash is the ONLY method without evidence. A new one added to the catalogue
+  // must decide explicitly rather than inherit whichever branch it happens to
+  // fall into, so this breaks the moment one appears.
+  it("exempts cash and nothing else", () => {
+    const methods = Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[];
+    const exempt = methods.filter((method) => !requiresReceipt(method));
+    expect(exempt).toEqual(["cash"]);
   });
 });

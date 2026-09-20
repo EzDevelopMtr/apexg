@@ -64,24 +64,28 @@ export class PaymentReceiptService {
   }
 
   /**
-   * Exige el comprobante y lo guarda: devuelve el nombre a persistir.
+   * Aplica la regla y guarda: devuelve el nombre a persistir, o null.
    *
-   * Espejo de `requiresReceipt` en `@apexg/core`, que es la fuente: hoy lo
-   * exigen todos los métodos, efectivo incluido. Se repite porque este
-   * backend no depende de ese paquete, y la API tiene que rechazar lo mismo
-   * que el formulario — si no, la exigencia solo vale mientras se use
-   * nuestra UI.
+   * Espejo de `requiresReceipt` en `@apexg/core`, que es la fuente: lo exige
+   * todo menos el efectivo, que cambia de manos con la recepcionista delante.
+   * Se repite porque este backend no depende de ese paquete, y la API tiene
+   * que rechazar lo mismo que el formulario — si no, la exigencia solo vale
+   * mientras se use nuestra UI.
    */
-  async storeFor(file?: {
-    mimetype: string;
-    size: number;
-    buffer: Buffer;
-  }): Promise<string> {
+  async storeFor(
+    method: string,
+    file?: { mimetype: string; size: number; buffer: Buffer },
+  ): Promise<string | null> {
     if (!file) {
-      throw new BadRequestException(
-        "Adjunta el comprobante: todo pago debe quedar respaldado.",
-      );
+      if (method !== "cash") {
+        throw new BadRequestException(
+          "Adjunta el comprobante: es obligatorio si el pago no es en efectivo.",
+        );
+      }
+      return null;
     }
+    // Un pago en efectivo con soporte adjunto se acepta: sobra evidencia, no
+    // falta.
     return this.store(file);
   }
 

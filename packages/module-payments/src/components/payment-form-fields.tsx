@@ -1,7 +1,7 @@
 "use client";
 
 import type { PaymentMethod } from "@apexg/core";
-import { PAYMENT_METHOD_LABELS } from "@apexg/core";
+import { PAYMENT_METHOD_LABELS, requiresReceipt } from "@apexg/core";
 import { FileInput, Input, Select, Textarea } from "@apexg/ui";
 import type { SelectOption } from "@apexg/ui";
 import type { RecordPaymentValues } from "../hooks/use-record-payment";
@@ -55,14 +55,19 @@ export default function PaymentFormFields({
         placeholder="Ej. TRX-20260905-001"
       />
 
-      <FileInput
-        id="receipt"
-        label="Comprobante"
-        accept="image/jpeg,image/png,image/webp,application/pdf"
-        hint="Obligatorio en todo pago. JPG, PNG, WEBP o PDF, hasta 5 MB."
-        file={values.receipt}
-        onChange={(file) => setValue("receipt", file)}
-      />
+      {/* Only for a transfer. Showing it greyed out for cash would put a
+          control on screen that can never do anything, and the receptionist
+          would still have to work out why. */}
+      {requiresReceipt(values.method) && (
+        <FileInput
+          id="receipt"
+          label="Comprobante"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          hint="Captura de la transferencia. JPG, PNG, WEBP o PDF, hasta 5 MB."
+          file={values.receipt}
+          onChange={(file) => setValue("receipt", file)}
+        />
+      )}
 
       <Textarea
         id="notes"

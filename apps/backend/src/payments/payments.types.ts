@@ -7,13 +7,16 @@
 
 /**
  * `payment_method` es `VARCHAR(20)` libre (sin CHECK a nivel de BD, ver
- * CLAUDE.md "Sin ENUM, CHECK de negocio"). El comentario del esquema solo
- * documenta cash/card/transfer, pero el ERS y el catálogo ya usado en el
- * frontend (`@apexg/core`) incluyen "nequi" — un medio real en Colombia.
- * Se admite aquí porque nada en la base lo impide.
+ * CLAUDE.md "Sin ENUM, CHECK de negocio"), así que la restricción a estos dos
+ * la impone el DTO, no la columna.
+ *
+ * Solo dos: Nequi, Bancolombia o tarjeta terminan igual para el gimnasio —el
+ * dinero entra a la cuenta y hay una pantalla que lo prueba—, y lo único sobre
+ * lo que el sistema decide es si hay comprobante que adjuntar. Espejo de
+ * `PaymentMethod` en `@apexg/core`. La migración 009 normalizó las filas que
+ * ya tenían otro valor.
  */
-export type PaymentMethod =
-  "cash" | "card" | "transfer" | "nequi" | "bancolombia";
+export type PaymentMethod = "cash" | "transfer";
 
 /**
  * `payment_type` es un `VARCHAR(20)` con solo 4 categorías gruesas

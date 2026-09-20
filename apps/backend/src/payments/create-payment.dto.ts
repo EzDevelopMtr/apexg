@@ -30,7 +30,7 @@ export class CreatePaymentDto {
   })
   amount!: string;
 
-  @IsIn(["cash", "card", "transfer", "nequi", "bancolombia"])
+  @IsIn(["cash", "transfer"])
   paymentMethod!: PaymentMethod;
 
   /** `paid_at` es TIMESTAMPTZ; por defecto el momento del registro. */

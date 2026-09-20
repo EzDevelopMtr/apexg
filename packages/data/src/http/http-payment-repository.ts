@@ -54,6 +54,17 @@ interface MembershipContext {
   cycleId: CycleId;
 }
 
+/**
+ * `payment_method` is a free VARCHAR with no CHECK, so a row can hold a value
+ * outside the two the domain knows — the ones migration 009 normalised, or
+ * anything written straight to the table later. Anything unrecognised reads as
+ * a transfer: it means money that arrived outside the cash drawer, which is
+ * what the distinction is for. Same treatment `toUnit` gives inventory units.
+ */
+function toMethod(raw: string): PaymentMethod {
+  return raw === "cash" ? "cash" : "transfer";
+}
+
 const KIND_BY_TYPE: Record<ApiPaymentType, PaymentKind> = {
   full: "full",
   first_installment: "installment",
@@ -121,7 +132,7 @@ function fromResult(
     // backend (`toLocalDate`); converting through a real `Date` reads
     // the browser's local calendar day instead of UTC's.
     paidOn: toIsoDate(new Date(row.paidAt)),
-    method: row.paymentMethod,
+    method: toMethod(row.paymentMethod),
     reference,
     receiptPath: row.receiptPath ?? "",
     recordedBy: "",

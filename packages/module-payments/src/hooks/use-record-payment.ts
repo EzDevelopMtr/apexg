@@ -52,6 +52,22 @@ const EMPTY: RecordPaymentValues = {
 };
 
 /**
+ * One field changed, plus whatever that change drags with it.
+ *
+ * Choosing a method that needs no receipt also drops the file: its field
+ * disappears with the switch, so a leftover attachment would ride along on the
+ * payment with no control left on screen to remove it.
+ */
+function withField<K extends keyof RecordPaymentValues>(
+  current: RecordPaymentValues,
+  field: K,
+  value: RecordPaymentValues[K],
+): RecordPaymentValues {
+  const next = { ...current, [field]: value };
+  return requiresReceipt(next.method) ? next : { ...next, receipt: null };
+}
+
+/**
  * Every reason the form can refuse, in one place and outside the hook.
  *
  * Returns the message to show, or null when the values pass. Gathered here so
@@ -101,7 +117,7 @@ export function useRecordPayment(
       field: K,
       value: RecordPaymentValues[K],
     ) => {
-      setValues((current) => ({ ...current, [field]: value }));
+      setValues((current) => withField(current, field, value));
       setError(null);
     },
     [],

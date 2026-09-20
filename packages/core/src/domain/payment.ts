@@ -25,38 +25,36 @@ export function toCycleId(clientId: ClientId, startDate: IsoDate): CycleId {
   return `${clientId}:${startDate}` as CycleId;
 }
 
-/** How the client paid (RF-04, "forma de pago"). */
-export type PaymentMethod =
-  "cash" | "transfer" | "card" | "nequi" | "bancolombia";
+/**
+ * How the client paid (RF-04, "forma de pago").
+ *
+ * Two, on purpose. Nequi, Bancolombia and a card all end the same way for the
+ * gym: money lands in the account and there is a screen that proves it. Naming
+ * each one bought a longer dropdown and four more values to keep in step
+ * across five layers, while the only thing the system branches on is whether
+ * there is a receipt to attach — and that is a two-way split.
+ */
+export type PaymentMethod = "cash" | "transfer";
 
 /** User-facing payment method names, in Spanish. */
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   cash: "Efectivo",
   transfer: "Transferencia",
-  card: "Tarjeta",
-  nequi: "Nequi",
-  bancolombia: "Bancolombia",
 };
 
 /**
- * Whether a payment has to carry a photo of its receipt. Today: always.
+ * Whether a payment has to carry a photo of its receipt.
  *
- * It started as "everything except cash", on the reasoning that cash changes
- * hands with the receptionist as witness. That was dropped deliberately: an
- * exception is the one row nobody can audit later, and the gym would rather
- * photograph the signed slip than keep a category of payment with no trace at
- * all (RNF-07: financial records stay traceable).
- *
- * Kept as a function of the method rather than folded away as a constant,
- * because the question it answers is still "does THIS method need evidence" —
- * bringing an exception back is changing this line, not re-threading a rule
- * through five layers.
+ * Cash changes hands in person with the receptionist as witness, so there is
+ * nothing to capture. A transfer leaves a screen on the payer's phone, and
+ * that screenshot is the only thing the gym can check a disputed payment
+ * against months later (RNF-07: financial records stay traceable).
  *
  * A rule, not a form detail: the API has to reject exactly what the form
  * rejects, or the requirement only holds while people use our UI.
  */
-export function requiresReceipt(_method: PaymentMethod): boolean {
-  return true;
+export function requiresReceipt(method: PaymentMethod): boolean {
+  return method !== "cash";
 }
 
 /**

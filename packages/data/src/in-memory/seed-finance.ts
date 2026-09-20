@@ -46,7 +46,7 @@ export function buildSeedPayments(): Payment[] {
       kind: "installment",
       sequence: 1,
       paidOn: day("2026-09-01"),
-      method: "card",
+      method: "transfer",
       reference: "TAR-20260901-220",
       receiptPath: "",
       recordedBy: "apexg",
