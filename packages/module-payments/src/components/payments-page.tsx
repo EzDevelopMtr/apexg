@@ -75,7 +75,11 @@ export default function PaymentsPage({
       loadingMessage="Cargando pagos..."
       errorMessage="No pudimos cargar los pagos."
     >
-      <PaymentList payments={visible} clients={clients.items} />
+      <PaymentList
+        payments={visible}
+        clients={clients.items}
+        receiptUrl={payments.receiptUrl}
+      />
     </CollectionGate>
   );
 }

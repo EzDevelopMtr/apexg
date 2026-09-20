@@ -81,7 +81,6 @@ export interface Payment {
   readonly sequence: number;
   readonly paidOn: IsoDate;
   readonly method: PaymentMethod;
-  readonly reference: string;
   /**
    * Server-side path of the uploaded receipt, or empty when there is none.
    * Never a URL the browser can hit directly: the file is served through an

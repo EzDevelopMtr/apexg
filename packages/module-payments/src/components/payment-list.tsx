@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, Payment } from "@apexg/core";
+import type { Client, Payment, PaymentId } from "@apexg/core";
 import { Card, Table, TableEmpty } from "@apexg/ui";
 import PaymentRow from "./payment-row";
 import { clientNameOf } from "./client-name";
@@ -12,14 +12,21 @@ const HEADERS = [
   "Tipo",
   "Saldo",
   "Método",
+  "Comprobante",
 ] as const;
 
 export interface PaymentListProps {
   payments: readonly Payment[];
   clients: readonly Client[];
+  /** Built by the data layer: no component here knows the API path. */
+  receiptUrl: (paymentId: PaymentId) => string;
 }
 
-export default function PaymentList({ payments, clients }: PaymentListProps) {
+export default function PaymentList({
+  payments,
+  clients,
+  receiptUrl,
+}: PaymentListProps) {
   return (
     <Card className="overflow-hidden">
       <Table headers={HEADERS}>
@@ -34,6 +41,7 @@ export default function PaymentList({ payments, clients }: PaymentListProps) {
               key={payment.id}
               payment={payment}
               clientName={clientNameOf(clients, payment)}
+              receiptUrl={receiptUrl(payment.id)}
             />
           ))
         )}

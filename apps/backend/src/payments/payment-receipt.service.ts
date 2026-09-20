@@ -37,9 +37,20 @@ const MAX_BYTES = 5 * 1024 * 1024;
  *    una persona, así que se sirve por una ruta que comprueba permisos, no
  *    por una URL que cualquiera con el enlace pueda abrir.
  */
+/**
+ * Dónde viven los comprobantes.
+ *
+ * Relativo al cwd, que al arrancar con `pnpm --filter @apexg/backend` ya es
+ * `apps/backend` — dar la ruta completa desde la raíz del repo la duplicaba
+ * (`apps/backend/apps/backend/data/...`) y además dejaba la carpeta fuera de
+ * lo que `.gitignore` cubre. La variable de entorno existe para poder
+ * apuntarla a un volumen montado sin tocar código.
+ */
+const RECEIPTS_DIR = process.env.RECEIPTS_DIR ?? 'data/receipts';
+
 @Injectable()
 export class PaymentReceiptService {
-  readonly #directory = resolve(process.cwd(), "apps/backend/data/receipts");
+  readonly #directory = resolve(process.cwd(), RECEIPTS_DIR);
 
   /** Guarda el archivo y devuelve el nombre a persistir en `receipt_path`. */
   async store(file: {

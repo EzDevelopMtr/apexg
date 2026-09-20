@@ -27,7 +27,6 @@ export interface RecordPaymentValues {
   clientId: string;
   amountPesos: string;
   method: PaymentMethod;
-  reference: string;
   notes: string;
   /** Photo of the receipt. Required unless the client paid cash. */
   receipt: File | null;
@@ -46,7 +45,6 @@ const EMPTY: RecordPaymentValues = {
   clientId: "",
   amountPesos: "",
   method: "cash",
-  reference: "",
   notes: "",
   receipt: null,
 };
@@ -86,9 +84,6 @@ function rejectionFor(
   );
   if (!check.accepted) {
     return rejectionMessage(check.reason, type.name, type.minimumInstallment);
-  }
-  if (!values.reference.trim()) {
-    return "La referencia del pago es obligatoria.";
   }
   // Mirrors the API, which rejects the same thing (PaymentReceiptService).
   if (requiresReceipt(values.method) && !values.receipt) {
@@ -177,7 +172,6 @@ export function useRecordPayment(
       sequence: cycle.previousCount + 1,
       paidOn: today(),
       method: values.method,
-      reference: values.reference.trim(),
       // Lo asigna el backend al guardar el archivo; el borrador no lo conoce.
       receiptPath: "",
       recordedBy,

@@ -18,7 +18,7 @@ export interface PaymentFormFieldsProps {
   ) => void;
 }
 
-/** Amount, method, reference, receipt and notes for a payment (RF-17). */
+/** Amount, method, receipt and notes for a payment (RF-17). */
 export default function PaymentFormFields({
   values,
   setValue,
@@ -46,14 +46,6 @@ export default function PaymentFormFields({
           }
         />
       </div>
-
-      <Input
-        id="reference"
-        label="Referencia"
-        value={values.reference}
-        onChange={(event) => setValue("reference", event.target.value)}
-        placeholder="Ej. TRX-20260905-001"
-      />
 
       {/* Only for a transfer. Showing it greyed out for cash would put a
           control on screen that can never do anything, and the receptionist

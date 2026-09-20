@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, Payment } from "@apexg/core";
+import type { Client, Payment, PaymentId } from "@apexg/core";
 import { useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
@@ -11,6 +11,8 @@ export interface UsePaymentsResult extends Collection<Payment> {
     draft: Omit<Payment, "id">,
     receipt?: Blob,
   ) => Promise<Payment>;
+  /** Address of a payment receipt, built by the data layer. */
+  readonly receiptUrl: (paymentId: PaymentId) => string;
 }
 
 export function usePayments(): UsePaymentsResult {
@@ -29,7 +31,12 @@ export function usePayments(): UsePaymentsResult {
     [payments, apply],
   );
 
-  return { ...collection, record };
+  const receiptUrl = useCallback(
+    (paymentId: PaymentId) => payments.receiptUrl(paymentId),
+    [payments],
+  );
+
+  return { ...collection, record, receiptUrl };
 }
 
 /** The clients a payment can be attached to. */

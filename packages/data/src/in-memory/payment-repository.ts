@@ -23,4 +23,9 @@ export class InMemoryPaymentRepository implements PaymentRepository {
   async record(draft: Omit<Payment, "id">): Promise<Payment> {
     return this.#store.save({ ...draft, id: toPaymentId(newId()) });
   }
+
+  /** No server behind this one, so there is nothing to open. */
+  receiptUrl(): string {
+    return "";
+  }
 }

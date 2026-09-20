@@ -7,7 +7,7 @@
  * sees a token; that boundary lives entirely in the web app.
  */
 
-const API_BASE = "/api/backend";
+export const API_BASE = "/api/backend";
 
 /** Carries the HTTP status so a repository can decide what it means (404 → not found, etc). */
 export class ApiError extends Error {

@@ -59,7 +59,6 @@ function payment(id: string, paidOn: string, pesos: number): Payment {
     sequence: 1,
     paidOn: date(paidOn),
     method: "cash",
-    reference: id,
     receiptPath: "",
     recordedBy: "apexg",
     notes: "",

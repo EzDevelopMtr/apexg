@@ -52,7 +52,6 @@ function makePayment(
     sequence,
     paidOn: date("2026-06-01"),
     method: "cash",
-    reference: `REF-${sequence}`,
     receiptPath: "",
     recordedBy: "apexg",
     notes: "",

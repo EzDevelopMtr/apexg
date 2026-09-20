@@ -6,6 +6,7 @@ import type {
   Money,
   Payment,
   PaymentKind,
+  PaymentId,
   PaymentMethod,
 } from "@apexg/core";
 import {
@@ -18,7 +19,7 @@ import {
   toPaymentId,
 } from "@apexg/core";
 import type { PaymentRepository } from "../repositories";
-import { apiFetch } from "./http-client";
+import { API_BASE, apiFetch } from "./http-client";
 
 type ApiPaymentType =
   "full" | "first_installment" | "second_installment" | "final_installment";
@@ -73,30 +74,6 @@ const KIND_BY_TYPE: Record<ApiPaymentType, PaymentKind> = {
 };
 
 /**
- * `Payment.reference` (required by the form, RF-17) has no backend column —
- * only `notes` exists. It travels folded into `notes` with a recognizable
- * prefix so a reload still shows the same reference in `PaymentRow`, and is
- * split back apart on read. A `notes` value that predates this convention
- * (e.g. seeded directly) just reads back as plain notes with no reference,
- * rather than being misparsed.
- */
-const REFERENCE_PREFIX = /^Referencia: (.+?)(?: — ([\s\S]*))?$/;
-
-function composeNotes(reference: string, notes: string): string | undefined {
-  const parts: string[] = [];
-  if (reference.trim()) parts.push(`Referencia: ${reference.trim()}`);
-  if (notes.trim()) parts.push(notes.trim());
-  return parts.length > 0 ? parts.join(" — ") : undefined;
-}
-
-function splitNotes(raw: string | null): { reference: string; notes: string } {
-  if (!raw) return { reference: "", notes: "" };
-  const match = REFERENCE_PREFIX.exec(raw);
-  if (!match) return { reference: "", notes: raw };
-  return { reference: match[1] ?? "", notes: match[2] ?? "" };
-}
-
-/**
  * The payment fields plus its receipt, as one multipart body.
  *
  * Every value goes in as a string: multipart has no types, and the backend's
@@ -115,7 +92,9 @@ function fromResult(
   row: ApiPaymentResult,
   context: MembershipContext,
 ): Payment {
-  const { reference, notes } = splitNotes(row.notes);
+  // Notes come back exactly as stored. They used to be unpacked with a regex,
+  // because `reference` had no column and travelled folded in here behind a
+  // "Referencia:" prefix; the field is gone and so is that convention.
   return {
     id: toPaymentId(row.id),
     clientId: context.clientId,
@@ -133,10 +112,9 @@ function fromResult(
     // the browser's local calendar day instead of UTC's.
     paidOn: toIsoDate(new Date(row.paidAt)),
     method: toMethod(row.paymentMethod),
-    reference,
     receiptPath: row.receiptPath ?? "",
     recordedBy: "",
-    notes,
+    notes: row.notes ?? "",
   };
 }
 
@@ -185,6 +163,10 @@ export class HttpPaymentRepository implements PaymentRepository {
     });
   }
 
+  receiptUrl(paymentId: PaymentId): string {
+    return `${API_BASE}/payments/${paymentId}/receipt`;
+  }
+
   async record(draft: Omit<Payment, "id">, receipt?: Blob): Promise<Payment> {
     const client = await apiFetch<ClientLookupRow>(
       `/clients/${draft.clientId}`,
@@ -206,8 +188,7 @@ export class HttpPaymentRepository implements PaymentRepository {
       // sidesteps reconstructing a timestamp whose UTC offset would need
       // to land on the right LOCAL calendar day (see `paidOn` above).
     };
-    const notes = composeNotes(draft.reference, draft.notes);
-    if (notes !== undefined) fields.notes = notes;
+    if (draft.notes.trim()) fields.notes = draft.notes.trim();
 
     // Multipart whenever there is a file. The endpoint reads both shapes, so
     // a cash payment stays a plain JSON POST rather than paying for a

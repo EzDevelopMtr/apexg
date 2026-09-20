@@ -13,6 +13,7 @@ import type {
   MembershipTypeId,
   MonthlyClosure,
   Payment,
+  PaymentId,
   ProductSale,
   Trainer,
   TrainerId,
@@ -57,6 +58,15 @@ export interface PaymentRepository {
    * evidence attached, which is the state the rule exists to prevent.
    */
   record(draft: Omit<Payment, "id">, receipt?: Blob): Promise<Payment>;
+  /**
+   * Where to open a payment's receipt.
+   *
+   * Built here rather than in a component so no module has to know the API
+   * lives behind `/api/backend`. The address is all a component gets: the file
+   * is served by an endpoint that checks permissions, never from a public
+   * folder, so there is no direct path to hand out.
+   */
+  receiptUrl(paymentId: PaymentId): string;
 }
 
 export interface TrainerRepository {

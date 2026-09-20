@@ -7,6 +7,7 @@ import {
   Post,
   Query,
   Res,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -111,14 +112,18 @@ export class PaymentsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<void> {
+  ): Promise<StreamableFile> {
     const payment = await this.payments.findOne(user.companyId, id);
     const { stream, contentType } = this.receipts.open(
       payment.receiptPath ?? "",
     );
     response.setHeader("Content-Type", contentType);
     response.setHeader("Cache-Control", "private, no-store");
-    stream.pipe(response);
+
+    // `StreamableFile` y no `stream.pipe(response)`: con `passthrough: true`
+    // Nest cierra la respuesta al volver del handler, asi que el pipe manual
+    // devolvia 200 con las cabeceras correctas y CERO bytes.
+    return new StreamableFile(stream);
   }
 
   @Get(":id")
