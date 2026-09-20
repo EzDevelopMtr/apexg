@@ -12,7 +12,8 @@
  * frontend (`@apexg/core`) incluyen "nequi" — un medio real en Colombia.
  * Se admite aquí porque nada en la base lo impide.
  */
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'nequi';
+export type PaymentMethod =
+  "cash" | "card" | "transfer" | "nequi" | "bancolombia";
 
 /**
  * `payment_type` es un `VARCHAR(20)` con solo 4 categorías gruesas
@@ -20,10 +21,7 @@ export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'nequi';
  * `installment_number` (migración 004), no aquí.
  */
 export type PaymentType =
-  | 'full'
-  | 'first_installment'
-  | 'second_installment'
-  | 'final_installment';
+  "full" | "first_installment" | "second_installment" | "final_installment";
 
 export interface CommissionSummary {
   trainerId: string;
@@ -42,6 +40,8 @@ export interface PaymentResult {
   balanceAfter: string;
   paidAt: string;
   notes: string | null;
+  /** Nombre del archivo del comprobante, o null si no tiene. Nunca una URL. */
+  receiptPath: string | null;
   /** Presente solo si el plan tiene reparto y la membresía tiene entrenador. */
   commission: CommissionSummary | null;
 }

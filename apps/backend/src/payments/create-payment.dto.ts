@@ -1,6 +1,13 @@
-import { IsIn, IsISO8601, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import {
+  IsIn,
+  IsISO8601,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+} from "class-validator";
 
-import type { PaymentMethod } from './payments.types.js';
+import type { PaymentMethod } from "./payments.types.js";
 
 /**
  * Body de `POST /payments` (RF-17).
@@ -23,7 +30,7 @@ export class CreatePaymentDto {
   })
   amount!: string;
 
-  @IsIn(['cash', 'card', 'transfer', 'nequi'])
+  @IsIn(["cash", "card", "transfer", "nequi", "bancolombia"])
   paymentMethod!: PaymentMethod;
 
   /** `paid_at` es TIMESTAMPTZ; por defecto el momento del registro. */

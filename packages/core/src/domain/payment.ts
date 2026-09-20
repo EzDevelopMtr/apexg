@@ -26,7 +26,8 @@ export function toCycleId(clientId: ClientId, startDate: IsoDate): CycleId {
 }
 
 /** How the client paid (RF-04, "forma de pago"). */
-export type PaymentMethod = "cash" | "transfer" | "card" | "nequi";
+export type PaymentMethod =
+  "cash" | "transfer" | "card" | "nequi" | "bancolombia";
 
 /** User-facing payment method names, in Spanish. */
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -34,7 +35,23 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   transfer: "Transferencia",
   card: "Tarjeta",
   nequi: "Nequi",
+  bancolombia: "Bancolombia",
 };
+
+/**
+ * Whether a payment has to carry a photo of its receipt.
+ *
+ * Cash changes hands in person with the receptionist as witness, so there is
+ * nothing to capture. Every other method leaves a screen on the payer's phone,
+ * and that screenshot is the only thing the gym can check a disputed transfer
+ * against months later (RNF-07: financial records stay traceable).
+ *
+ * A rule, not a form detail: the API has to reject exactly what the form
+ * rejects, or the requirement only holds while people use our UI.
+ */
+export function requiresReceipt(method: PaymentMethod): boolean {
+  return method !== "cash";
+}
 
 /**
  * The label a payment carries (RF-20).
@@ -61,6 +78,12 @@ export interface Payment {
   readonly paidOn: IsoDate;
   readonly method: PaymentMethod;
   readonly reference: string;
+  /**
+   * Server-side path of the uploaded receipt, or empty when there is none.
+   * Never a URL the browser can hit directly: the file is served through an
+   * authenticated endpoint, because a receipt carries someone else's money.
+   */
+  readonly receiptPath: string;
   readonly recordedBy: string;
   readonly notes: string;
 }

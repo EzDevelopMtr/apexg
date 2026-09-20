@@ -130,6 +130,8 @@ export function useRecordPayment(
       paidOn: today(),
       method: values.method,
       reference: values.reference.trim(),
+      // Lo asigna el backend al guardar el archivo; el borrador no lo conoce.
+      receiptPath: "",
       recordedBy,
       notes: values.notes.trim(),
     };

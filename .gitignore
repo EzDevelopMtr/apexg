@@ -38,3 +38,6 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Comprobantes de pago subidos: datos financieros de clientes, nunca al repo.
+apps/backend/data/

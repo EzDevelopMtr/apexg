@@ -305,6 +305,7 @@ export const payments = pgTable("payments", {
 	createdBy: uuid("created_by"),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	installmentNumber: integer("installment_number").notNull(),
+	receiptPath: varchar("receipt_path", { length: 255 }),
 }, (table) => [
 	index("idx_payments_company_paid").using("btree", table.companyId.asc().nullsLast().op("uuid_ops"), table.paidAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_payments_membership_paid").using("btree", table.clientMembershipId.asc().nullsLast().op("uuid_ops"), table.paidAt.asc().nullsLast().op("uuid_ops")),

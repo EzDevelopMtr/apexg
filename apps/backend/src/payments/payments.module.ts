@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
 
 import { PaymentCommissionService } from './payment-commission.service.js';
+import { PaymentReceiptService } from './payment-receipt.service.js';
 import { PaymentsController } from './payments.controller.js';
 import { PaymentsService } from './payments.service.js';
 
@@ -10,6 +11,6 @@ import { PaymentsService } from './payments.service.js';
 @Module({
   imports: [AuthModule],
   controllers: [PaymentsController],
-  providers: [PaymentsService, PaymentCommissionService],
+  providers: [PaymentsService, PaymentCommissionService, PaymentReceiptService],
 })
 export class PaymentsModule {}

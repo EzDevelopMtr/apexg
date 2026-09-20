@@ -29,6 +29,7 @@ export class PaymentsService {
     companyId: string,
     userId: string,
     input: CreatePaymentDto,
+    receiptPath: string | null = null,
   ): Promise<PaymentResult> {
     return this.db.transaction(async (tx) => {
       const membership = await this.loadMembership(tx, companyId, input.clientMembershipId);
@@ -69,6 +70,7 @@ export class PaymentsService {
           notes: input.notes ?? null,
           createdBy: userId,
           installmentNumber: priorPayments.length + 1,
+          receiptPath,
         })
         .returning();
       const payment = assertDefined(insertedPayment, 'INSERT into payments did not return a row.');
@@ -217,6 +219,7 @@ export class PaymentsService {
       balanceAfter: row.balanceAfter,
       paidAt: row.paidAt,
       notes: row.notes,
+      receiptPath: row.receiptPath,
       commission,
     };
   }

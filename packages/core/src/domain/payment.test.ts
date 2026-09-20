@@ -6,13 +6,15 @@ import { findMembershipType } from "./membership-catalog";
 import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 import type { Money } from "./money";
-import type { Payment, PaymentKind } from "./payment";
+import type { Payment, PaymentKind, PaymentMethod } from "./payment";
 import {
+  PAYMENT_METHOD_LABELS,
   checkPayment,
   cyclesWithBalance,
   classifyPayment,
   outstandingBalance,
   paymentLabel,
+  requiresReceipt,
   toCycleId,
   toPaymentId,
   totalPaid,
@@ -51,6 +53,7 @@ function makePayment(
     paidOn: date("2026-06-01"),
     method: "cash",
     reference: `REF-${sequence}`,
+    receiptPath: "",
     recordedBy: "apexg",
     notes: "",
   };
@@ -201,5 +204,31 @@ describe("cyclesWithBalance (RF-18)", () => {
     ];
 
     expect(cyclesWithBalance(payments)).toHaveLength(1);
+  });
+});
+
+describe("requiresReceipt", () => {
+  it("does not ask for a receipt when the client paid cash", () => {
+    expect(requiresReceipt("cash")).toBe(false);
+  });
+
+  it("asks for one for every electronic method", () => {
+    const electronic: PaymentMethod[] = [
+      "transfer",
+      "card",
+      "nequi",
+      "bancolombia",
+    ];
+    for (const method of electronic) {
+      expect(requiresReceipt(method)).toBe(true);
+    }
+  });
+
+  // Guards the rule against a method being added to the union and silently
+  // defaulting to "no evidence needed": every non-cash method must be covered.
+  it("covers every method in the catalogue", () => {
+    const methods = Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[];
+    const needing = methods.filter(requiresReceipt);
+    expect(needing).toHaveLength(methods.length - 1);
   });
 });
