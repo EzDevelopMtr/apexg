@@ -7,6 +7,12 @@ export interface FieldProps {
   error?: string;
   /** Id of the control being labelled. */
   htmlFor?: string;
+  /**
+   * Id given to the error message so the control can point at it with
+   * `aria-describedby`. Without it `aria-invalid` tells a screen reader that
+   * something is wrong but never what.
+   */
+  errorId?: string;
   children: ReactNode;
 }
 
@@ -16,7 +22,13 @@ export interface FieldProps {
  * Extracted so `Input`, `Select` and `Textarea` share one layout instead of
  * each repeating the same markup and Tailwind classes.
  */
-export default function Field({ label, error, htmlFor, children }: FieldProps) {
+export default function Field({
+  label,
+  error,
+  htmlFor,
+  errorId,
+  children,
+}: FieldProps) {
   return (
     <div>
       {label && (
@@ -29,7 +41,7 @@ export default function Field({ label, error, htmlFor, children }: FieldProps) {
       )}
       {children}
       {error && (
-        <p role="alert" className="mt-2 text-sm text-danger-ink">
+        <p id={errorId} role="alert" className="mt-2 text-sm text-danger-ink">
           {error}
         </p>
       )}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Save } from "lucide-react";
 import type { Client, ClientDraft } from "@apexg/core";
-import { Button } from "@apexg/ui";
+import { Button, useFirstInvalidFocus } from "@apexg/ui";
 import { useClientForm } from "../hooks/use-client-form";
 import ClientFormFields from "./client-form-fields";
 
@@ -21,6 +21,7 @@ export default function ClientForm({
   onCancel,
 }: ClientFormProps) {
   const form = useClientForm(client);
+  const { formRef, reportInvalid } = useFirstInvalidFocus();
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -28,7 +29,12 @@ export default function ClientForm({
     event.preventDefault();
 
     const draft = form.submit();
-    if (!draft) return;
+    if (!draft) {
+      // Fourteen fields, and in the edit modal most of them are scrolled out
+      // of view: without this the button would just appear not to work.
+      reportInvalid();
+      return;
+    }
 
     setSaving(true);
     setFailure(null);
@@ -46,7 +52,7 @@ export default function ClientForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       <ClientFormFields {...form} />
 
       {failure && (

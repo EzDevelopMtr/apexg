@@ -13,3 +13,23 @@ export function controlClasses(invalid: boolean, extra = ""): string {
     .filter(Boolean)
     .join(" ");
 }
+
+/** Id of a control's error message, or nothing when there is no error to point at. */
+export function errorId(
+  id: string | undefined,
+  error: string | undefined,
+): string | undefined {
+  return id && error ? `${id}-error` : undefined;
+}
+
+/**
+ * Joins the error message onto whatever the caller already described the
+ * control with, rather than replacing it — a field can carry both a standing
+ * hint and a validation message, and overwriting would silence the hint.
+ */
+export function describedBy(
+  ownErrorId: string | undefined,
+  callerValue: string | undefined,
+): string | undefined {
+  return [callerValue, ownErrorId].filter(Boolean).join(" ") || undefined;
+}

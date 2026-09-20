@@ -1,6 +1,6 @@
 import type { TextareaHTMLAttributes } from "react";
 import Field from "./field";
-import { controlClasses } from "./control-classes";
+import { controlClasses, describedBy, errorId } from "./control-classes";
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -13,16 +13,19 @@ export default function Textarea({
   className = "",
   id,
   rows = 3,
+  "aria-describedby": describedByProp,
   ...rest
 }: TextareaProps) {
   const invalid = Boolean(error);
+  const messageId = errorId(id, error);
 
   return (
-    <Field label={label} error={error} htmlFor={id}>
+    <Field label={label} error={error} htmlFor={id} errorId={messageId}>
       <textarea
         id={id}
         rows={rows}
         aria-invalid={invalid || undefined}
+        aria-describedby={describedBy(messageId, describedByProp)}
         className={controlClasses(invalid, `px-4 ${className}`)}
         {...rest}
       />

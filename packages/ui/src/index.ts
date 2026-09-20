@@ -8,6 +8,7 @@
 /* Form controls */
 export { default as Field } from "./components/field";
 export { controlClasses } from "./components/control-classes";
+export { useFirstInvalidFocus } from "./hooks/use-first-invalid-focus";
 export type { FieldProps } from "./components/field";
 
 export { default as Input } from "./components/input";

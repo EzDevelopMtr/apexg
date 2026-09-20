@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import Field from "./field";
-import { controlClasses } from "./control-classes";
+import { controlClasses, describedBy, errorId } from "./control-classes";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -14,12 +14,14 @@ export default function Input({
   error,
   className = "",
   id,
+  "aria-describedby": describedByProp,
   ...rest
 }: InputProps) {
   const invalid = Boolean(error);
+  const messageId = errorId(id, error);
 
   return (
-    <Field label={label} error={error} htmlFor={id}>
+    <Field label={label} error={error} htmlFor={id} errorId={messageId}>
       <div className="relative">
         {icon && (
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-body-faint">
@@ -29,6 +31,7 @@ export default function Input({
         <input
           id={id}
           aria-invalid={invalid || undefined}
+          aria-describedby={describedBy(messageId, describedByProp)}
           className={controlClasses(
             invalid,
             `${icon ? "pl-12 pr-4" : "px-4"} ${className}`,
