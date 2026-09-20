@@ -58,10 +58,11 @@ describe("visitQuota", () => {
     expect(visitQuota(weeklyAllowance(capped), 5).exhausted).toBe(true);
   });
 
-  // The weekly plan, not the monthly one: the monthly is capped at 6 since
-  // the gym closes on Sundays, so it is no longer an example of "uncapped".
-  it("never exhausts an uncapped plan", () => {
-    const quota = visitQuota(weeklyAllowance(plan("week")), 40);
+  // Passed straight in: every seeded plan now carries a cap, so there is no
+  // catalogue entry left to take an uncapped allowance from. The domain still
+  // understands `null`, and this is what pins that it does.
+  it("never exhausts an uncapped allowance", () => {
+    const quota = visitQuota(null, 40);
     expect(quota.allowed).toBeNull();
     expect(quota.exhausted).toBe(false);
   });
@@ -129,8 +130,10 @@ describe("weekly allowances of the seeded catalogue", () => {
     expect(weeklyAllowance(plan("monthlyThreeDays"))).toBe(3);
   });
 
-  it("leaves the short plans uncapped, since they expire by date", () => {
-    expect(weeklyAllowance(plan("week"))).toBeNull();
-    expect(weeklyAllowance(plan("day"))).toBeNull();
+  // Six is full access with the gym closed on Sundays. The short plans are
+  // limited by their expiry date, which is a different thing and untouched.
+  it("gives the short plans full weekly access", () => {
+    expect(weeklyAllowance(plan("week"))).toBe(6);
+    expect(weeklyAllowance(plan("day"))).toBe(6);
   });
 });

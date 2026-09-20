@@ -13,16 +13,15 @@ const TERM_UNITS = [
  * Hasta 6, no 7: el gimnasio no abre los domingos, así que una semana completa
  * son seis días de acceso y un séptimo no significaría nada.
  *
- * La opción vacía es "sin límite", y va primera porque es lo que corresponde a
- * los planes que caducan por fecha (Día, Semana, Quincena).
+ * Sin opción de "sin límite": quien crea un plan no distingue a simple vista
+ * entre "no tiene tope" y "todavía no lo he puesto", y ese vacío era justo el
+ * estado que dejaba entrar los siete días. Seis es el acceso completo, así que
+ * no se pierde nada al exigir siempre un número.
  */
-const WEEKLY_VISITS = [
-  { value: "", label: "Sin límite" },
-  ...Array.from({ length: 6 }, (_, index) => ({
-    value: String(index + 1),
-    label: index === 0 ? "1 día por semana" : `${index + 1} días por semana`,
-  })),
-];
+const WEEKLY_VISITS = Array.from({ length: 6 }, (_, index) => ({
+  value: String(index + 1),
+  label: index === 0 ? "1 día por semana" : `${index + 1} días por semana`,
+}));
 
 export interface MembershipFieldsProps {
   draft: MembershipType;
@@ -83,17 +82,15 @@ export default function MembershipFields({
           Una lista y no un campo numérico: así no existe la entrada inválida.
           Un número libre admitía 0, 30 o letras, y cada uno habría necesitado
           su propio mensaje de error. */}
+      {/* Un plan viejo sin tope se muestra como 6 — acceso completo, que es lo
+          que de hecho tenía. La migración 012 ya los movió; esto cubre una
+          fila escrita fuera de la app. */}
       <Select
         id="weeklyVisits"
         label="Días por semana"
-        value={draft.weeklyVisits === null ? "" : String(draft.weeklyVisits)}
+        value={String(draft.weeklyVisits ?? 6)}
         options={WEEKLY_VISITS}
-        onChange={(event) =>
-          update(
-            "weeklyVisits",
-            event.target.value === "" ? null : Number(event.target.value),
-          )
-        }
+        onChange={(event) => update("weeklyVisits", Number(event.target.value))}
       />
 
       <Textarea
