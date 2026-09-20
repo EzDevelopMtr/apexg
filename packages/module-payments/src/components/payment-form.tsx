@@ -15,6 +15,8 @@ export interface PaymentFormProps {
   payments: readonly Payment[];
   recordedBy: string;
   onRecord: (draft: Omit<Payment, "id">, receipt?: Blob) => Promise<void>;
+  /** Client to start on, or empty to let the receptionist pick. */
+  initialClientId?: string;
   onDone: () => void;
 }
 
@@ -34,8 +36,9 @@ export default function PaymentForm({
   recordedBy,
   onRecord,
   onDone,
+  initialClientId = "",
 }: PaymentFormProps) {
-  const form = useRecordPayment(clients, payments, recordedBy);
+  const form = useRecordPayment(clients, payments, recordedBy, initialClientId);
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { PaymentSectionId } from "@apexg/core";
 import { paymentSections } from "@apexg/core";
 import { PaymentsPage } from "@apexg/module-payments";
@@ -15,6 +15,7 @@ export default function PaymentsModule({
   sectionId: PaymentSectionId;
 }) {
   const router = useRouter();
+  const params = useSearchParams();
   const { session } = useSession();
 
   // RequireModule already blocked anyone without a session.
@@ -34,6 +35,10 @@ export default function PaymentsModule({
           sectionId={sectionId}
           recordedBy={session.username}
           onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          // Quien llega desde el panel de ingreso trae al cliente en la URL,
+          // para no obligar a la recepcionista a buscarlo otra vez con la
+          // persona esperando en el mostrador.
+          initialClientId={params.get("client") ?? ""}
         />
       </div>
     </div>

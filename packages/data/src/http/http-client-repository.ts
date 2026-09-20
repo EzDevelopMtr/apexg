@@ -115,8 +115,8 @@ function toUpdateBody(client: Client): Record<string, unknown> {
   };
 }
 
-const UNSUPPORTED_EDIT_MESSAGE =
-  "No se puede cambiar el tipo de membresía, la fecha de inicio, el entrenador ni la fecha de nacimiento desde este formulario todavía.";
+const UNSUPPORTED_BIRTH_DATE_MESSAGE =
+  "La fecha de nacimiento solo se registra al crear el cliente.";
 
 const UNSUPPORTED_STATUS_MESSAGE =
   "El estado del cliente se deriva automáticamente; desde aquí solo se puede retirar un cliente.";
@@ -161,14 +161,14 @@ export class HttpClientRepository implements ClientRepository {
       throw new RecordNotFoundError("client", client.id);
     }
 
-    if (
+    if (client.birthDate !== current.birthDate) {
+      throw new Error(UNSUPPORTED_BIRTH_DATE_MESSAGE);
+    }
+
+    const membershipChanged =
       client.membershipTypeId !== current.membershipTypeId ||
       client.startDate !== current.startDate ||
-      client.trainerId !== current.trainerId ||
-      client.birthDate !== current.birthDate
-    ) {
-      throw new Error(UNSUPPORTED_EDIT_MESSAGE);
-    }
+      client.trainerId !== current.trainerId;
 
     if (client.status !== current.status) {
       if (client.status !== "inactive") {
@@ -187,6 +187,24 @@ export class HttpClientRepository implements ClientRepository {
       method: "PATCH",
       body: toUpdateBody(client),
     });
-    return fromResult(row);
+
+    // Segundo, y solo si hace falta: cambiar de plan NO edita la membresía
+    // vigente, abre una nueva y cierra la anterior. Los pagos cuelgan de la
+    // vieja, así que reescribirla cambiaría contra qué se pagó (RNF-07).
+    if (!membershipChanged) {
+      return fromResult(row);
+    }
+    const renewed = await apiFetch<ApiClientResult>(
+      `/clients/${client.id}/memberships`,
+      {
+        method: "POST",
+        body: {
+          membershipTypeId: client.membershipTypeId,
+          startDate: client.startDate,
+          trainerId: client.trainerId ?? undefined,
+        },
+      },
+    );
+    return fromResult(renewed);
   }
 }

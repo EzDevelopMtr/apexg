@@ -102,8 +102,15 @@ export function useRecordPayment(
   clients: readonly Client[],
   payments: readonly Payment[],
   recordedBy: string,
+  initialClientId = "",
 ) {
-  const [values, setValues] = useState<RecordPaymentValues>(EMPTY);
+  // Initial state, not an effect: the id arrives with the first render and
+  // setting it afterwards would blank a choice the receptionist had already
+  // made if the component happened to re-mount.
+  const [values, setValues] = useState<RecordPaymentValues>({
+    ...EMPTY,
+    clientId: initialClientId,
+  });
   const [error, setError] = useState<string | null>(null);
   const membershipTypes = useMembershipTypeCatalog();
 

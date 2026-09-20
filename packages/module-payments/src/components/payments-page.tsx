@@ -14,6 +14,13 @@ export interface PaymentsPageProps {
   /** Stamped onto each record so the log says who took the money (RNF-07). */
   recordedBy: string;
   onNavigate: (sectionId: string) => void;
+  /**
+   * Pre-selects a client on the form. Empty when nobody was named.
+   *
+   * Arrives from the check-in panel, where the receptionist already has the
+   * person in front of her and searching again would be asking twice.
+   */
+  initialClientId?: string;
 }
 
 /**
@@ -25,6 +32,7 @@ export default function PaymentsPage({
   sectionId,
   recordedBy,
   onNavigate,
+  initialClientId = "",
 }: PaymentsPageProps) {
   const section = paymentSections.getSection(sectionId);
   const payments = usePayments();
@@ -58,6 +66,7 @@ export default function PaymentsPage({
               clients={clients.items}
               payments={payments.items}
               recordedBy={recordedBy}
+              initialClientId={initialClientId}
               onRecord={async (draft, receipt) => {
                 await payments.record(draft, receipt);
               }}
