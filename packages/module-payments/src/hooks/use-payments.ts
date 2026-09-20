@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, Payment, PaymentId } from "@apexg/core";
-import { useCollection, useRepositories } from "@apexg/module-kit";
+import type { Client, ClientId, Payment, PaymentId } from "@apexg/core";
+import { upsertById, useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
 export interface UsePaymentsResult extends Collection<Payment> {
@@ -39,9 +39,22 @@ export function usePayments(): UsePaymentsResult {
   return { ...collection, record, receiptUrl };
 }
 
-/** The clients a payment can be attached to. */
-export function useClientDirectory(): Collection<Client> {
+/** The clients a payment can be attached to, plus the way to renew one. */
+export function useClientDirectory(): Collection<Client> & {
+  readonly renew: (clientId: ClientId) => Promise<void>;
+} {
   const { clients } = useRepositories();
   const load = useCallback(() => clients.list(), [clients]);
-  return useCollection<Client>(load);
+  const collection = useCollection<Client>(load);
+  const { apply } = collection;
+
+  const renew = useCallback(
+    async (clientId: ClientId) => {
+      const renewed = await clients.renew(clientId);
+      apply((current) => upsertById(current, renewed));
+    },
+    [clients, apply],
+  );
+
+  return { ...collection, renew };
 }

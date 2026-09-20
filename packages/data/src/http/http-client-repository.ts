@@ -155,6 +155,23 @@ export class HttpClientRepository implements ClientRepository {
    * this rejects a real attempt to change them rather than silently saving
    * only the personal-data half and reporting success.
    */
+  async renew(clientId: ClientId): Promise<Client> {
+    const current = await this.findById(clientId);
+    if (!current) {
+      throw new RecordNotFoundError("client", clientId);
+    }
+    // Sin fecha: el backend arranca hoy. Mandar la del periodo viejo abriría
+    // uno que ya nació vencido.
+    const row = await apiFetch<ApiClientResult>(
+      `/clients/${clientId}/memberships`,
+      {
+        method: "POST",
+        body: { membershipTypeId: current.membershipTypeId },
+      },
+    );
+    return fromResult(row);
+  }
+
   async update(client: Client): Promise<Client> {
     const current = await this.findById(client.id);
     if (!current) {

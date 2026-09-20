@@ -67,6 +67,7 @@ export default function PaymentsPage({
               payments={payments.items}
               recordedBy={recordedBy}
               initialClientId={initialClientId}
+              onRenew={clients.renew}
               onRecord={async (draft, receipt) => {
                 await payments.record(draft, receipt);
               }}

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Save } from "lucide-react";
-import type { Client, Payment } from "@apexg/core";
+import type { Client, ClientId, Payment } from "@apexg/core";
 import { Button, Select } from "@apexg/ui";
 import type { SelectOption } from "@apexg/ui";
 import { useRecordPayment } from "../hooks/use-record-payment";
@@ -15,6 +15,8 @@ export interface PaymentFormProps {
   payments: readonly Payment[];
   recordedBy: string;
   onRecord: (draft: Omit<Payment, "id">, receipt?: Blob) => Promise<void>;
+  /** Opens a new period on the same plan, for a client whose one expired. */
+  onRenew: (clientId: ClientId) => Promise<void>;
   /** Client to start on, or empty to let the receptionist pick. */
   initialClientId?: string;
   onDone: () => void;
@@ -35,6 +37,7 @@ export default function PaymentForm({
   payments,
   recordedBy,
   onRecord,
+  onRenew,
   onDone,
   initialClientId = "",
 }: PaymentFormProps) {
@@ -49,6 +52,14 @@ export default function PaymentForm({
 
     setSaving(true);
     try {
+      // Renovar primero: el pago se cuelga de la membresía vigente, así que
+      // registrarlo antes lo ataría al periodo viejo, que ya está saldado.
+      //
+      // Si el pago fallara después, el cliente queda con periodo nuevo y saldo
+      // pendiente — el mismo estado de quien paga por abonos, no algo roto.
+      if (form.cycle?.renews) {
+        await onRenew(draft.clientId);
+      }
       await onRecord(draft, form.values.receipt ?? undefined);
       form.reset();
       onDone();
@@ -90,7 +101,11 @@ export default function PaymentForm({
         </Button>
         <Button type="submit" disabled={saving || !form.cycle}>
           <Save size={18} />
-          {saving ? "Registrando..." : "Registrar pago"}
+          {saving
+            ? "Registrando..."
+            : form.cycle?.renews
+              ? "Renovar y registrar pago"
+              : "Registrar pago"}
         </Button>
       </div>
     </form>

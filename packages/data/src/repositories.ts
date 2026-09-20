@@ -37,6 +37,14 @@ export interface ClientRepository {
   /** Generates the id and derives the expiration date (RF-07). */
   create(draft: ClientDraft): Promise<Client>;
   update(client: Client): Promise<Client>;
+  /**
+   * Opens a new period on the SAME plan, closing the previous one.
+   *
+   * Renewing is not editing: payments hang off the membership they were made
+   * against, so reopening dates on the old one would rewrite what was paid
+   * for (RNF-07).
+   */
+  renew(clientId: ClientId): Promise<Client>;
 }
 
 export interface MembershipTypeRepository {

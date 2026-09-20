@@ -36,4 +36,9 @@ export class InMemoryClientRepository implements ClientRepository {
     }
     return this.#store.save(client);
   }
+
+  /** Sin backend no hay periodos: el seed sirve para leer, no para renovar. */
+  async renew(): Promise<Client> {
+    throw new Error("Renovar una membresía requiere el backend.");
+  }
 }

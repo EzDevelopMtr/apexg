@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from "react";
 import type {
   Client,
   ClientId,
+  IsoDate,
   MembershipType,
   Money,
   Payment,
@@ -17,6 +18,7 @@ import {
   fromPesos,
   outstandingBalance,
   paymentsInCycle,
+  resolveStatus,
   subtract,
   toCycleId,
   today,
@@ -39,6 +41,15 @@ export interface CycleSummary {
   readonly agreedPrice: Money;
   readonly balanceBefore: Money;
   readonly previousCount: number;
+  /**
+   * Su periodo ya venció, así que este cobro abre uno nuevo del MISMO plan.
+   *
+   * El saldo que se muestra es el del periodo por abrir, no el del viejo: ese
+   * está saldado y cobrar contra él sería cobrar dos veces el mismo mes.
+   */
+  readonly renews: boolean;
+  /** Fecha en la que arrancaría el periodo nuevo. */
+  readonly startsOn: IsoDate;
 }
 
 const EMPTY: RecordPaymentValues = {
@@ -63,6 +74,34 @@ function withField<K extends keyof RecordPaymentValues>(
 ): RecordPaymentValues {
   const next = { ...current, [field]: value };
   return requiresReceipt(next.method) ? next : { ...next, receipt: null };
+}
+
+/**
+ * The client's current cycle, or the one this payment would open.
+ *
+ * Expired means the old period is closed and settled, so the cycle that
+ * matters is the one starting today — no payments yet, the full price still
+ * to collect. Without this the form refused every amount for "exceeding the
+ * balance", which was true of last month and not of the one being bought.
+ */
+function cycleFor(
+  client: Client,
+  type: MembershipType,
+  payments: readonly Payment[],
+): CycleSummary {
+  const renews = resolveStatus(client, today()) === "overdue";
+  const startsOn = renews ? today() : client.startDate;
+  const cycleId = toCycleId(client.id, startsOn);
+
+  return {
+    client,
+    planName: type.name,
+    agreedPrice: type.price,
+    balanceBefore: outstandingBalance(payments, cycleId, type.price),
+    previousCount: paymentsInCycle(payments, cycleId).length,
+    renews,
+    startsOn,
+  };
 }
 
 /**
@@ -134,15 +173,7 @@ export function useRecordPayment(
     );
     if (!type) return null;
 
-    const cycleId = toCycleId(client.id, client.startDate);
-
-    return {
-      client,
-      planName: type.name,
-      agreedPrice: type.price,
-      balanceBefore: outstandingBalance(payments, cycleId, type.price),
-      previousCount: paymentsInCycle(payments, cycleId).length,
-    };
+    return cycleFor(client, type, payments);
   }, [clients, payments, values.clientId, membershipTypes.items]);
 
   const build = useCallback((): Omit<Payment, "id"> | null => {
@@ -170,7 +201,7 @@ export function useRecordPayment(
 
     return {
       clientId: cycle.client.id as ClientId,
-      cycleId: toCycleId(cycle.client.id, cycle.client.startDate),
+      cycleId: toCycleId(cycle.client.id, cycle.startsOn),
       membershipTypeId: type.id,
       agreedPrice: cycle.agreedPrice,
       amount,
