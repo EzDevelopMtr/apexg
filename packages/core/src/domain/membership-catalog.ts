@@ -25,7 +25,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     minimumInstallment: fromPesos(30_000),
     isPromotional: false,
     trainerSplit: null,
-    weeklyVisits: null,
+    weeklyVisits: 6,
     conditions: "Acceso de lunes a sábado, vigencia de 1 mes.",
   },
   {

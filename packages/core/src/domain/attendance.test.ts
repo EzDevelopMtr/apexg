@@ -33,16 +33,6 @@ function visit(id: string, leftAt = ""): Attendance {
   };
 }
 
-describe("weeklyAllowance", () => {
-  it("caps the three-days-a-week plan at three", () => {
-    expect(weeklyAllowance(plan("monthlyThreeDays"))).toBe(3);
-  });
-
-  it("leaves the monthly plan uncapped", () => {
-    expect(weeklyAllowance(plan("monthly"))).toBeNull();
-  });
-});
-
 describe("visitQuota", () => {
   const capped = plan("monthlyThreeDays");
 
@@ -68,8 +58,10 @@ describe("visitQuota", () => {
     expect(visitQuota(weeklyAllowance(capped), 5).exhausted).toBe(true);
   });
 
+  // The weekly plan, not the monthly one: the monthly is capped at 6 since
+  // the gym closes on Sundays, so it is no longer an example of "uncapped".
   it("never exhausts an uncapped plan", () => {
-    const quota = visitQuota(weeklyAllowance(plan("monthly")), 40);
+    const quota = visitQuota(weeklyAllowance(plan("week")), 40);
     expect(quota.allowed).toBeNull();
     expect(quota.exhausted).toBe(false);
   });
@@ -122,5 +114,23 @@ describe("checkInRefusal", () => {
 
   it("never refuses an uncapped plan on quota", () => {
     expect(checkInRefusal("active", visitQuota(null, 40))).toBeNull();
+  });
+});
+
+describe("weekly allowances of the seeded catalogue", () => {
+  // "Lunes a sábado" and "3 veces por semana" both carried their limit only in
+  // the plan's name, where nothing could compare it. These pin the numbers so
+  // a catalogue edit cannot quietly drop a cap back to unlimited.
+  it("caps the monthly plan at six, the days the gym opens", () => {
+    expect(weeklyAllowance(plan("monthly"))).toBe(6);
+  });
+
+  it("caps the three-days plan at three", () => {
+    expect(weeklyAllowance(plan("monthlyThreeDays"))).toBe(3);
+  });
+
+  it("leaves the short plans uncapped, since they expire by date", () => {
+    expect(weeklyAllowance(plan("week"))).toBeNull();
+    expect(weeklyAllowance(plan("day"))).toBeNull();
   });
 });
