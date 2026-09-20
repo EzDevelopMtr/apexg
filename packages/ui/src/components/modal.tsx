@@ -42,13 +42,13 @@ export default function Modal({
         aria-label="Cerrar"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 bg-shell/50"
+        className="absolute inset-0 bg-shell/80 backdrop-blur-sm"
       />
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-panel shadow-xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-panel"
       >
         <div className="flex items-start justify-between border-b border-line px-6 py-4">
           <div>

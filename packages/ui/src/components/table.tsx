@@ -10,7 +10,10 @@ export default function Table({ headers, children }: TableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
-        <thead className="bg-surface">
+        {/* A rule and small caps carry the header, no fill. It used to take
+            `bg-surface` — the same value the row hover below uses — so running
+            the pointer down the table made every row look like a header. */}
+        <thead className="border-b border-line">
           <tr>
             {headers.map((header) => (
               <th

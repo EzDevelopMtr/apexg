@@ -12,17 +12,17 @@ import type { AccentName } from "@apexg/core";
 /**
  * The filled tile an accent paints.
  *
- * Lime and amber are too bright to carry white, so they take the dark ink
- * instead — `ink-on-light`, not `brand-contrast`, which is white now that the
- * brand is a blue deep enough to hold it.
+ * Which ink a tile takes follows the fill's brightness: lime and amber are too
+ * bright to carry white and take `ink-on-light`, the rest take `ink-on-vivid`.
+ * Neither is `brand-contrast`: that one belongs to the brand fill alone.
  */
 export const ACCENT_TILE: Record<AccentName, string> = {
-  green: "bg-accent-green text-white",
-  violet: "bg-accent-violet text-white",
-  fuchsia: "bg-accent-fuchsia text-white",
-  orange: "bg-accent-orange text-white",
-  teal: "bg-accent-teal text-white",
-  rose: "bg-accent-rose text-white",
+  green: "bg-accent-green text-ink-on-vivid",
+  violet: "bg-accent-violet text-ink-on-vivid",
+  fuchsia: "bg-accent-fuchsia text-ink-on-vivid",
+  orange: "bg-accent-orange text-ink-on-vivid",
+  teal: "bg-accent-teal text-ink-on-vivid",
+  rose: "bg-accent-rose text-ink-on-vivid",
   lime: "bg-accent-lime text-ink-on-light",
   amber: "bg-accent-amber text-ink-on-light",
 };

@@ -12,7 +12,7 @@ import {
 } from "@apexg/ui";
 
 export interface ModuleSidebarProps {
-  /** Module id, e.g. `clients`. Its name, icon, accent and sections come from it. */
+  /** Module id, e.g. `clients`. Its name and sections are looked up from it. */
   moduleId: string;
   /** Where the module's sections live, e.g. `/modules/clients`. */
   basePath: string;
@@ -21,10 +21,9 @@ export interface ModuleSidebarProps {
 /**
  * Navigation for any module.
  *
- * Only the id and the base path are passed in. Name, icon and accent are read
- * from the catalogue rather than repeated at each of the eight call sites —
- * that is what keeps the rail showing the same colour and icon the module's
- * card wears on the selector, instead of two copies that can drift apart.
+ * Only the id and the base path are passed in — the name comes from the
+ * catalogue rather than being repeated at each of the eight call sites, where
+ * two copies could drift apart.
  *
  * Sections are resolved here rather than passed in: they carry predicates, and
  * a server layout handing one to this client component would fail at runtime.
@@ -42,8 +41,6 @@ export default function ModuleSidebar({
   return (
     <SidebarShell
       title={module.name}
-      iconName={module.icon}
-      accent={module.accent}
       footer={
         <Link
           href="/modules"

@@ -45,11 +45,12 @@
   --color-brand-contrast: #ffffff;
 
   /*
-    What sits on top of a LIGHT fill — the bright accent tiles and the danger
-    button. Kept apart from `brand-contrast`: the brand is dark enough to carry
-    white, these are not.
+    The two inks that sit on a coloured fill. Which one a fill takes is decided
+    by how much light the fill throws back, not by what it means: lime and
+    amber are too bright to carry white, the saturated accents are not.
   */
   --color-ink-on-light: #0f1215;
+  --color-ink-on-vivid: #ffffff;
 
   /* Text */
   --color-body: #f2f5f7;
