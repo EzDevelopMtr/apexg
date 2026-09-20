@@ -27,7 +27,6 @@ interface ApiClientResult {
   bloodType: string | null;
   birthDate: string | null;
   medicalCondition: string | null;
-  comments: string | null;
   state: ApiClientState;
   currentMembership: ApiMembershipSummary | null;
 }
@@ -63,7 +62,6 @@ function fromResult(row: ApiClientResult): Client {
     bloodType: row.bloodType ?? "",
     birthDate: row.birthDate === null ? undefined : (row.birthDate as IsoDate),
     medicalCondition: row.medicalCondition ?? "",
-    comments: row.comments ?? "",
   };
 }
 
@@ -85,7 +83,6 @@ function toCreateBody(draft: ClientDraft): Record<string, unknown> {
     bloodType: orUndefined(draft.bloodType),
     birthDate: draft.birthDate,
     medicalCondition: orUndefined(draft.medicalCondition),
-    comments: orUndefined(draft.comments),
     membershipTypeId: draft.membershipTypeId,
     startDate: draft.startDate,
     trainerId: draft.trainerId,
@@ -106,7 +103,6 @@ function toUpdateBody(client: Client): Record<string, unknown> {
     emergencyContactPhone: orUndefined(client.emergencyContactPhone),
     bloodType: orUndefined(client.bloodType),
     medicalCondition: orUndefined(client.medicalCondition),
-    comments: orUndefined(client.comments),
   };
 }
 

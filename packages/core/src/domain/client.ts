@@ -70,7 +70,6 @@ export interface Client {
    */
   readonly birthDate?: IsoDate;
   readonly medicalCondition: string;
-  readonly comments: string;
 }
 
 /**

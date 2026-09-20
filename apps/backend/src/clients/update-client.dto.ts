@@ -42,8 +42,4 @@ export class UpdateClientDto {
   @IsOptional()
   @IsString()
   medicalCondition?: string;
-
-  @IsOptional()
-  @IsString()
-  comments?: string;
 }

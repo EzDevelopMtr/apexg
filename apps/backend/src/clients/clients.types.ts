@@ -41,7 +41,6 @@ export interface ClientResult {
   bloodType: string | null;
   birthDate: string | null;
   medicalCondition: string | null;
-  comments: string | null;
   state: ClientState;
   registeredAt: string;
   retiredAt: string | null;

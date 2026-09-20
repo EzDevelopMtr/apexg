@@ -41,7 +41,6 @@ function client(id: string, overrides: Partial<Client> = {}): Client {
     emergencyContactPhone: "",
     bloodType: "",
     medicalCondition: "",
-    comments: "",
     ...overrides,
   };
 }

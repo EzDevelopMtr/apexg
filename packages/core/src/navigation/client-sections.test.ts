@@ -33,7 +33,6 @@ function makeClient(id: string, overrides: Partial<Client> = {}): Client {
     emergencyContactPhone: "",
     bloodType: "",
     medicalCondition: "",
-    comments: "",
     ...overrides,
   };
 }

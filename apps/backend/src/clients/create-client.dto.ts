@@ -60,10 +60,6 @@ export class CreateClientDto {
   @IsString()
   medicalCondition?: string;
 
-  @IsOptional()
-  @IsString()
-  comments?: string;
-
   @IsUUID()
   membershipTypeId!: string;
 

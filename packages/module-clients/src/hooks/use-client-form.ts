@@ -38,7 +38,6 @@ export interface ClientFormValues {
   /** Empty until set. Only settable at registration — see `Client.birthDate`. */
   birthDate: string;
   medicalCondition: string;
-  comments: string;
 }
 
 export type ClientFormErrors = Partial<Record<keyof ClientFormValues, string>>;
@@ -63,7 +62,6 @@ function initialValues(client?: Client): ClientFormValues {
     bloodType: client?.bloodType ?? "",
     birthDate: client?.birthDate ?? "",
     medicalCondition: client?.medicalCondition ?? "",
-    comments: client?.comments ?? "",
   };
 }
 
@@ -180,7 +178,6 @@ export function useClientForm(client?: Client): UseClientFormResult {
       bloodType: values.bloodType,
       birthDate: values.birthDate ? (values.birthDate as IsoDate) : undefined,
       medicalCondition: values.medicalCondition.trim(),
-      comments: values.comments.trim(),
     };
   }, [values, membershipTypes.items]);
 

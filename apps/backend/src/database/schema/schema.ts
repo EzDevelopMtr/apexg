@@ -128,7 +128,6 @@ export const clients = pgTable("clients", {
 	bloodType: varchar("blood_type", { length: 5 }),
 	birthDate: date("birth_date"),
 	medicalCondition: text("medical_condition"),
-	comments: text(),
 	state: integer().default(1).notNull(),
 	registeredAt: date("registered_at").notNull(),
 	retiredAt: timestamp("retired_at", { withTimezone: true, mode: 'string' }),

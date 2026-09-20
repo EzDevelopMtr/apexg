@@ -73,7 +73,6 @@ export class ClientsService {
           bloodType: input.bloodType ?? null,
           birthDate: input.birthDate ?? null,
           medicalCondition: input.medicalCondition ?? null,
-          comments: input.comments ?? null,
           registeredAt: startDate,
           createdBy: userId,
         })
@@ -155,7 +154,6 @@ export class ClientsService {
     if (input.medicalCondition !== undefined) {
       patch.medicalCondition = input.medicalCondition;
     }
-    if (input.comments !== undefined) patch.comments = input.comments;
 
     if (Object.keys(patch).length > 0) {
       await this.db
@@ -212,7 +210,6 @@ export class ClientsService {
       bloodType: row.bloodType,
       birthDate: row.birthDate,
       medicalCondition: row.medicalCondition,
-      comments: row.comments,
       state: row.state as ClientState,
       registeredAt: row.registeredAt,
       retiredAt: row.retiredAt,
