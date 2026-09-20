@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional } from 'class-validator';
+import { Type } from "class-transformer";
+import { IsBoolean, IsIn, IsInt, IsOptional } from "class-validator";
 
 /** Query string de `GET /membership-types`. */
 export class ListMembershipTypesQueryDto {

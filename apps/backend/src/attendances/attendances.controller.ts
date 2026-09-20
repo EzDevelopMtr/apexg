@@ -44,13 +44,21 @@ export class AttendancesController {
 
   @Get("search")
   @RequirePermissions("asistencia.read")
+  /**
+   * Sin `q` devuelve los primeros clientes, no una lista vacía: el panel abre
+   * la lista para que la recepcionista elija sin recordar el nombre.
+   *
+   * Una sola letra sí se descarta: coincidiría con casi todo el gimnasio y el
+   * resultado no ayudaría a nadie.
+   */
   search(
     @CurrentUser() user: AuthenticatedUser,
     @Query("q") query = "",
   ): Promise<AttendanceCandidate[]> {
-    return query.trim().length < 2
+    const text = query.trim();
+    return text.length === 1
       ? Promise.resolve([])
-      : this.attendances.search(user.companyId, query.trim());
+      : this.attendances.search(user.companyId, text);
   }
 
   @Post()

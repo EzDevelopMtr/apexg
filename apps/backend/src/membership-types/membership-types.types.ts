@@ -5,7 +5,7 @@
  * CLAUDE.md, sección NUMERIC.
  */
 
-export type DurationUnit = 'day' | 'week' | 'month';
+export type DurationUnit = "day" | "week" | "month";
 
 /** Estado de un plan (schema.dbml): 1 = activo · 2 = inactivo. Sin tercer
  * estado derivado — a diferencia de `clients.state`, esto lo controla

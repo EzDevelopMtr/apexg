@@ -62,6 +62,31 @@ export default function MembershipFields({
         />
       </div>
 
+      {/* Vigencia y cupo responden preguntas distintas: la vigencia es cuánto
+          dura el plan, esto es cuántos de esos días puede venir. Vacío no es
+          cero, es "sin tope" — por eso el texto de ayuda lo dice, en vez de
+          dejar que un campo numérico vacío se lea como ninguno. */}
+      <Input
+        id="weeklyVisits"
+        label="Días por semana"
+        type="number"
+        min={1}
+        max={7}
+        value={draft.weeklyVisits ?? ""}
+        onChange={(event) =>
+          update(
+            "weeklyVisits",
+            event.target.value === "" ? null : Number(event.target.value),
+          )
+        }
+        placeholder="Sin límite"
+        aria-describedby="weeklyVisits-hint"
+      />
+      <p id="weeklyVisits-hint" className="-mt-3 text-sm text-body-soft">
+        Déjalo vacío si el plan no limita los días. Ej. 3 para un plan de tres
+        veces por semana, 6 para uno de lunes a sábado.
+      </p>
+
       <Textarea
         id="conditions"
         label="Condiciones"

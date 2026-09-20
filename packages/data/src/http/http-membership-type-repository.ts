@@ -89,6 +89,7 @@ function toRequestBody(type: MembershipType): Record<string, unknown> {
         : toApiString(type.trainerSplit.business),
     allowsPartialPayment: type.minimumInstallment !== null,
     isPromotional: type.isPromotional,
+    weeklyVisits: type.weeklyVisits,
   };
 }
 

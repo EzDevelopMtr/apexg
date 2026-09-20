@@ -5,11 +5,12 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
   Min,
-} from 'class-validator';
+} from "class-validator";
 
-import type { DurationUnit } from './membership-types.types.js';
+import type { DurationUnit } from "./membership-types.types.js";
 
 const MONEY_MESSAGE = 'debe ser un monto válido (ej. "65000.00")';
 
@@ -38,8 +39,20 @@ export class CreateMembershipTypeDto {
   @Min(1)
   durationValue!: number;
 
-  @IsIn(['day', 'week', 'month'])
+  @IsIn(["day", "week", "month"])
   durationUnit!: DurationUnit;
+
+  /**
+   * Días que el plan permite por semana. Ausente o null = sin tope.
+   *
+   * Un máximo de 7 porque una semana no tiene más: sin ese límite alguien
+   * escribiría 30 pensando en el mes y el plan quedaría, de hecho, ilimitado.
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(7)
+  weeklyVisits?: number | null;
 
   @IsOptional()
   @IsString()

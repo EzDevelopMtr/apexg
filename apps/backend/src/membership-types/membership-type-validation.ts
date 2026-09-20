@@ -1,6 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException } from "@nestjs/common";
 
-import { toCents } from '../shared/money-amount.util.js';
+import { toCents } from "../shared/money-amount.util.js";
 
 /** Vista fusionada (existente + patch) que se valida como un todo (RF-12). */
 export interface MembershipTypePlan {
@@ -23,24 +23,27 @@ export interface MembershipTypePlan {
 export function validateMembershipTypePlan(plan: MembershipTypePlan): void {
   const priceCents = toCents(plan.price);
   if (priceCents <= 0) {
-    throw new BadRequestException('El valor del plan debe ser mayor que cero.');
+    throw new BadRequestException("El valor del plan debe ser mayor que cero.");
   }
 
   if (plan.minimumPayment !== null) {
     const minimumCents = toCents(plan.minimumPayment);
     if (minimumCents <= 0) {
-      throw new BadRequestException('El abono mínimo debe ser mayor que cero.');
+      throw new BadRequestException("El abono mínimo debe ser mayor que cero.");
     }
     if (minimumCents > priceCents) {
       throw new BadRequestException(
-        'El abono mínimo no puede superar el valor del plan.',
+        "El abono mínimo no puede superar el valor del plan.",
       );
     }
   }
 
-  if (plan.isPromotional && (plan.allowsPartialPayment || plan.minimumPayment !== null)) {
+  if (
+    plan.isPromotional &&
+    (plan.allowsPartialPayment || plan.minimumPayment !== null)
+  ) {
     throw new BadRequestException(
-      'Las promociones se pagan de forma completa: no admiten abono.',
+      "Las promociones se pagan de forma completa: no admiten abono.",
     );
   }
 
@@ -48,16 +51,18 @@ export function validateMembershipTypePlan(plan: MembershipTypePlan): void {
   const hasBusinessShare = plan.businessShare !== null;
   if (hasTrainerShare !== hasBusinessShare) {
     throw new BadRequestException(
-      'trainerShare y businessShare deben definirse juntos, o ninguno de los dos.',
+      "trainerShare y businessShare deben definirse juntos, o ninguno de los dos.",
     );
   }
 
   if (hasTrainerShare && hasBusinessShare) {
     // El `if` de arriba garantiza que ambos son no-nulos aquí.
-    const sum = toCents(plan.trainerShare as string) + toCents(plan.businessShare as string);
+    const sum =
+      toCents(plan.trainerShare as string) +
+      toCents(plan.businessShare as string);
     if (sum !== priceCents) {
       throw new BadRequestException(
-        'trainerShare + businessShare debe ser igual al valor del plan.',
+        "trainerShare + businessShare debe ser igual al valor del plan.",
       );
     }
   }
