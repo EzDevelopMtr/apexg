@@ -30,6 +30,8 @@ export function useExpenses(): UseExpensesResult {
 export interface UseExpenseCategoriesResult extends Collection<ExpenseCategory> {
   /** RF-27: the admin may add a category or retire one. */
   readonly save: (category: ExpenseCategory) => Promise<void>;
+  /** Creates one from just its name; the id comes back from the backend. */
+  readonly create: (name: string) => Promise<void>;
 }
 
 export function useExpenseCategories(): UseExpenseCategoriesResult {
@@ -47,5 +49,11 @@ export function useExpenseCategories(): UseExpenseCategoriesResult {
     [expenses, apply],
   );
 
-  return { ...collection, save };
+  /** An empty id is how the data layer is told this one is new (see saveCategory). */
+  const create = useCallback(
+    (name: string) => save({ id: "", name, active: true }),
+    [save],
+  );
+
+  return { ...collection, save, create };
 }

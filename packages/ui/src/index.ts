@@ -38,6 +38,12 @@ export type { CardProps } from "./components/card";
 export { default as Logo } from "./components/logo";
 export type { LogoProps, LogoSize } from "./components/logo";
 
+export { default as CategoryPanel } from "./components/category-panel";
+export type {
+  CategoryPanelProps,
+  CategoryLike,
+} from "./components/category-panel";
+
 export { default as PageHeader } from "./components/page-header";
 export type { PageHeaderProps } from "./components/page-header";
 

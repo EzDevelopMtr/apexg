@@ -4,14 +4,34 @@ import { useState } from "react";
 import type { InventoryItem, InventorySectionId } from "@apexg/core";
 import { inventorySections, itemsBelowMinimum, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { Card, CardBody, Modal } from "@apexg/ui";
+import { CategoryPanel, Card, CardBody, Modal } from "@apexg/ui";
+import type { UseInventoryCategoriesResult } from "../hooks/use-inventory";
 import { useInventory, useInventoryCategories } from "../hooks/use-inventory";
 import { useVisibleInventory } from "../hooks/use-visible-inventory";
-import CategoryPanel from "./category-panel";
+
 import InventoryForm from "./inventory-form";
 import InventoryList from "./inventory-list";
 import InventorySearch from "./inventory-search";
 import LowStockNotice from "./low-stock-notice";
+
+/** Extracted only to keep `InventoryPage` under the function-length cap. */
+function InventoryCategoryPanel({
+  categories,
+}: {
+  categories: UseInventoryCategoriesResult;
+}) {
+  return (
+    <CategoryPanel
+      title="Categorías de inventario"
+      placeholder="Ej. Suplementos"
+      categories={categories.items}
+      onCreate={categories.create}
+      onToggle={(category) =>
+        categories.save({ ...category, active: !category.active })
+      }
+    />
+  );
+}
 
 export interface InventoryPageProps {
   sectionId: InventorySectionId;
@@ -45,7 +65,7 @@ export default function InventoryPage({
         errorMessage="No pudimos cargar las categorías."
       >
         {section.view.kind === "panel" ? (
-          <CategoryPanel categories={categories.items} onSave={categories.save} />
+          <InventoryCategoryPanel categories={categories} />
         ) : (
           <Card>
             <CardBody>

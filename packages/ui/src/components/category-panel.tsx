@@ -1,39 +1,61 @@
 "use client";
 
 import { useState } from "react";
-import type { InventoryCategory } from "@apexg/core";
-import { Badge, Button, Card, CardBody, CardHeader, Input } from "@apexg/ui";
+import Badge from "./badge";
+import Button from "./button";
+import Card, { CardBody, CardHeader } from "./card";
+import Input from "./input";
 
-export interface CategoryPanelProps {
-  categories: readonly InventoryCategory[];
-  onSave: (category: InventoryCategory) => Promise<void>;
+/** The shape both category kinds share. Nothing else about them is used here. */
+export interface CategoryLike {
+  readonly id: string;
+  readonly name: string;
+  readonly active: boolean;
 }
 
-/** Lets the admin extend or retire the category list. */
-export default function CategoryPanel({
+export interface CategoryPanelProps<T extends CategoryLike> {
+  /** Card heading, in Spanish. */
+  title: string;
+  /** Example name under the new-category box, in Spanish. */
+  placeholder: string;
+  categories: readonly T[];
+  /** Given only the name: the id is not this component's to invent. */
+  onCreate: (name: string) => Promise<void>;
+  onToggle: (category: T) => Promise<void>;
+}
+
+/**
+ * Lets the admin extend or retire a category list.
+ *
+ * One component for expenses and inventory, whose categories are the same
+ * three fields; it used to be two near-identical copies differing in a title
+ * and a placeholder.
+ *
+ * It hands `onCreate` a name and nothing else. The previous copies built an id
+ * from the name here, which both put an id outside the data layer and hid a
+ * contract: the repository read that fabricated id to tell a new category from
+ * an existing one.
+ */
+export default function CategoryPanel<T extends CategoryLike>({
+  title,
+  placeholder,
   categories,
-  onSave,
-}: CategoryPanelProps) {
+  onCreate,
+  onToggle,
+}: CategoryPanelProps<T>) {
   const [name, setName] = useState("");
 
   const add = async () => {
     const trimmed = name.trim();
     if (!trimmed) return;
-
-    // The id is derived from the name so a new category stays readable
-    // before the backend assigns its real one (see `saveCategory`).
-    await onSave({
-      id: trimmed.toLowerCase().replace(/\s+/g, "-"),
-      name: trimmed,
-      active: true,
-    });
+    await onCreate(trimmed);
     setName("");
   };
 
   return (
     <Card>
       <CardHeader
-        title="Categorías de inventario"
+        title={title}
         description="El administrador puede ampliar o retirar categorías."
       />
       <CardBody className="space-y-4">
@@ -51,9 +73,7 @@ export default function CategoryPanel({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() =>
-                    onSave({ ...category, active: !category.active })
-                  }
+                  onClick={() => onToggle(category)}
                 >
                   {category.active ? "Retirar" : "Reactivar"}
                 </Button>
@@ -69,7 +89,7 @@ export default function CategoryPanel({
               label="Nueva categoría"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Ej. Suplementos"
+              placeholder={placeholder}
             />
           </div>
           <Button onClick={add} disabled={!name.trim()}>

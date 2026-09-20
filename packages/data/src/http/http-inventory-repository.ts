@@ -27,8 +27,13 @@ interface ApiInventoryCategoryResult {
   state: ApiItemState;
 }
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const KNOWN_UNITS = new Set<string>(["unit", "box", "kilogram", "litre", "pack"]);
+const KNOWN_UNITS = new Set<string>([
+  "unit",
+  "box",
+  "kilogram",
+  "litre",
+  "pack",
+]);
 
 /** `unit_of_measure` is free text on the backend (no CHECK) — anything outside our 5 options falls back safely. */
 function toUnit(raw: string): UnitOfMeasure {
@@ -52,7 +57,9 @@ function fromResult(row: ApiInventoryItemResult): InventoryItem {
   };
 }
 
-function fromCategoryResult(row: ApiInventoryCategoryResult): InventoryCategory {
+function fromCategoryResult(
+  row: ApiInventoryCategoryResult,
+): InventoryCategory {
   return {
     id: row.id,
     name: row.name,
@@ -68,7 +75,9 @@ export class HttpInventoryRepository implements InventoryRepository {
 
   async findById(id: InventoryItemId): Promise<InventoryItem | undefined> {
     try {
-      const row = await apiFetch<ApiInventoryItemResult>(`/inventory-items/${id}`);
+      const row = await apiFetch<ApiInventoryItemResult>(
+        `/inventory-items/${id}`,
+      );
       return fromResult(row);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
@@ -116,37 +125,50 @@ export class HttpInventoryRepository implements InventoryRepository {
       });
     }
 
-    const row = await apiFetch<ApiInventoryItemResult>(`/inventory-items/${item.id}`, {
-      method: "PATCH",
-      body: {
-        name: item.name,
-        unitOfMeasure: item.unit,
-        minimumStock: toQuantityString(item.minimumStock),
-        state: item.active ? 1 : 2,
-        // Explicit `null` (not omitted) so clearing the category in the
-        // form actually clears it — an absent field means "leave as is".
-        categoryId: item.categoryId ?? null,
+    const row = await apiFetch<ApiInventoryItemResult>(
+      `/inventory-items/${item.id}`,
+      {
+        method: "PATCH",
+        body: {
+          name: item.name,
+          unitOfMeasure: item.unit,
+          minimumStock: toQuantityString(item.minimumStock),
+          state: item.active ? 1 : 2,
+          // Explicit `null` (not omitted) so clearing the category in the
+          // form actually clears it — an absent field means "leave as is".
+          categoryId: item.categoryId ?? null,
+        },
       },
-    });
+    );
     return fromResult(row);
   }
 
   async listCategories(): Promise<readonly InventoryCategory[]> {
-    const rows = await apiFetch<ApiInventoryCategoryResult[]>("/inventory-categories");
+    const rows = await apiFetch<ApiInventoryCategoryResult[]>(
+      "/inventory-categories",
+    );
     return rows.map(fromCategoryResult);
   }
 
-  /** Same id trick as `HttpExpenseRepository`: a slug means "new", a UUID means "existing". */
+  /**
+   * An empty id means the category is new. The caller no longer invents one
+   * from the name to signal that — deciding it, and minting the real id, is
+   * this layer's job.
+   */
   async saveCategory(category: InventoryCategory): Promise<InventoryCategory> {
-    const row = UUID_PATTERN.test(category.id)
-      ? await apiFetch<ApiInventoryCategoryResult>(`/inventory-categories/${category.id}`, {
-          method: "PATCH",
-          body: { name: category.name, state: category.active ? 1 : 2 },
-        })
-      : await apiFetch<ApiInventoryCategoryResult>("/inventory-categories", {
-          method: "POST",
-          body: { name: category.name },
-        });
+    const row =
+      category.id !== ""
+        ? await apiFetch<ApiInventoryCategoryResult>(
+            `/inventory-categories/${category.id}`,
+            {
+              method: "PATCH",
+              body: { name: category.name, state: category.active ? 1 : 2 },
+            },
+          )
+        : await apiFetch<ApiInventoryCategoryResult>("/inventory-categories", {
+            method: "POST",
+            body: { name: category.name },
+          });
     return fromCategoryResult(row);
   }
 }

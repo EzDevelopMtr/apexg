@@ -19,8 +19,6 @@ interface ApiExpenseResult {
   expenseDate: string;
 }
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 function fromCategoryResult(row: ApiExpenseCategoryResult): ExpenseCategory {
   return {
     id: row.id,
@@ -64,27 +62,31 @@ export class HttpExpenseRepository implements ExpenseRepository {
   }
 
   async listCategories(): Promise<readonly ExpenseCategory[]> {
-    const rows = await apiFetch<ApiExpenseCategoryResult[]>("/expense-categories");
+    const rows = await apiFetch<ApiExpenseCategoryResult[]>(
+      "/expense-categories",
+    );
     return rows.map(fromCategoryResult);
   }
 
   /**
-   * `CategoryPanel` gives a NEW category a client-generated slug id (e.g.
-   * "publicidad"), not the backend's real UUID — there is no empty-id
-   * sentinel here like Membership Types has. A slug is never a valid UUID,
-   * so that alone tells create and update apart without an extra read; the
-   * backend-assigned UUID this returns is what later edits pass back in.
+   * An empty id means the category is new. The caller no longer invents one
+   * from the name to signal that — deciding it, and minting the real id, is
+   * this layer's job.
    */
   async saveCategory(category: ExpenseCategory): Promise<ExpenseCategory> {
-    const row = UUID_PATTERN.test(category.id)
-      ? await apiFetch<ApiExpenseCategoryResult>(`/expense-categories/${category.id}`, {
-          method: "PATCH",
-          body: { name: category.name, state: category.active ? 1 : 2 },
-        })
-      : await apiFetch<ApiExpenseCategoryResult>("/expense-categories", {
-          method: "POST",
-          body: { name: category.name },
-        });
+    const row =
+      category.id !== ""
+        ? await apiFetch<ApiExpenseCategoryResult>(
+            `/expense-categories/${category.id}`,
+            {
+              method: "PATCH",
+              body: { name: category.name, state: category.active ? 1 : 2 },
+            },
+          )
+        : await apiFetch<ApiExpenseCategoryResult>("/expense-categories", {
+            method: "POST",
+            body: { name: category.name },
+          });
     return fromCategoryResult(row);
   }
 }

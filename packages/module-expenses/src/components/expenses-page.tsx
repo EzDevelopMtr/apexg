@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import type { ExpenseSectionId } from "@apexg/core";
 import { expenseSections, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { Card, CardBody } from "@apexg/ui";
+import { CategoryPanel, Card, CardBody } from "@apexg/ui";
 import { useExpenseCategories, useExpenses } from "../hooks/use-expenses";
-import CategoryPanel from "./category-panel";
+
 import ExpenseForm from "./expense-form";
 import ExpenseList from "./expense-list";
 
@@ -62,7 +62,15 @@ export default function ExpensesPage({
         loadingMessage="Cargando categorías..."
         errorMessage="No pudimos cargar las categorías."
       >
-        <CategoryPanel categories={categories.items} onSave={categories.save} />
+        <CategoryPanel
+          title="Categorías de egreso"
+          placeholder="Ej. Publicidad"
+          categories={categories.items}
+          onCreate={categories.create}
+          onToggle={(category) =>
+            categories.save({ ...category, active: !category.active })
+          }
+        />
       </CollectionGate>
     );
   }

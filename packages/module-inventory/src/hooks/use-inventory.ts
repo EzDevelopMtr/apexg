@@ -32,10 +32,11 @@ export function useInventory(): UseInventoryResult {
   return { ...collection, save };
 }
 
-export interface UseInventoryCategoriesResult
-  extends Collection<InventoryCategory> {
+export interface UseInventoryCategoriesResult extends Collection<InventoryCategory> {
   /** The admin may add a category or retire one, same as Egresos (RF-27). */
   readonly save: (category: InventoryCategory) => Promise<void>;
+  /** Creates one from just its name; the id comes back from the backend. */
+  readonly create: (name: string) => Promise<void>;
 }
 
 export function useInventoryCategories(): UseInventoryCategoriesResult {
@@ -53,5 +54,11 @@ export function useInventoryCategories(): UseInventoryCategoriesResult {
     [inventory, apply],
   );
 
-  return { ...collection, save };
+  /** An empty id is how the data layer is told the category is new. */
+  const create = useCallback(
+    (name: string) => save({ id: "", name, active: true }),
+    [save],
+  );
+
+  return { ...collection, save, create };
 }
