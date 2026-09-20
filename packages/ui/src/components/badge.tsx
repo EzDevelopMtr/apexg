@@ -23,7 +23,7 @@ export interface BadgeProps {
 export default function Badge({ tone = "neutral", children }: BadgeProps) {
   return (
     <span
-      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${TONES[tone]}`}
+      className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${TONES[tone]}`}
     >
       {children}
     </span>
