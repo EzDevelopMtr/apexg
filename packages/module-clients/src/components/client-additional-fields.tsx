@@ -13,8 +13,12 @@ const BLOOD_TYPE_OPTIONS: readonly SelectOption[] = [
 
 /**
  * The fields the database already had room for but the form never asked:
- * emergency contact, blood type, birth date, medical condition, comments.
- * All optional on the backend — none of these block saving the client.
+ * emergency contact, blood type, birth date and medical condition. All
+ * optional on the backend — none of these block saving the client.
+ *
+ * No "Comentarios" box. The column and the form value both stay, so editing
+ * a client keeps whatever was already stored there rather than blanking it;
+ * it is only no longer asked for.
  */
 export default function ClientAdditionalFields({
   values,
@@ -71,14 +75,6 @@ export default function ClientAdditionalFields({
         value={values.medicalCondition}
         onChange={(event) => setValue("medicalCondition", event.target.value)}
         placeholder="Ej. Asma, alergias, lesiones a tener en cuenta"
-      />
-
-      <Textarea
-        id="comments"
-        label="Comentarios"
-        value={values.comments}
-        onChange={(event) => setValue("comments", event.target.value)}
-        placeholder="Notas generales sobre el cliente"
       />
     </>
   );
