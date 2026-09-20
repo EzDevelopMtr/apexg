@@ -3,6 +3,7 @@ import type {
   Client,
   ClientDraft,
   ClientId,
+  ClientStatus,
   Commission,
   DailyLogNote,
   Expense,
@@ -81,6 +82,11 @@ export interface AttendanceCandidate {
   readonly clientId: ClientId;
   readonly clientName: string;
   readonly idNumber: string;
+  /**
+   * Standing of the membership, or null when there is none at all. The panel
+   * refuses an entry on this before it even looks at the weekly allowance.
+   */
+  readonly status: ClientStatus | null;
   /** Plan name, or "Sin membresía" when the client has none. */
   readonly membershipName: string;
   /** `YYYY-MM-DD`, or null when there is no membership. */

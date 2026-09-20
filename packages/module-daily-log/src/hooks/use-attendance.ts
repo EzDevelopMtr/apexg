@@ -16,7 +16,11 @@ export interface UseAttendanceResult {
   readonly checkOut: (clientId: ClientId) => Promise<void>;
 }
 
-/** Below this, a search would return most of the gym. */
+/**
+ * Below this the search is treated as "no text": the backend then returns the
+ * first clients alphabetically instead of nothing, so the receptionist can
+ * open the list and pick someone whose name she does not remember.
+ */
 const MIN_QUERY = 2;
 
 export function useAttendance(): UseAttendanceResult {
@@ -32,7 +36,8 @@ export function useAttendance(): UseAttendanceResult {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (query.trim().length < MIN_QUERY) return;
+    const text = query.trim();
+    if (text.length > 0 && text.length < MIN_QUERY) return;
 
     // Debounced and cancellable: the receptionist types faster than the round
     // trip, and without the flag a slow early reply could land after a later
@@ -41,7 +46,7 @@ export function useAttendance(): UseAttendanceResult {
     const timer = setTimeout(() => {
       setSearching(true);
       attendances
-        .search(query.trim())
+        .search(text)
         .then((rows) => current && setMatches(rows))
         .catch(() => current && setError("No pudimos buscar clientes."))
         .finally(() => current && setSearching(false));
@@ -55,8 +60,9 @@ export function useAttendance(): UseAttendanceResult {
 
   const refresh = useCallback(async () => {
     await reload();
-    if (query.trim().length >= MIN_QUERY) {
-      setMatches(await attendances.search(query.trim()));
+    const text = query.trim();
+    if (text.length === 0 || text.length >= MIN_QUERY) {
+      setMatches(await attendances.search(text));
     }
   }, [reload, attendances, query]);
 
@@ -78,7 +84,8 @@ export function useAttendance(): UseAttendanceResult {
     // Derived rather than cleared in the effect: a short query has no results
     // by definition, and emptying it there would be a setState that triggers
     // a second render for something already knowable during the first.
-    matches: query.trim().length < MIN_QUERY ? [] : matches,
+    matches:
+      query.trim().length > 0 && query.trim().length < MIN_QUERY ? [] : matches,
     searching,
     error,
     search: setQuery,

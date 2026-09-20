@@ -1,5 +1,10 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, asc, desc, eq, gte, ilike, isNull, lt } from "drizzle-orm";
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { and, asc, desc, eq, gte, ilike, isNull } from "drizzle-orm";
 
 import { DATABASE } from "../database/database.constants.js";
 import type { Database } from "../database/database.types.js";
@@ -11,7 +16,11 @@ import {
 } from "../database/schema/schema.js";
 import { assertDefined } from "../shared/assert-defined.util.js";
 
-import { dayStart, weekBounds } from "./attendance-week.util.js";
+import {
+  AttendanceQueryService,
+  toStatus,
+} from "./attendance-query.service.js";
+import { dayStart } from "./attendance-week.util.js";
 import type {
   AttendanceCandidate,
   AttendanceResult,
@@ -22,6 +31,7 @@ const CLIENT_WITH_PLAN = {
   clientId: clients.id,
   clientName: clients.fullName,
   idNumber: clients.documentNumber,
+  state: clients.state,
   membershipName: membershipTypes.name,
   weeklyVisits: membershipTypes.weeklyVisits,
   endDate: clientMemberships.endDate,
@@ -29,13 +39,29 @@ const CLIENT_WITH_PLAN = {
 
 @Injectable()
 export class AttendancesService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly queries: AttendanceQueryService,
+  ) {}
 
-  /** Busca por nombre para el panel de ingreso (RF-02: solo de esta empresa). */
+  /**
+   * Clientes para el panel de ingreso (RF-02: solo de esta empresa).
+   *
+   * Sin texto devuelve los primeros, no una lista vacía: la recepcionista no
+   * siempre recuerda el nombre, y una caja que no muestra nada hasta acertar
+   * las primeras letras obliga a adivinar.
+   */
   async search(
     companyId: string,
     query: string,
   ): Promise<AttendanceCandidate[]> {
+    const scope = query
+      ? and(
+          eq(clients.companyId, companyId),
+          ilike(clients.fullName, `%${query}%`),
+        )
+      : eq(clients.companyId, companyId);
+
     const rows = await this.db
       .select(CLIENT_WITH_PLAN)
       .from(clients)
@@ -44,38 +70,52 @@ export class AttendancesService {
         membershipTypes,
         eq(membershipTypes.id, clientMemberships.membershipTypeId),
       )
-      .where(
-        and(
-          eq(clients.companyId, companyId),
-          ilike(clients.fullName, `%${query}%`),
-        ),
-      )
+      .where(scope)
       .orderBy(asc(clients.fullName))
-      .limit(8);
+      .limit(query ? 8 : 20);
 
     return Promise.all(
       rows.map(async (row) => ({
         clientId: row.clientId,
         clientName: row.clientName,
         idNumber: row.idNumber,
+        status: row.membershipName === null ? null : toStatus(row.state),
         membershipName: row.membershipName,
         expirationDate: row.endDate,
         weeklyVisits: row.weeklyVisits,
-        usedThisWeek: await this.countThisWeek(companyId, row.clientId),
-        inside: await this.isInside(companyId, row.clientId),
+        usedThisWeek: await this.queries.countThisWeek(companyId, row.clientId),
+        inside: await this.queries.isInside(companyId, row.clientId),
       })),
     );
   }
 
-  /** Registra un ingreso. La hora la pone el servidor. */
+  /**
+   * Registra un ingreso. La hora la pone el servidor.
+   *
+   * Rechaza al retirado, al moroso y a quien ya gastó su cupo. Espejo de
+   * `checkInRefusal` en `@apexg/core`; se repite porque este backend no
+   * depende de ese paquete, y sin ello bastaría una petición a mano para
+   * saltarse el control que la pantalla aplica.
+   */
   async create(companyId: string, clientId: string): Promise<AttendanceResult> {
     const [client] = await this.db
-      .select({ id: clients.id })
+      .select({
+        state: clients.state,
+        weeklyVisits: membershipTypes.weeklyVisits,
+        membershipName: membershipTypes.name,
+      })
       .from(clients)
+      .leftJoin(clientMemberships, eq(clientMemberships.clientId, clients.id))
+      .leftJoin(
+        membershipTypes,
+        eq(membershipTypes.id, clientMemberships.membershipTypeId),
+      )
       .where(and(eq(clients.id, clientId), eq(clients.companyId, companyId)));
+
     if (!client) {
       throw new NotFoundException("El cliente no existe.");
     }
+    await this.assertMayEnter(companyId, clientId, client);
 
     const [row] = await this.db
       .insert(attendances)
@@ -86,7 +126,7 @@ export class AttendancesService {
       row,
       "INSERT into attendances did not return a row.",
     );
-    return this.describe(companyId, inserted.id);
+    return this.queries.describe(companyId, inserted.id);
   }
 
   /**
@@ -121,7 +161,7 @@ export class AttendancesService {
       .set({ checkOut: new Date().toISOString() })
       .where(eq(attendances.id, open.id));
 
-    return this.describe(companyId, open.id);
+    return this.queries.describe(companyId, open.id);
   }
 
   /** Ingresos de hoy, el más reciente primero. */
@@ -137,76 +177,43 @@ export class AttendancesService {
       )
       .orderBy(desc(attendances.checkIn));
 
-    return Promise.all(rows.map((row) => this.describe(companyId, row.id)));
-  }
-
-  private async countThisWeek(
-    companyId: string,
-    clientId: string,
-  ): Promise<number> {
-    const { start, end } = weekBounds(new Date());
-    const rows = await this.db
-      .select({ id: attendances.id })
-      .from(attendances)
-      .where(
-        and(
-          eq(attendances.companyId, companyId),
-          eq(attendances.clientId, clientId),
-          gte(attendances.checkIn, start.toISOString()),
-          lt(attendances.checkIn, end.toISOString()),
-        ),
-      );
-    return rows.length;
-  }
-
-  private async isInside(
-    companyId: string,
-    clientId: string,
-  ): Promise<boolean> {
-    const [open] = await this.db
-      .select({ id: attendances.id })
-      .from(attendances)
-      .where(
-        and(
-          eq(attendances.companyId, companyId),
-          eq(attendances.clientId, clientId),
-          isNull(attendances.checkOut),
-        ),
-      )
-      .limit(1);
-    return Boolean(open);
-  }
-
-  private async describe(
-    companyId: string,
-    attendanceId: string,
-  ): Promise<AttendanceResult> {
-    const [row] = await this.db
-      .select({
-        id: attendances.id,
-        clientId: attendances.clientId,
-        clientName: clients.fullName,
-        checkIn: attendances.checkIn,
-        checkOut: attendances.checkOut,
-        membershipName: membershipTypes.name,
-        weeklyVisits: membershipTypes.weeklyVisits,
-      })
-      .from(attendances)
-      .innerJoin(clients, eq(clients.id, attendances.clientId))
-      .leftJoin(clientMemberships, eq(clientMemberships.clientId, clients.id))
-      .leftJoin(
-        membershipTypes,
-        eq(membershipTypes.id, clientMemberships.membershipTypeId),
-      )
-      .where(eq(attendances.id, attendanceId));
-
-    const found = assertDefined(
-      row,
-      "La asistencia recién escrita no se pudo leer.",
+    return Promise.all(
+      rows.map((row) => this.queries.describe(companyId, row.id)),
     );
-    return {
-      ...found,
-      usedThisWeek: await this.countThisWeek(companyId, found.clientId),
-    };
+  }
+
+  private async assertMayEnter(
+    companyId: string,
+    clientId: string,
+    client: {
+      state: number;
+      weeklyVisits: number | null;
+      membershipName: string | null;
+    },
+  ): Promise<void> {
+    if (client.membershipName === null) {
+      throw new ConflictException("No tiene una membresía registrada.");
+    }
+    const status = toStatus(client.state);
+    if (status === "inactive") {
+      throw new ConflictException("Cliente retirado.");
+    }
+    if (status === "overdue") {
+      throw new ConflictException(
+        "Membresía vencida. Debe renovar para ingresar.",
+      );
+    }
+    if (client.weeklyVisits === null) return;
+
+    // Si ya entró hoy, volver a entrar no estrena día: el cupo se cuenta por
+    // días distintos, así que salir a almorzar y regresar no debe bloquearse
+    // aunque el cupo esté justo.
+    const [used, enteredToday] = await Promise.all([
+      this.queries.countThisWeek(companyId, clientId),
+      this.queries.hasEnteredToday(companyId, clientId),
+    ]);
+    if (!enteredToday && used >= client.weeklyVisits) {
+      throw new ConflictException("Ya usó todos sus días de esta semana.");
+    }
   }
 }

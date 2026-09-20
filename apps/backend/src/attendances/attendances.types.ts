@@ -21,6 +21,8 @@ export interface AttendanceCandidate {
   clientId: string;
   clientName: string;
   idNumber: string;
+  /** Estado del cliente, o null si no tiene membresía. */
+  status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
   weeklyVisits: number | null;

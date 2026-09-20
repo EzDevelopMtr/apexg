@@ -8,6 +8,7 @@ import {
   isInside,
   peopleInside,
   toAttendanceId,
+  checkInRefusal,
   visitQuota,
   weeklyAllowance,
 } from "./attendance";
@@ -83,5 +84,40 @@ describe("who is inside", () => {
   it("filters the day down to those still in", () => {
     const today = [visit("a"), visit("b", "19:40"), visit("c")];
     expect(peopleInside(today).map((one) => one.id)).toEqual(["a", "c"]);
+  });
+});
+
+describe("checkInRefusal", () => {
+  const room = visitQuota(3, 1);
+  const spent = visitQuota(3, 3);
+
+  it("lets an active client with days left in", () => {
+    expect(checkInRefusal("active", room)).toBeNull();
+  });
+
+  it("refuses a client with no membership", () => {
+    expect(checkInRefusal(null, room)).toBe("noMembership");
+  });
+
+  it("refuses a retired client", () => {
+    expect(checkInRefusal("inactive", room)).toBe("inactive");
+  });
+
+  it("refuses an overdue client", () => {
+    expect(checkInRefusal("overdue", room)).toBe("overdue");
+  });
+
+  it("refuses an active client who spent the week", () => {
+    expect(checkInRefusal("active", spent)).toBe("quotaSpent");
+  });
+
+  // Renewing is what unblocks them. Reporting the spent week instead would
+  // send them home to wait for Monday, when Monday refuses them again.
+  it("reports the expiry, not the quota, when both apply", () => {
+    expect(checkInRefusal("overdue", spent)).toBe("overdue");
+  });
+
+  it("never refuses an uncapped plan on quota", () => {
+    expect(checkInRefusal("active", visitQuota(null, 40))).toBeNull();
   });
 });

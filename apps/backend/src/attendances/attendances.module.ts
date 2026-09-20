@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { AuthModule } from "../auth/auth.module.js";
 
+import { AttendanceQueryService } from "./attendance-query.service.js";
 import { AttendancesController } from "./attendances.controller.js";
 import { AttendancesService } from "./attendances.service.js";
 
@@ -9,6 +10,6 @@ import { AttendancesService } from "./attendances.service.js";
 @Module({
   imports: [AuthModule],
   controllers: [AttendancesController],
-  providers: [AttendancesService],
+  providers: [AttendancesService, AttendanceQueryService],
 })
 export class AttendancesModule {}

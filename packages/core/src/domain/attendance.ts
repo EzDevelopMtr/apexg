@@ -1,5 +1,5 @@
 import type { IsoDate } from "./calendar";
-import type { ClientId } from "./client";
+import type { ClientId, ClientStatus } from "./client";
 import type { MembershipType } from "./membership";
 
 declare const attendanceIdBrand: unique symbol;
@@ -84,4 +84,38 @@ export function visitQuota(
     allowed,
     exhausted: allowed !== null && usedThisWeek >= allowed,
   };
+}
+
+/** Why an entry was refused. `null` means it may go ahead. */
+export type CheckInRefusal =
+  "noMembership" | "inactive" | "overdue" | "quotaSpent";
+
+/** User-facing reasons, in Spanish. */
+export const CHECK_IN_REFUSAL_LABELS: Record<CheckInRefusal, string> = {
+  noMembership: "No tiene una membresía registrada.",
+  inactive: "Cliente retirado.",
+  overdue: "Membresía vencida. Debe renovar para ingresar.",
+  quotaSpent: "Ya usó todos sus días de esta semana.",
+};
+
+/**
+ * Whether this client may enter right now.
+ *
+ * One place for the whole decision instead of the panel testing three things
+ * in a row: the API has to refuse exactly the same cases, and a rule split
+ * across call sites drifts the moment one of them is edited.
+ *
+ * Order matters. An expired membership is reported as expired even when the
+ * week's allowance is also spent, because renewing is what unblocks them —
+ * telling them to wait until Monday would be wrong and they would come back
+ * on Monday to be refused again.
+ */
+export function checkInRefusal(
+  status: ClientStatus | null,
+  quota: VisitQuota,
+): CheckInRefusal | null {
+  if (status === null) return "noMembership";
+  if (status === "inactive") return "inactive";
+  if (status === "overdue") return "overdue";
+  return quota.exhausted ? "quotaSpent" : null;
 }

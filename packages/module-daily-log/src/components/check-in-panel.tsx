@@ -55,13 +55,13 @@ export default function CheckInPanel({ onCharge }: CheckInPanelProps) {
             />
           ))}
 
-          {query.trim().length >= 2 &&
-            !attendance.searching &&
-            attendance.matches.length === 0 && (
-              <p className="py-2 text-sm text-body-faint">
-                Ningún cliente con ese nombre.
-              </p>
-            )}
+          {!attendance.searching && attendance.matches.length === 0 && (
+            <p className="py-2 text-sm text-body-faint">
+              {query.trim()
+                ? "Ningún cliente con ese nombre."
+                : "No hay clientes registrados."}
+            </p>
+          )}
         </CardBody>
       </Card>
 

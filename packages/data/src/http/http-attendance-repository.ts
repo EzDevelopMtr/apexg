@@ -21,6 +21,7 @@ interface ApiCandidate {
   clientId: string;
   clientName: string;
   idNumber: string;
+  status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
   weeklyVisits: number | null;
@@ -59,6 +60,7 @@ function candidateFromApi(row: ApiCandidate): AttendanceCandidate {
     clientId: toClientId(row.clientId),
     clientName: row.clientName,
     idNumber: row.idNumber,
+    status: row.status,
     membershipName: row.membershipName ?? "Sin membresía",
     expiresOn: row.expirationDate,
     weeklyVisits: row.weeklyVisits,
