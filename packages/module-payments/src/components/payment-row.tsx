@@ -9,14 +9,14 @@ export interface PaymentRowProps {
   payment: Payment;
   /** Resolved by the page; payments store only the client id. */
   clientName: string;
-  /** Where this payment's receipt can be opened. Empty when it has none. */
-  receiptUrl: string;
+  /** Opens the receipt over the page. Only called when there is one. */
+  onViewReceipt: () => void;
 }
 
 export default function PaymentRow({
   payment,
   clientName,
-  receiptUrl,
+  onViewReceipt,
 }: PaymentRowProps) {
   const settled = payment.balanceAfter <= 0;
 
@@ -52,16 +52,11 @@ export default function PaymentRow({
       </TableCell>
 
       <TableCell className="text-right">
-        {/* A link and not a button: the receipt is a document at an address,
-            so opening it in a tab is the browser's job. That also gives the
-            receptionist back, zoom and save for free. */}
         {payment.receiptPath ? (
           <Button
             variant="ghost"
             size="sm"
-            href={receiptUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={onViewReceipt}
             aria-label={`Ver comprobante del pago de ${clientName}`}
             title="Ver comprobante"
           >
