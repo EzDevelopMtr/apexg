@@ -131,6 +131,9 @@ export class AttendanceQueryService {
     );
     return {
       ...found,
+      // Igual que en la busqueda: el LEFT JOIN puede dar null si el plan se
+      // borro despues del ingreso. Seis es el acceso completo.
+      weeklyVisits: found.weeklyVisits ?? 6,
       usedThisWeek: await this.countThisWeek(companyId, found.clientId),
     };
   }

@@ -64,8 +64,18 @@ export function calculateBalance(
   const range = rangeFor(period, on);
 
   const income = add(
-    sumIn(records.payments, range, (p) => p.paidOn, (p) => p.amount),
-    sumIn(records.productSales, range, (s) => s.soldOn, (s) => s.amount),
+    sumIn(
+      records.payments,
+      range,
+      (p) => p.paidOn,
+      (p) => p.amount,
+    ),
+    sumIn(
+      records.productSales,
+      range,
+      (s) => s.soldOn,
+      (s) => s.amount,
+    ),
   );
   const spent = sumIn(
     records.expenses,

@@ -53,7 +53,7 @@ export class MembershipTypesService {
           businessShare: input.businessShare ?? null,
           allowsPartialPayment: input.allowsPartialPayment ?? false,
           isPromotional: input.isPromotional ?? false,
-          weeklyVisits: input.weeklyVisits ?? null,
+          weeklyVisits: input.weeklyVisits ?? 6,
         })
         .returning();
 

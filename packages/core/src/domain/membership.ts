@@ -45,13 +45,13 @@ export interface MembershipType {
   readonly isPromotional: boolean;
   readonly trainerSplit: TrainerSplit | null;
   /**
-   * Visits the plan grants per week, or `null` when there is no weekly cap.
+   * Days a week the plan grants, 1 to 6.
    *
-   * `null` rather than a large number: the monthly plan has no cap at all, and
-   * writing 7 would invent a limit nobody agreed to, besides making
-   * "unlimited" indistinguishable from "seven".
+   * Six is the ceiling and also means "no limit": the gym closes on Sundays,
+   * so nobody can attend a seventh day anyway. There is deliberately no null
+   * for "uncapped" — it would be a second way to say six.
    */
-  readonly weeklyVisits: number | null;
+  readonly weeklyVisits: number;
   /** User-facing conditions, in Spanish. */
   readonly conditions: string;
 }

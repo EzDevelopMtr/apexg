@@ -86,7 +86,7 @@ export class UpdateMembershipTypeDto {
   @IsInt()
   @Min(1)
   @Max(6)
-  weeklyVisits?: number | null;
+  weeklyVisits?: number;
 
   @IsOptional()
   @IsIn([1, 2])

@@ -13,10 +13,9 @@ export function toAttendanceId(value: string): AttendanceId {
 /**
  * One visit to the gym.
  *
- * A visit is the ENTRY, not the stay: `checkOut` only says the person left.
- * Re-entering the same day is a second visit and spends another day of the
- * weekly allowance — the receptionist marking someone out and back in is
- * recording two uses, which is what the gym is actually selling.
+ * A visit is the DAY, not the stay: leaving at lunch and coming back is the
+ * same visit, so `checkOut` only records that the person left. The gym sells
+ * days of access, not trips through the door.
  */
 export interface Attendance {
   readonly id: AttendanceId;
@@ -35,8 +34,8 @@ export interface Attendance {
   readonly leftAt: string;
   /** Plan name at the time of the visit, for the day's list. */
   readonly membershipName: string;
-  /** Weekly allowance of that plan, or null when uncapped. */
-  readonly weeklyVisits: number | null;
+  /** Weekly allowance of that plan. */
+  readonly weeklyVisits: number;
   /** Days of the week already spent, including this one. */
   readonly usedThisWeek: number;
 }
@@ -53,21 +52,22 @@ export function peopleInside(
 }
 
 /**
- * How many visits a plan grants per week, or `null` when it is unlimited.
+ * How many visits a plan grants per week.
  *
- * Unlimited is not "a big number": the monthly plan has no weekly cap at all,
- * and saying 7 would quietly invent a rule nobody agreed to.
+ * Always a number. "No cap" used to be `null`, but with the gym closed on
+ * Sundays six visits already IS full access, so the two said the same thing
+ * and one of them was a branch nobody could reach.
  */
-export function weeklyAllowance(type: MembershipType): number | null {
+export function weeklyAllowance(type: MembershipType): number {
   return type.weeklyVisits;
 }
 
 export interface VisitQuota {
   /** Visits already used this week. */
   readonly used: number;
-  /** What the plan grants, or `null` when unlimited. */
-  readonly allowed: number | null;
-  /** True once the allowance is spent. Always false for an unlimited plan. */
+  /** What the plan grants. */
+  readonly allowed: number;
+  /** True once the allowance is spent. */
   readonly exhausted: boolean;
 }
 
@@ -81,14 +81,11 @@ export interface VisitQuota {
  * Counting is left to the caller, which knows the week's boundaries — this
  * only decides what the number means.
  */
-export function visitQuota(
-  allowed: number | null,
-  usedThisWeek: number,
-): VisitQuota {
+export function visitQuota(allowed: number, usedThisWeek: number): VisitQuota {
   return {
     used: usedThisWeek,
     allowed,
-    exhausted: allowed !== null && usedThisWeek >= allowed,
+    exhausted: usedThisWeek >= allowed,
   };
 }
 

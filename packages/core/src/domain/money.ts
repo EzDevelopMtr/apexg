@@ -96,7 +96,9 @@ export function fromApiString(value: string): Money {
     throw new RangeError(`Not a valid API money string: "${value}"`);
   }
   const negative = value.startsWith("-");
-  const [whole = "0", fraction = "0"] = (negative ? value.slice(1) : value).split(".");
+  const [whole = "0", fraction = "0"] = (
+    negative ? value.slice(1) : value
+  ).split(".");
   const cents = Number(whole) * CENTS_PER_PESO + Number(fraction);
   return fromCents(negative ? -cents : cents);
 }

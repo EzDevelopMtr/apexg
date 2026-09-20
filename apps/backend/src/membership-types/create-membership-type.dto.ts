@@ -54,7 +54,7 @@ export class CreateMembershipTypeDto {
   @IsInt()
   @Min(1)
   @Max(6)
-  weeklyVisits?: number | null;
+  weeklyVisits?: number;
 
   @IsOptional()
   @IsString()

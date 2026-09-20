@@ -13,7 +13,7 @@ interface ApiAttendance {
   checkIn: string;
   checkOut: string | null;
   membershipName: string | null;
-  weeklyVisits: number | null;
+  weeklyVisits: number;
   usedThisWeek: number;
 }
 
@@ -24,7 +24,7 @@ interface ApiCandidate {
   status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
-  weeklyVisits: number | null;
+  weeklyVisits: number;
   usedThisWeek: number;
   inside: boolean;
 }

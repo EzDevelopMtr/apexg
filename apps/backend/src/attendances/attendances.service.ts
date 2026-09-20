@@ -82,7 +82,10 @@ export class AttendancesService {
         status: row.membershipName === null ? null : toStatus(row.state),
         membershipName: row.membershipName,
         expirationDate: row.endDate,
-        weeklyVisits: row.weeklyVisits,
+        // El LEFT JOIN da null a quien no tiene plan. Ese caso ya se rechaza
+        // por `status`, asi que el cupo no se llega a leer; se normaliza a 6
+        // para no arrastrar un nulo por todas las capas de arriba.
+        weeklyVisits: row.weeklyVisits ?? 6,
         usedThisWeek: await this.queries.countThisWeek(companyId, row.clientId),
         inside: await this.queries.isInside(companyId, row.clientId),
       })),

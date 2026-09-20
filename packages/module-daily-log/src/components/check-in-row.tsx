@@ -67,10 +67,14 @@ export default function CheckInRow({
 
       {candidate.inside && <Badge tone="success">Dentro</Badge>}
 
-      <VisitQuotaDots
-        weeklyVisits={candidate.weeklyVisits}
-        usedThisWeek={candidate.usedThisWeek}
-      />
+      {/* Sin membresia no hay cupo que mostrar: las barras dirian algo sobre
+          un plan que no existe. */}
+      {candidate.status !== null && (
+        <VisitQuotaDots
+          weeklyVisits={candidate.weeklyVisits}
+          usedThisWeek={candidate.usedThisWeek}
+        />
+      )}
 
       {/* Already inside offers the exit, never a second entry.
 

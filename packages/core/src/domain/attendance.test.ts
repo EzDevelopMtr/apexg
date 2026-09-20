@@ -58,13 +58,12 @@ describe("visitQuota", () => {
     expect(visitQuota(weeklyAllowance(capped), 5).exhausted).toBe(true);
   });
 
-  // Passed straight in: every seeded plan now carries a cap, so there is no
-  // catalogue entry left to take an uncapped allowance from. The domain still
-  // understands `null`, and this is what pins that it does.
-  it("never exhausts an uncapped allowance", () => {
-    const quota = visitQuota(null, 40);
-    expect(quota.allowed).toBeNull();
-    expect(quota.exhausted).toBe(false);
+  // Six is both the ceiling and "no limit", since the gym closes on Sundays.
+  // It still exhausts, which is the point of not having a separate uncapped
+  // value: one rule covers every plan.
+  it("exhausts the six-day plan like any other", () => {
+    expect(visitQuota(6, 6).exhausted).toBe(true);
+    expect(visitQuota(6, 5).exhausted).toBe(false);
   });
 });
 
@@ -113,8 +112,8 @@ describe("checkInRefusal", () => {
     expect(checkInRefusal("overdue", spent)).toBe("overdue");
   });
 
-  it("never refuses an uncapped plan on quota", () => {
-    expect(checkInRefusal("active", visitQuota(null, 40))).toBeNull();
+  it("refuses once the six-day plan is spent", () => {
+    expect(checkInRefusal("active", visitQuota(6, 6))).toBe("quotaSpent");
   });
 });
 

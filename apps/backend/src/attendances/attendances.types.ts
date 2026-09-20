@@ -11,7 +11,7 @@ export interface AttendanceResult {
   /** Nombre del plan vigente del cliente, para mostrarlo en la lista. */
   membershipName: string | null;
   /** Cupo semanal del plan, o null si no tiene tope. */
-  weeklyVisits: number | null;
+  weeklyVisits: number;
   /** Visitas consumidas en la semana de ESTE ingreso, incluyéndolo. */
   usedThisWeek: number;
 }
@@ -25,7 +25,7 @@ export interface AttendanceCandidate {
   status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
-  weeklyVisits: number | null;
+  weeklyVisits: number;
   usedThisWeek: number;
   /** True cuando ya está dentro y no ha marcado salida. */
   inside: boolean;

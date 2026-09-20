@@ -91,8 +91,8 @@ export interface AttendanceCandidate {
   readonly membershipName: string;
   /** `YYYY-MM-DD`, or null when there is no membership. */
   readonly expiresOn: string | null;
-  /** Visits the plan grants per week, or null when uncapped. */
-  readonly weeklyVisits: number | null;
+  /** Days a week the plan grants, 1 to 6. */
+  readonly weeklyVisits: number;
   readonly usedThisWeek: number;
   /** Already in the gym and not yet marked out. */
   readonly inside: boolean;
