@@ -1,8 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { sql } from 'drizzle-orm';
+import { Inject, Injectable } from "@nestjs/common";
+import { sql } from "drizzle-orm";
 
-import { DATABASE } from '../database/database.constants.js';
-import type { Database } from '../database/database.types.js';
+import { DATABASE } from "../database/database.constants.js";
+import type { Database } from "../database/database.types.js";
 
 /**
  * RF-21: pasa a "en mora" (state = 3) a los clientes activos cuya

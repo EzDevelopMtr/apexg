@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MaxLength } from "class-validator";
 
 /**
  * Body de `PATCH /clients/:id` (RF-05).

@@ -1,12 +1,19 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { eq, and, inArray } from 'drizzle-orm';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
 
-import { DATABASE } from '../database/database.constants.js';
-import type { Database, DatabaseTransaction } from '../database/database.types.js';
-import { clientMemberships, membershipTypes, trainers } from '../database/schema/schema.js';
-import { assertDefined } from '../shared/assert-defined.util.js';
+import type { DatabaseTransaction } from "../database/database.types.js";
+import {
+  clientMemberships,
+  membershipTypes,
+  trainers,
+} from "../database/schema/schema.js";
+import { assertDefined } from "../shared/assert-defined.util.js";
 
-import type { ClientMembershipSummary } from './clients.types.js';
+import type { ClientMembershipSummary } from "./clients.types.js";
 
 /** Lo que `create()` necesita del plan ya validado por `loadActivePlan`. */
 interface AgreedPlan {
@@ -25,28 +32,24 @@ interface CreateMembershipInput {
   endDate: string;
 }
 
-interface MembershipRow {
-  id: string;
-  clientId: string;
-  membershipTypeId: string;
-  membershipTypeName: string;
-  trainerId: string | null;
-  startDate: string;
-  endDate: string;
-  agreedPrice: string;
-}
-
 /**
- * Resuelve el plan y el entrenador de una membresía nueva, y el snapshot de
- * la membresía vigente de un cliente para la respuesta HTTP — separado de
- * `ClientsService` porque es una responsabilidad sobre `client_memberships`/
- * `membership_types`/`trainers`, no sobre la identidad del cliente en sí.
+ * Resuelve el plan y el entrenador de una membresía nueva, la abre, cierra la
+ * anterior, y arma el snapshot de la vigente para la respuesta HTTP.
+ *
+ * Separado de `ClientsService` porque es una responsabilidad sobre
+ * `client_memberships`, `membership_types` y `trainers`, no sobre la
+ * identidad del cliente en sí.
+ *
+ * Sin `db` propio: cada método recibe la transacción de quien lo llama, para
+ * que abrir una membresía y escribir el cliente sean atómicos.
  */
 @Injectable()
 export class ClientMembershipService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
-
-  async loadActivePlan(tx: DatabaseTransaction, companyId: string, membershipTypeId: string) {
+  async loadActivePlan(
+    tx: DatabaseTransaction,
+    companyId: string,
+    membershipTypeId: string,
+  ) {
     const [plan] = await tx
       .select({
         id: membershipTypes.id,
@@ -66,10 +69,10 @@ export class ClientMembershipService {
       );
 
     if (!plan) {
-      throw new NotFoundException('El tipo de membresía no existe.');
+      throw new NotFoundException("El tipo de membresía no existe.");
     }
     if (plan.state !== 1) {
-      throw new BadRequestException('El tipo de membresía está inactivo.');
+      throw new BadRequestException("El tipo de membresía está inactivo.");
     }
     return plan;
   }
@@ -89,10 +92,14 @@ export class ClientMembershipService {
     const requiresTrainer = plan.trainerShare !== null;
 
     if (requiresTrainer && !trainerId) {
-      throw new BadRequestException('Este plan requiere seleccionar un entrenador.');
+      throw new BadRequestException(
+        "Este plan requiere seleccionar un entrenador.",
+      );
     }
     if (!requiresTrainer && trainerId) {
-      throw new BadRequestException('Este plan no admite asignar un entrenador.');
+      throw new BadRequestException(
+        "Este plan no admite asignar un entrenador.",
+      );
     }
     if (!trainerId) {
       return null;
@@ -101,13 +108,15 @@ export class ClientMembershipService {
     const [trainer] = await tx
       .select({ id: trainers.id, state: trainers.state })
       .from(trainers)
-      .where(and(eq(trainers.id, trainerId), eq(trainers.companyId, companyId)));
+      .where(
+        and(eq(trainers.id, trainerId), eq(trainers.companyId, companyId)),
+      );
 
     if (!trainer) {
-      throw new NotFoundException('El entrenador no existe.');
+      throw new NotFoundException("El entrenador no existe.");
     }
     if (trainer.state !== 1) {
-      throw new BadRequestException('El entrenador está inactivo.');
+      throw new BadRequestException("El entrenador está inactivo.");
     }
     return trainer.id;
   }
@@ -132,7 +141,7 @@ export class ClientMembershipService {
       .returning();
     const membership = assertDefined(
       insertedMembership,
-      'INSERT into client_memberships did not return a row.',
+      "INSERT into client_memberships did not return a row.",
     );
 
     return {
@@ -147,46 +156,27 @@ export class ClientMembershipService {
   }
 
   /** La membresía más reciente (por fecha de inicio) de cada cliente pedido. */
-  async latestFor(clientIds: readonly string[]): Promise<Map<string, ClientMembershipSummary>> {
-    if (clientIds.length === 0) {
-      return new Map();
-    }
 
-    const rows: MembershipRow[] = await this.db
-      .select({
-        id: clientMemberships.id,
-        clientId: clientMemberships.clientId,
-        membershipTypeId: clientMemberships.membershipTypeId,
-        membershipTypeName: membershipTypes.name,
-        trainerId: clientMemberships.trainerId,
-        startDate: clientMemberships.startDate,
-        endDate: clientMemberships.endDate,
-        agreedPrice: clientMemberships.agreedPrice,
-      })
-      .from(clientMemberships)
-      .innerJoin(membershipTypes, eq(membershipTypes.id, clientMemberships.membershipTypeId))
-      .where(inArray(clientMemberships.clientId, [...clientIds]));
-
-    const latestByClient = new Map<string, MembershipRow>();
-    for (const row of rows) {
-      const current = latestByClient.get(row.clientId);
-      if (!current || row.startDate > current.startDate) {
-        latestByClient.set(row.clientId, row);
-      }
-    }
-
-    const summaries = new Map<string, ClientMembershipSummary>();
-    for (const [clientId, row] of latestByClient) {
-      summaries.set(clientId, {
-        id: row.id,
-        membershipTypeId: row.membershipTypeId,
-        membershipTypeName: row.membershipTypeName,
-        trainerId: row.trainerId,
-        startDate: row.startDate,
-        endDate: row.endDate,
-        agreedPrice: row.agreedPrice,
-      });
-    }
-    return summaries;
+  /**
+   * Cierra la vigente marcándola inactiva, sin borrarla.
+   *
+   * Los pagos apuntan a ella y el historial tiene que seguir siendo legible:
+   * borrar la fila dejaría pagos colgando de una membresía inexistente.
+   */
+  async closeCurrent(
+    tx: DatabaseTransaction,
+    companyId: string,
+    clientId: string,
+  ): Promise<void> {
+    await tx
+      .update(clientMemberships)
+      .set({ state: 2, updatedAt: new Date().toISOString() })
+      .where(
+        and(
+          eq(clientMemberships.companyId, companyId),
+          eq(clientMemberships.clientId, clientId),
+          eq(clientMemberships.state, 1),
+        ),
+      );
   }
 }

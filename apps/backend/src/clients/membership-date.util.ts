@@ -12,12 +12,12 @@
  * días de membresía.
  */
 
-export type DurationUnit = 'day' | 'week' | 'month';
+export type DurationUnit = "day" | "week" | "month";
 
 function toIso(date: Date): string {
-  const year = String(date.getFullYear()).padStart(4, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const year = String(date.getFullYear()).padStart(4, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -50,7 +50,7 @@ function addMonths(iso: string, months: number): string {
 }
 
 export function isDurationUnit(value: string): value is DurationUnit {
-  return value === 'day' || value === 'week' || value === 'month';
+  return value === "day" || value === "week" || value === "month";
 }
 
 /** Fecha de fin de membresía a partir del inicio y la duración del plan (RF-07). */
@@ -59,8 +59,8 @@ export function calculateEndDate(
   durationValue: number,
   durationUnit: DurationUnit,
 ): string {
-  if (durationUnit === 'month') return addMonths(startDate, durationValue);
-  if (durationUnit === 'week') return addDays(startDate, durationValue * 7);
+  if (durationUnit === "month") return addMonths(startDate, durationValue);
+  if (durationUnit === "week") return addDays(startDate, durationValue * 7);
   return addDays(startDate, durationValue);
 }
 

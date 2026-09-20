@@ -5,7 +5,7 @@ import {
   IsString,
   IsUUID,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 /**
  * Body de `POST /clients` (RF-04).

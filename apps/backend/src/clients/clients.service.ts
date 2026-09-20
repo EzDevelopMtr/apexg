@@ -3,30 +3,35 @@ import {
   ConflictException,
   Inject,
   Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+} from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
 
-import { DATABASE } from '../database/database.constants.js';
-import type { Database } from '../database/database.types.js';
-import { clients } from '../database/schema/schema.js';
-import { assertDefined } from '../shared/assert-defined.util.js';
+import { DATABASE } from "../database/database.constants.js";
+import type { Database } from "../database/database.types.js";
+import { clients } from "../database/schema/schema.js";
+import { assertDefined } from "../shared/assert-defined.util.js";
+import { ClientRenewalService } from "./client-renewal.service.js";
+import { ClientsQueryService } from "./clients-query.service.js";
+import { toClientPatch, toClientResult } from "./client-result.mapper.js";
 
-import { ClientMembershipService } from './client-membership.service.js';
-import { ClientOverdueSyncService } from './client-overdue-sync.service.js';
-import type { CreateClientDto } from './create-client.dto.js';
-import type { UpdateClientDto } from './update-client.dto.js';
-import type { ClientMembershipSummary, ClientResult, ClientState, ListClientsFilter } from './clients.types.js';
-import { calculateEndDate, isDurationUnit, today } from './membership-date.util.js';
-
-type ClientRow = typeof clients.$inferSelect;
+import { ClientMembershipService } from "./client-membership.service.js";
+import type { CreateClientDto } from "./create-client.dto.js";
+import type { ChangeMembershipDto } from "./change-membership.dto.js";
+import type { UpdateClientDto } from "./update-client.dto.js";
+import type { ClientResult, ListClientsFilter } from "./clients.types.js";
+import {
+  calculateEndDate,
+  isDurationUnit,
+  today,
+} from "./membership-date.util.js";
 
 @Injectable()
 export class ClientsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly memberships: ClientMembershipService,
-    private readonly overdueSync: ClientOverdueSyncService,
+    private readonly renewals: ClientRenewalService,
+    private readonly queries: ClientsQueryService,
   ) {}
 
   async create(
@@ -37,8 +42,17 @@ export class ClientsService {
     const startDate = input.startDate ?? today();
 
     return this.db.transaction(async (tx) => {
-      const plan = await this.memberships.loadActivePlan(tx, companyId, input.membershipTypeId);
-      const trainerId = await this.memberships.resolveTrainer(tx, companyId, plan, input.trainerId);
+      const plan = await this.memberships.loadActivePlan(
+        tx,
+        companyId,
+        input.membershipTypeId,
+      );
+      const trainerId = await this.memberships.resolveTrainer(
+        tx,
+        companyId,
+        plan,
+        input.trainerId,
+      );
 
       const [clash] = await tx
         .select({ id: clients.id })
@@ -50,7 +64,7 @@ export class ClientsService {
           ),
         );
       if (clash) {
-        throw new ConflictException('Ya existe un cliente con ese documento.');
+        throw new ConflictException("Ya existe un cliente con ese documento.");
       }
 
       if (!isDurationUnit(plan.durationUnit)) {
@@ -58,7 +72,11 @@ export class ClientsService {
           `El plan tiene una unidad de vigencia desconocida: ${plan.durationUnit}.`,
         );
       }
-      const endDate = calculateEndDate(startDate, plan.durationValue, plan.durationUnit);
+      const endDate = calculateEndDate(
+        startDate,
+        plan.durationValue,
+        plan.durationUnit,
+      );
 
       const [insertedClient] = await tx
         .insert(clients)
@@ -77,7 +95,10 @@ export class ClientsService {
           createdBy: userId,
         })
         .returning();
-      const client = assertDefined(insertedClient, 'INSERT into clients did not return a row.');
+      const client = assertDefined(
+        insertedClient,
+        "INSERT into clients did not return a row.",
+      );
 
       const membership = await this.memberships.create(tx, {
         companyId,
@@ -89,48 +110,19 @@ export class ClientsService {
         endDate,
       });
 
-      return this.toResult(client, membership);
+      return toClientResult(client, membership);
     });
   }
 
-  async findAll(companyId: string, filter: ListClientsFilter): Promise<ClientResult[]> {
-    await this.overdueSync.run(companyId);
-
-    const conditions = [eq(clients.companyId, companyId)];
-    if (filter.state !== undefined) {
-      conditions.push(eq(clients.state, filter.state));
-    }
-
-    const rows = await this.db
-      .select()
-      .from(clients)
-      .where(and(...conditions))
-      .orderBy(clients.fullName);
-
-    const memberships = await this.memberships.latestFor(rows.map((row) => row.id));
-    let results = rows.map((row) => this.toResult(row, memberships.get(row.id) ?? null));
-
-    if (filter.expiringWithinDays !== undefined) {
-      const from = today();
-      const to = calculateEndDate(from, filter.expiringWithinDays, 'day');
-      results = results.filter(
-        (client) =>
-          client.state === 1 &&
-          client.currentMembership !== null &&
-          client.currentMembership.endDate >= from &&
-          client.currentMembership.endDate <= to,
-      );
-    }
-
-    return results;
+  findAll(
+    companyId: string,
+    filter: ListClientsFilter,
+  ): Promise<ClientResult[]> {
+    return this.queries.findAll(companyId, filter);
   }
 
-  async findOne(companyId: string, id: string): Promise<ClientResult> {
-    await this.overdueSync.run(companyId);
-
-    const row = await this.loadClient(companyId, id);
-    const memberships = await this.memberships.latestFor([id]);
-    return this.toResult(row, memberships.get(id) ?? null);
+  findOne(companyId: string, id: string): Promise<ClientResult> {
+    return this.queries.findOne(companyId, id);
   }
 
   async update(
@@ -138,22 +130,9 @@ export class ClientsService {
     id: string,
     input: UpdateClientDto,
   ): Promise<ClientResult> {
-    await this.loadClient(companyId, id);
+    await this.queries.load(companyId, id);
 
-    const patch: Partial<typeof clients.$inferInsert> = {};
-    if (input.fullName !== undefined) patch.fullName = input.fullName;
-    if (input.phone !== undefined) patch.phone = input.phone;
-    if (input.email !== undefined) patch.email = input.email;
-    if (input.emergencyContactName !== undefined) {
-      patch.emergencyContactName = input.emergencyContactName;
-    }
-    if (input.emergencyContactPhone !== undefined) {
-      patch.emergencyContactPhone = input.emergencyContactPhone;
-    }
-    if (input.bloodType !== undefined) patch.bloodType = input.bloodType;
-    if (input.medicalCondition !== undefined) {
-      patch.medicalCondition = input.medicalCondition;
-    }
+    const patch = toClientPatch(input);
 
     if (Object.keys(patch).length > 0) {
       await this.db
@@ -165,11 +144,33 @@ export class ClientsService {
     return this.findOne(companyId, id);
   }
 
+  /**
+   * Cierra la membresía vigente y abre una nueva (renovar o cambiar de plan).
+   *
+   * No edita la que ya existe: los pagos cuelgan de ella por
+   * `client_membership_id`, y moverle el plan o las fechas reescribiría contra
+   * qué se pagó (RNF-07). Cerrar y abrir deja cada pago atado a lo que el
+   * cliente compró en su momento, y el historial intacto.
+   *
+   * Devuelve al cliente al estado "al día": si estaba en mora, empezar un
+   * periodo nuevo es justamente lo que lo saca de ahí.
+   */
+  async changeMembership(
+    companyId: string,
+    userId: string,
+    clientId: string,
+    input: ChangeMembershipDto,
+  ): Promise<ClientResult> {
+    await this.queries.load(companyId, clientId);
+    await this.renewals.run(companyId, userId, clientId, input);
+    return this.findOne(companyId, clientId);
+  }
+
   /** SRS §4.5: el cliente se retira sin necesidad de indicar un motivo. */
   async retire(companyId: string, id: string): Promise<ClientResult> {
-    const existing = await this.loadClient(companyId, id);
+    const existing = await this.queries.load(companyId, id);
     if (existing.state === 2) {
-      throw new BadRequestException('El cliente ya está inactivo.');
+      throw new BadRequestException("El cliente ya está inactivo.");
     }
 
     await this.db
@@ -182,38 +183,5 @@ export class ClientsService {
       .where(eq(clients.id, id));
 
     return this.findOne(companyId, id);
-  }
-
-  private async loadClient(companyId: string, id: string): Promise<ClientRow> {
-    const [row] = await this.db
-      .select()
-      .from(clients)
-      .where(and(eq(clients.id, id), eq(clients.companyId, companyId)));
-    if (!row) {
-      throw new NotFoundException('Cliente no encontrado.');
-    }
-    return row;
-  }
-
-  private toResult(
-    row: ClientRow,
-    membership: ClientMembershipSummary | null,
-  ): ClientResult {
-    return {
-      id: row.id,
-      documentNumber: row.documentNumber,
-      fullName: row.fullName,
-      phone: row.phone,
-      email: row.email,
-      emergencyContactName: row.emergencyContactName,
-      emergencyContactPhone: row.emergencyContactPhone,
-      bloodType: row.bloodType,
-      birthDate: row.birthDate,
-      medicalCondition: row.medicalCondition,
-      state: row.state as ClientState,
-      registeredAt: row.registeredAt,
-      retiredAt: row.retiredAt,
-      currentMembership: membership,
-    };
   }
 }

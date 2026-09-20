@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, Min } from 'class-validator';
+import { Type } from "class-transformer";
+import { IsIn, IsInt, IsOptional, Min } from "class-validator";
 
 /** Query string de `GET /clients`. Los query params llegan como string. */
 export class ListClientsQueryDto {

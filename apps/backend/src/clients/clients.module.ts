@@ -1,11 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 
-import { AuthModule } from '../auth/auth.module.js';
+import { AuthModule } from "../auth/auth.module.js";
 
-import { ClientMembershipService } from './client-membership.service.js';
-import { ClientOverdueSyncService } from './client-overdue-sync.service.js';
-import { ClientsController } from './clients.controller.js';
-import { ClientsService } from './clients.service.js';
+import { ClientMembershipService } from "./client-membership.service.js";
+import { ClientMembershipLookupService } from "./client-membership-lookup.service.js";
+import { ClientsQueryService } from "./clients-query.service.js";
+import { ClientRenewalService } from "./client-renewal.service.js";
+import { ClientOverdueSyncService } from "./client-overdue-sync.service.js";
+import { ClientsController } from "./clients.controller.js";
+import { ClientsService } from "./clients.service.js";
 
 /**
  * Módulo de negocio Clientes (RF-04 a RF-08, SRS §4.5).
@@ -18,7 +21,14 @@ import { ClientsService } from './clients.service.js';
 @Module({
   imports: [AuthModule],
   controllers: [ClientsController],
-  providers: [ClientsService, ClientMembershipService, ClientOverdueSyncService],
+  providers: [
+    ClientsService,
+    ClientMembershipService,
+    ClientOverdueSyncService,
+    ClientRenewalService,
+    ClientMembershipLookupService,
+    ClientsQueryService,
+  ],
   exports: [ClientsService, ClientOverdueSyncService],
 })
 export class ClientsModule {}
