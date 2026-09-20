@@ -117,6 +117,19 @@ export class AttendancesService {
     }
     await this.assertMayEnter(companyId, clientId, client);
 
+    // Una fila por persona y día. Quien sale y vuelve REABRE la suya en vez de
+    // abrir otra: el cupo se cuenta por días, así que una segunda fila no
+    // cambiaría el conteo y solo llenaría la lista de repeticiones de la misma
+    // persona.
+    const todays = await this.queries.findTodaysEntry(companyId, clientId);
+    if (todays) {
+      await this.db
+        .update(attendances)
+        .set({ checkOut: null })
+        .where(eq(attendances.id, todays));
+      return this.queries.describe(companyId, todays);
+    }
+
     const [row] = await this.db
       .insert(attendances)
       .values({ companyId, clientId, checkIn: new Date().toISOString() })

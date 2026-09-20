@@ -33,6 +33,12 @@ export interface Attendance {
   readonly enteredAt: string;
   /** `HH:MM` once the person leaves, or empty while still inside. */
   readonly leftAt: string;
+  /** Plan name at the time of the visit, for the day's list. */
+  readonly membershipName: string;
+  /** Weekly allowance of that plan, or null when uncapped. */
+  readonly weeklyVisits: number | null;
+  /** Days of the week already spent, including this one. */
+  readonly usedThisWeek: number;
 }
 
 /** Still in the gym: entered and not yet marked out. */

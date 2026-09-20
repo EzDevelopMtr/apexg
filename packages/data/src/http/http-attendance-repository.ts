@@ -52,6 +52,9 @@ function fromApi(row: ApiAttendance): Attendance {
     day: toIsoDate(new Date(row.checkIn)),
     enteredAt: localTime(row.checkIn),
     leftAt: row.checkOut === null ? "" : localTime(row.checkOut),
+    membershipName: row.membershipName ?? "Sin membresía",
+    weeklyVisits: row.weeklyVisits,
+    usedThisWeek: row.usedThisWeek,
   };
 }
 

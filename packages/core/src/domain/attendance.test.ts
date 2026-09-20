@@ -27,6 +27,9 @@ function visit(id: string, leftAt = ""): Attendance {
     day: "2026-09-21" as IsoDate,
     enteredAt: "18:30",
     leftAt,
+    membershipName: "Mensualidad",
+    weeklyVisits: 3,
+    usedThisWeek: 1,
   };
 }
 

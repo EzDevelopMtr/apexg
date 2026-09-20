@@ -79,7 +79,11 @@ export class AttendanceQueryService {
     return Boolean(open);
   }
 
-  async hasEnteredToday(companyId: string, clientId: string): Promise<boolean> {
+  /** Id del ingreso de hoy de esa persona, si ya tiene uno. */
+  async findTodaysEntry(
+    companyId: string,
+    clientId: string,
+  ): Promise<string | null> {
     const [row] = await this.db
       .select({ id: attendances.id })
       .from(attendances)
@@ -91,7 +95,11 @@ export class AttendanceQueryService {
         ),
       )
       .limit(1);
-    return Boolean(row);
+    return row?.id ?? null;
+  }
+
+  async hasEnteredToday(companyId: string, clientId: string): Promise<boolean> {
+    return (await this.findTodaysEntry(companyId, clientId)) !== null;
   }
 
   async describe(
