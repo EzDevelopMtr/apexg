@@ -48,7 +48,7 @@
       }
     },
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
       "rules": {
         "eslint/max-lines": "off",
         "eslint/max-lines-per-function": "off"

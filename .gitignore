@@ -41,3 +41,5 @@ next-env.d.ts
 
 # Comprobantes de pago subidos: datos financieros de clientes, nunca al repo.
 apps/backend/data/
+
+reports/
