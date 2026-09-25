@@ -21,6 +21,9 @@ import { SessionContext } from "./session-context";
  * the cookie.
  */
 
+/** Diez minutos, contra un token de quince: margen para un reintento. */
+const RENEWAL_INTERVAL_MS = 10 * 60 * 1000;
+
 interface MeUser {
   id: string;
   companyId: string;
@@ -77,9 +80,36 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  // Any proxied request coming back 401 (the 15-minute token expired mid
-  // session — there is no refresh token yet, RF-01 phase 2) clears the
-  // session the same way signOut does. See packages/data/src/http/http-client.ts.
+  // El token dura 15 minutos y no hay refresh token, así que una jornada de
+  // recepción se quedaba sin sesión a mitad de un cobro: bastaba con que una
+  // petición cayera pasados los 15 minutos. Mientras la pestaña esté abierta
+  // se cambia por uno nuevo cada 10, con holgura para que un reloj desfasado
+  // o una petición lenta no se coman el margen.
+  useEffect(() => {
+    if (!session) return;
+
+    const renew = () => {
+      fetch("/api/auth/refresh", { method: "POST" }).catch(() => undefined);
+    };
+    const timer = setInterval(renew, RENEWAL_INTERVAL_MS);
+
+    // Volver a una pestaña que estuvo en segundo plano: el navegador frena
+    // los temporizadores de las pestañas ocultas, así que al volver el token
+    // puede estar más viejo de lo que este intervalo supone.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") renew();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [session]);
+
+  // Any proxied request coming back 401 (the token expired despite the
+  // renewal above — a suspended laptop, say) clears the session the same way
+  // signOut does. See packages/data/src/http/http-client.ts.
   useEffect(() => {
     const onExpired = () => {
       setSession(null);

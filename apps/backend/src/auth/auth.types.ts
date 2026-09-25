@@ -92,6 +92,16 @@ export interface LoginInput {
   password: string;
 }
 
+/**
+ * Respuesta de `POST /auth/refresh`. Sin datos de usuario: quien la pide ya
+ * tiene sesión abierta y solo necesita un token con más tiempo por delante.
+ */
+export interface RenewedToken {
+  accessToken: string;
+  tokenType: 'Bearer';
+  expiresIn: number;
+}
+
 /** Respuesta del login. No incluye `password` ni hash. */
 export interface LoginResult {
   accessToken: string;

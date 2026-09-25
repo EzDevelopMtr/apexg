@@ -9,7 +9,11 @@ import {
 } from '@nestjs/common';
 
 import { AccessTokenGuard } from './access-token.guard.js';
-import type { AuthenticatedUser, LoginResult } from './auth.types.js';
+import type {
+  AuthenticatedUser,
+  LoginResult,
+  RenewedToken,
+} from './auth.types.js';
 import { CurrentUser } from './current-user.decorator.js';
 // Value imports (not `import type`): NestJS needs the real class at runtime
 // for both DI (LoginService, constructor-injected) and `@Body()` DTO
@@ -17,6 +21,7 @@ import { CurrentUser } from './current-user.decorator.js';
 // and Nest silently stops validating or fails to resolve the dependency.
 import { LoginDto } from './login.dto.js';
 import { LoginService } from './login.service.js';
+import { TokenRenewalService } from './token-renewal.service.js';
 
 /**
  * Rutas de autenticación. `POST /auth/login` es público; `GET /auth/me`
@@ -27,7 +32,10 @@ import { LoginService } from './login.service.js';
  */
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly loginService: LoginService) {}
+  constructor(
+    private readonly loginService: LoginService,
+    private readonly renewal: TokenRenewalService,
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -39,5 +47,19 @@ export class AuthController {
   @UseGuards(AccessTokenGuard)
   me(@CurrentUser() user: AuthenticatedUser): AuthenticatedUser {
     return user;
+  }
+
+  /**
+   * Cambia un token vigente por otro con los 15 minutos completos.
+   *
+   * Lo pide el navegador mientras la pestaña está abierta. El guard exige que
+   * el token actual siga siendo válido, así que esto alarga una sesión viva,
+   * nunca resucita una caducada.
+   */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AccessTokenGuard)
+  refresh(@CurrentUser() user: AuthenticatedUser): Promise<RenewedToken> {
+    return this.renewal.renew(user);
   }
 }

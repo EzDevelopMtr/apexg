@@ -15,6 +15,7 @@ import { LoginRateLimiterService } from './login-rate-limiter.service.js';
 import { LoginService } from './login.service.js';
 import { PasswordHasherService } from './password-hasher.service.js';
 import { PermissionGuard } from './permission.guard.js';
+import { TokenRenewalService } from './token-renewal.service.js';
 
 /**
  * Autenticación.
@@ -46,6 +47,7 @@ import { PermissionGuard } from './permission.guard.js';
     InitialAdministratorService,
     LoginRateLimiterService,
     LoginService,
+    TokenRenewalService,
     AccessTokenGuard,
     AuthorizationService,
     PermissionGuard,
