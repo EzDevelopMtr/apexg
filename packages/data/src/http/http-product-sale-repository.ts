@@ -21,6 +21,7 @@ interface ApiProductSaleResult {
   paymentMethod: string;
   soldAt: string;
   notes: string | null;
+  recordedBy: string;
 }
 
 /** Up to 3 decimals, matching `inventory_items` (`NUMERIC(12,3)`) — same rule as `HttpInventoryRepository`. */
@@ -42,6 +43,7 @@ function fromResult(row: ApiProductSaleResult): ProductSale {
     // uses local components (see `toIsoDate`), same fix as `paidOn`.
     soldOn: toIsoDate(new Date(row.soldAt)),
     notes: row.notes ?? "",
+    recordedBy: row.recordedBy,
   };
 }
 

@@ -14,6 +14,8 @@ export interface AttendanceResult {
   weeklyVisits: number;
   /** Visitas consumidas en la semana de ESTE ingreso, incluyéndolo. */
   usedThisWeek: number;
+  /** Quién lo registró, para el rastro de RNF-07. "—" si es anterior. */
+  recordedBy: string;
 }
 
 /** Un cliente tal como lo devuelve la búsqueda del panel de ingreso. */
@@ -25,6 +27,8 @@ export interface AttendanceCandidate {
   status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
+  /** Si tiene foto. El archivo lo sirve `GET /clients/:id/photo`. */
+  hasPhoto: boolean;
   weeklyVisits: number;
   usedThisWeek: number;
   /** True cuando ya está dentro y no ha marcado salida. */

@@ -12,4 +12,6 @@ export interface ProductSaleResult {
   paymentMethod: PaymentMethod;
   soldAt: string;
   notes: string | null;
+  /** Quién la registró, para el rastro de RNF-07. "—" si es anterior. */
+  recordedBy: string;
 }

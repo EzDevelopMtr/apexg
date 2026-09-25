@@ -6,6 +6,10 @@ import type { Database, DatabaseTransaction } from '../database/database.types.j
 import { clients, inventoryItems, productSales } from '../database/schema/schema.js';
 import { InventoryMovementService } from '../inventory/inventory-movement.service.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
+import {
+  AuthorLookupService,
+  authorName,
+} from '../shared/author-lookup.service.js';
 
 import type { CreateProductSaleDto } from './create-product-sale.dto.js';
 import type { ProductSaleResult } from './product-sales.types.js';
@@ -23,6 +27,7 @@ export class ProductSalesService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly movements: InventoryMovementService,
+    private readonly authors: AuthorLookupService,
   ) {}
 
   async create(
@@ -63,7 +68,12 @@ export class ProductSalesService {
         .returning();
       const row = assertDefined(insertedRow, 'INSERT into product_sales did not return a row.');
 
-      return this.toResult(row, item.name, client?.fullName ?? null);
+      return this.toResult(
+        row,
+        item.name,
+        client?.fullName ?? null,
+        await this.authors.nameOf(userId),
+      );
     });
   }
 
@@ -86,11 +96,13 @@ export class ProductSalesService {
       .where(eq(clients.companyId, companyId));
     const clientNameById = new Map(clientRows.map((client) => [client.id, client.fullName]));
 
+    const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
     return rows.map((row) =>
       this.toResult(
         row,
         itemNameById.get(row.inventoryItemId) ?? '—',
         row.clientId ? (clientNameById.get(row.clientId) ?? null) : null,
+        authorName(authors, row.createdBy),
       ),
     );
   }
@@ -121,6 +133,7 @@ export class ProductSalesService {
     row: ProductSaleRow,
     itemName: string,
     clientName: string | null,
+    recordedBy: string,
   ): ProductSaleResult {
     return {
       id: row.id,
@@ -133,6 +146,7 @@ export class ProductSalesService {
       paymentMethod: row.paymentMethod as ProductSaleResult['paymentMethod'],
       soldAt: row.soldAt,
       notes: row.notes,
+      recordedBy,
     };
   }
 }

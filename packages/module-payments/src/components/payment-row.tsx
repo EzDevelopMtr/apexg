@@ -51,6 +51,12 @@ export default function PaymentRow({
         {PAYMENT_METHOD_LABELS[payment.method]}
       </TableCell>
 
+      {/* Con varias personas en el mostrador, un cobro sin autor no se puede
+          preguntar a nadie (RNF-07). */}
+      <TableCell className="text-sm text-body-soft">
+        {payment.recordedBy}
+      </TableCell>
+
       <TableCell className="text-right">
         {payment.receiptPath ? (
           <Button

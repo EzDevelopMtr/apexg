@@ -13,6 +13,7 @@ type ClientRow = typeof clients.$inferSelect;
 export function toClientResult(
   row: ClientRow,
   membership: ClientMembershipSummary | null,
+  registeredBy: string,
 ): ClientResult {
   return {
     id: row.id,
@@ -25,8 +26,10 @@ export function toClientResult(
     bloodType: row.bloodType,
     birthDate: row.birthDate,
     medicalCondition: row.medicalCondition,
+    hasPhoto: row.photoPath !== null,
     state: row.state as ClientState,
     registeredAt: row.registeredAt,
+    registeredBy,
     retiredAt: row.retiredAt,
     currentMembership: membership,
   };

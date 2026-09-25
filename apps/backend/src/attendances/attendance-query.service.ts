@@ -10,6 +10,7 @@ import {
   membershipTypes,
 } from "../database/schema/schema.js";
 import { assertDefined } from "../shared/assert-defined.util.js";
+import { AuthorLookupService } from "../shared/author-lookup.service.js";
 
 import { dayStart, weekBounds } from "./attendance-week.util.js";
 import type { AttendanceResult } from "./attendances.types.js";
@@ -37,7 +38,10 @@ export function toStatus(state: number): "active" | "inactive" | "overdue" {
 /** Las lecturas del módulo, separadas para que el servicio quepa en 200 líneas. */
 @Injectable()
 export class AttendanceQueryService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly authors: AuthorLookupService,
+  ) {}
 
   /**
    * Días distintos con al menos un ingreso, no ingresos.
@@ -115,6 +119,7 @@ export class AttendanceQueryService {
         checkOut: attendances.checkOut,
         membershipName: membershipTypes.name,
         weeklyVisits: membershipTypes.weeklyVisits,
+        createdBy: attendances.createdBy,
       })
       .from(attendances)
       .innerJoin(clients, eq(clients.id, attendances.clientId))
@@ -139,12 +144,14 @@ export class AttendanceQueryService {
       row,
       "La asistencia recién escrita no se pudo leer.",
     );
+    const { createdBy, ...rest } = found;
     return {
-      ...found,
+      ...rest,
       // Igual que en la busqueda: el LEFT JOIN puede dar null si el plan se
       // borro despues del ingreso. Seis es el acceso completo.
       weeklyVisits: found.weeklyVisits ?? 6,
       usedThisWeek: await this.countThisWeek(companyId, found.clientId),
+      recordedBy: await this.authors.nameOf(createdBy),
     };
   }
 }

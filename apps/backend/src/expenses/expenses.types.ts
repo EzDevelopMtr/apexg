@@ -16,6 +16,8 @@ export interface ExpenseResult {
   concept: string;
   amount: string;
   expenseDate: string;
+  /** Quién lo registró, para el rastro de RNF-07. "—" si es anterior. */
+  recordedBy: string;
 }
 
 export interface ListExpensesFilter {

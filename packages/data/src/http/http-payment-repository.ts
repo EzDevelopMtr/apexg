@@ -35,6 +35,7 @@ interface ApiPaymentResult {
   paidAt: string;
   notes: string | null;
   receiptPath: string | null;
+  recordedBy: string;
 }
 
 /** Only what `/clients` carries that a payment needs to resolve its cycle. */
@@ -113,7 +114,7 @@ function fromResult(
     paidOn: toIsoDate(new Date(row.paidAt)),
     method: toMethod(row.paymentMethod),
     receiptPath: row.receiptPath ?? "",
-    recordedBy: "",
+    recordedBy: row.recordedBy,
     notes: row.notes ?? "",
   };
 }

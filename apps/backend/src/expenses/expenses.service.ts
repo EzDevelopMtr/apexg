@@ -5,6 +5,10 @@ import { DATABASE } from '../database/database.constants.js';
 import type { Database } from '../database/database.types.js';
 import { expenses } from '../database/schema/schema.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
+import {
+  AuthorLookupService,
+  authorName,
+} from '../shared/author-lookup.service.js';
 import { today } from '../shared/date.util.js';
 
 import type { CreateExpenseDto } from './create-expense.dto.js';
@@ -18,6 +22,7 @@ export class ExpensesService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly categories: ExpenseCategoryService,
+    private readonly authors: AuthorLookupService,
   ) {}
 
   async create(companyId: string, userId: string, input: CreateExpenseDto): Promise<ExpenseResult> {
@@ -38,6 +43,7 @@ export class ExpensesService {
     return this.toResult(
       assertDefined(row, 'INSERT into expenses did not return a row.'),
       category.name,
+      await this.authors.nameOf(userId),
     );
   }
 
@@ -62,7 +68,14 @@ export class ExpensesService {
     const categories = await this.categories.list(companyId);
     const nameById = new Map(categories.map((category) => [category.id, category.name]));
 
-    return rows.map((row) => this.toResult(row, nameById.get(row.categoryId) ?? '—'));
+    const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
+    return rows.map((row) =>
+      this.toResult(
+        row,
+        nameById.get(row.categoryId) ?? '—',
+        authorName(authors, row.createdBy),
+      ),
+    );
   }
 
   async findOne(companyId: string, id: string): Promise<ExpenseResult> {
@@ -74,7 +87,11 @@ export class ExpensesService {
       throw new NotFoundException('El egreso no existe.');
     }
     const category = await this.categories.load(companyId, row.categoryId);
-    return this.toResult(row, category.name);
+    return this.toResult(
+      row,
+      category.name,
+      await this.authors.nameOf(row.createdBy),
+    );
   }
 
   async update(companyId: string, id: string, input: UpdateExpenseDto): Promise<ExpenseResult> {
@@ -106,7 +123,11 @@ export class ExpensesService {
       .where(and(eq(expenses.id, id), eq(expenses.companyId, companyId)));
   }
 
-  private toResult(row: typeof expenses.$inferSelect, categoryName: string): ExpenseResult {
+  private toResult(
+    row: typeof expenses.$inferSelect,
+    categoryName: string,
+    recordedBy: string,
+  ): ExpenseResult {
     return {
       id: row.id,
       categoryId: row.categoryId,
@@ -114,6 +135,7 @@ export class ExpensesService {
       concept: row.concept,
       amount: row.amount,
       expenseDate: row.expenseDate,
+      recordedBy,
     };
   }
 }

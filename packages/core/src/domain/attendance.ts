@@ -38,6 +38,8 @@ export interface Attendance {
   readonly weeklyVisits: number;
   /** Days of the week already spent, including this one. */
   readonly usedThisWeek: number;
+  /** Quién lo registró (RNF-07). "—" en los anteriores al rastro. */
+  readonly recordedBy: string;
 }
 
 /** Still in the gym: entered and not yet marked out. */

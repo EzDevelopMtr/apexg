@@ -8,7 +8,7 @@ import type { Collection } from "@apexg/module-kit";
 
 export type SaleDraft = Omit<
   ProductSale,
-  "id" | "itemName" | "clientName" | "soldOn"
+  "id" | "itemName" | "clientName" | "soldOn" | "recordedBy"
 >;
 
 export interface UseProductSalesResult extends Collection<ProductSale> {

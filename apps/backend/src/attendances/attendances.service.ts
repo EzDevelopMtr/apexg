@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -21,6 +20,7 @@ import {
   toStatus,
 } from "./attendance-query.service.js";
 import { dayStart } from "./attendance-week.util.js";
+import { CheckInGuardService } from "./check-in-guard.service.js";
 import type {
   AttendanceCandidate,
   AttendanceResult,
@@ -35,6 +35,7 @@ const CLIENT_WITH_PLAN = {
   membershipName: membershipTypes.name,
   weeklyVisits: membershipTypes.weeklyVisits,
   endDate: clientMemberships.endDate,
+  photoPath: clients.photoPath,
 };
 
 @Injectable()
@@ -42,6 +43,7 @@ export class AttendancesService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly queries: AttendanceQueryService,
+    private readonly guard: CheckInGuardService,
   ) {}
 
   /**
@@ -92,6 +94,7 @@ export class AttendancesService {
         status: row.membershipName === null ? null : toStatus(row.state),
         membershipName: row.membershipName,
         expirationDate: row.endDate,
+        hasPhoto: row.photoPath !== null,
         // El LEFT JOIN da null a quien no tiene plan. Ese caso ya se rechaza
         // por `status`, asi que el cupo no se llega a leer; se normaliza a 6
         // para no arrastrar un nulo por todas las capas de arriba.
@@ -110,7 +113,11 @@ export class AttendancesService {
    * depende de ese paquete, y sin ello bastaría una petición a mano para
    * saltarse el control que la pantalla aplica.
    */
-  async create(companyId: string, clientId: string): Promise<AttendanceResult> {
+  async create(
+    companyId: string,
+    userId: string,
+    clientId: string,
+  ): Promise<AttendanceResult> {
     const [client] = await this.db
       .select({
         state: clients.state,
@@ -138,7 +145,7 @@ export class AttendancesService {
     if (!client) {
       throw new NotFoundException("El cliente no existe.");
     }
-    await this.assertMayEnter(companyId, clientId, client);
+    await this.guard.assertMayEnter(companyId, clientId, client);
 
     // Una fila por persona y día. Quien sale y vuelve REABRE la suya en vez de
     // abrir otra: el cupo se cuenta por días, así que una segunda fila no
@@ -155,7 +162,12 @@ export class AttendancesService {
 
     const [row] = await this.db
       .insert(attendances)
-      .values({ companyId, clientId, checkIn: new Date().toISOString() })
+      .values({
+        companyId,
+        clientId,
+        checkIn: new Date().toISOString(),
+        createdBy: userId,
+      })
       .returning();
 
     const inserted = assertDefined(
@@ -216,40 +228,5 @@ export class AttendancesService {
     return Promise.all(
       rows.map((row) => this.queries.describe(companyId, row.id)),
     );
-  }
-
-  private async assertMayEnter(
-    companyId: string,
-    clientId: string,
-    client: {
-      state: number;
-      weeklyVisits: number | null;
-      membershipName: string | null;
-    },
-  ): Promise<void> {
-    if (client.membershipName === null) {
-      throw new ConflictException("No tiene una membresía registrada.");
-    }
-    const status = toStatus(client.state);
-    if (status === "inactive") {
-      throw new ConflictException("Cliente retirado.");
-    }
-    if (status === "overdue") {
-      throw new ConflictException(
-        "Membresía vencida. Debe renovar para ingresar.",
-      );
-    }
-    if (client.weeklyVisits === null) return;
-
-    // Si ya entró hoy, volver a entrar no estrena día: el cupo se cuenta por
-    // días distintos, así que salir a almorzar y regresar no debe bloquearse
-    // aunque el cupo esté justo.
-    const [used, enteredToday] = await Promise.all([
-      this.queries.countThisWeek(companyId, clientId),
-      this.queries.hasEnteredToday(companyId, clientId),
-    ]);
-    if (!enteredToday && used >= client.weeklyVisits) {
-      throw new ConflictException("Ya usó todos sus días de esta semana.");
-    }
   }
 }

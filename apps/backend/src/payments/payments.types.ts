@@ -47,6 +47,8 @@ export interface PaymentResult {
   receiptPath: string | null;
   /** Presente solo si el plan tiene reparto y la membresía tiene entrenador. */
   commission: CommissionSummary | null;
+  /** Quién lo registró, para el rastro de RNF-07. "—" si es anterior. */
+  recordedBy: string;
 }
 
 export interface ListPaymentsFilter {

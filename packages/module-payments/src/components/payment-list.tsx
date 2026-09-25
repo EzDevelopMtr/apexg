@@ -14,6 +14,7 @@ const HEADERS = [
   "Tipo",
   "Saldo",
   "Método",
+  "Registró",
   "Comprobante",
 ] as const;
 

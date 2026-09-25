@@ -15,6 +15,7 @@ interface ApiAttendance {
   membershipName: string | null;
   weeklyVisits: number;
   usedThisWeek: number;
+  recordedBy: string;
 }
 
 interface ApiCandidate {
@@ -24,6 +25,7 @@ interface ApiCandidate {
   status: "active" | "inactive" | "overdue" | null;
   membershipName: string | null;
   expirationDate: string | null;
+  hasPhoto: boolean;
   weeklyVisits: number;
   usedThisWeek: number;
   inside: boolean;
@@ -55,6 +57,7 @@ function fromApi(row: ApiAttendance): Attendance {
     membershipName: row.membershipName ?? "Sin membresía",
     weeklyVisits: row.weeklyVisits,
     usedThisWeek: row.usedThisWeek,
+    recordedBy: row.recordedBy,
   };
 }
 
@@ -66,6 +69,7 @@ function candidateFromApi(row: ApiCandidate): AttendanceCandidate {
     status: row.status,
     membershipName: row.membershipName ?? "Sin membresía",
     expiresOn: row.expirationDate,
+    hasPhoto: row.hasPhoto,
     weeklyVisits: row.weeklyVisits,
     usedThisWeek: row.usedThisWeek,
     inside: row.inside,

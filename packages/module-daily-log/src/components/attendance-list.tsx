@@ -32,6 +32,9 @@ function Row({
         </span>
         <span className="block truncate text-sm text-body-soft">
           {entry.membershipName}
+          {/* Quién lo registró, para poder preguntarle cuando hay varias
+              recepcionistas en el turno (RNF-07). */}
+          {entry.recordedBy && ` · registró ${entry.recordedBy}`}
         </span>
       </span>
 

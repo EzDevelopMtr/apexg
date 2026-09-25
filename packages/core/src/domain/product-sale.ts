@@ -28,4 +28,6 @@ export interface ProductSale {
   readonly paymentMethod: PaymentMethod;
   readonly soldOn: IsoDate;
   readonly notes: string;
+  /** Quién la registró (RNF-07). "—" en las anteriores al rastro. */
+  readonly recordedBy: string;
 }

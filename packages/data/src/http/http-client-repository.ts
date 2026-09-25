@@ -8,7 +8,8 @@ import type {
 import { toClientId, toMembershipTypeId, toTrainerId } from "@apexg/core";
 import type { ClientRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
-import { ApiError, apiFetch } from "./http-client";
+import { API_BASE, ApiError, apiFetch } from "./http-client";
+import { toFormData } from "./multipart";
 
 type ApiClientState = 1 | 2 | 3;
 
@@ -33,6 +34,7 @@ interface ApiClientResult {
   bloodType: string | null;
   birthDate: string | null;
   medicalCondition: string | null;
+  hasPhoto: boolean;
   state: ApiClientState;
   currentMembership: ApiMembershipSummary | null;
 }
@@ -71,6 +73,7 @@ function fromResult(row: ApiClientResult): Client {
     bloodType: row.bloodType ?? "",
     birthDate: row.birthDate === null ? undefined : (row.birthDate as IsoDate),
     medicalCondition: row.medicalCondition ?? "",
+    hasPhoto: row.hasPhoto,
   };
 }
 
@@ -139,11 +142,23 @@ export class HttpClientRepository implements ClientRepository {
     }
   }
 
-  async create(draft: ClientDraft): Promise<Client> {
-    const row = await apiFetch<ApiClientResult>("/clients", {
-      method: "POST",
-      body: toCreateBody(draft),
-    });
+  photoUrl(clientId: ClientId): string {
+    return `${API_BASE}/clients/${clientId}/photo`;
+  }
+
+  async create(draft: ClientDraft, photo?: Blob): Promise<Client> {
+    const body = toCreateBody(draft);
+    // La foto viaja en la MISMA petición que el cliente: en dos llamadas, un
+    // fallo en la segunda dejaría clientes sin foto y archivos huérfanos.
+    const row = photo
+      ? await apiFetch<ApiClientResult>("/clients", {
+          method: "POST",
+          formData: toFormData(body, photo),
+        })
+      : await apiFetch<ApiClientResult>("/clients", {
+          method: "POST",
+          body,
+        });
     return fromResult(row);
   }
 
@@ -172,7 +187,7 @@ export class HttpClientRepository implements ClientRepository {
     return fromResult(row);
   }
 
-  async update(client: Client): Promise<Client> {
+  async update(client: Client, photo?: Blob): Promise<Client> {
     const current = await this.findById(client.id);
     if (!current) {
       throw new RecordNotFoundError("client", client.id);
@@ -200,10 +215,16 @@ export class HttpClientRepository implements ClientRepository {
       return fromResult(retired);
     }
 
-    const row = await apiFetch<ApiClientResult>(`/clients/${client.id}`, {
-      method: "PATCH",
-      body: toUpdateBody(client),
-    });
+    const body = toUpdateBody(client);
+    const row = photo
+      ? await apiFetch<ApiClientResult>(`/clients/${client.id}`, {
+          method: "PATCH",
+          formData: toFormData(body, photo),
+        })
+      : await apiFetch<ApiClientResult>(`/clients/${client.id}`, {
+          method: "PATCH",
+          body,
+        });
 
     // Segundo, y solo si hace falta: cambiar de plan NO edita la membresía
     // vigente, abre una nueva y cierra la anterior. Los pagos cuelgan de la

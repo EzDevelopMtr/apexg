@@ -5,24 +5,29 @@ import { DATABASE } from '../database/database.constants.js';
 import type { Database, DatabaseTransaction } from '../database/database.types.js';
 import { clientMemberships, membershipTypes, payments } from '../database/schema/schema.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
+import {
+  classifyPaymentType,
+  toPaymentResult,
+} from './payment-result.mapper.js';
+import {
+  AuthorLookupService,
+  authorName,
+} from '../shared/author-lookup.service.js';
 import { fromCents, toCents } from '../shared/money-amount.util.js';
 
 import { PaymentCommissionService } from './payment-commission.service.js';
 import type { CreatePaymentDto } from './create-payment.dto.js';
 import type {
-  CommissionSummary,
   ListPaymentsFilter,
   PaymentResult,
-  PaymentType,
 } from './payments.types.js';
-
-type PaymentRow = typeof payments.$inferSelect;
 
 @Injectable()
 export class PaymentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly commissions: PaymentCommissionService,
+    private readonly authors: AuthorLookupService,
   ) {}
 
   async create(
@@ -51,7 +56,7 @@ export class PaymentsService {
       this.checkAmount(amountCents, balanceBeforeCents, plan);
 
       const balanceAfterCents = balanceBeforeCents - amountCents;
-      const paymentType = this.classifyPaymentType(
+      const paymentType = classifyPaymentType(
         priorPayments.length,
         balanceAfterCents <= 0,
       );
@@ -84,7 +89,11 @@ export class PaymentsService {
         paidAt,
       });
 
-      return this.toResult(payment, commission);
+      return toPaymentResult(
+        payment,
+        commission,
+        await this.authors.nameOf(userId),
+      );
     });
   }
 
@@ -104,7 +113,14 @@ export class PaymentsService {
       companyId,
       rows.map((row) => row.id),
     );
-    return rows.map((row) => this.toResult(row, commissions.get(row.id) ?? null));
+    const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
+    return rows.map((row) =>
+      toPaymentResult(
+        row,
+        commissions.get(row.id) ?? null,
+        authorName(authors, row.createdBy),
+      ),
+    );
   }
 
   async findOne(companyId: string, id: string): Promise<PaymentResult> {
@@ -117,7 +133,11 @@ export class PaymentsService {
     }
 
     const commissions = await this.commissions.byPaymentId(companyId, [id]);
-    return this.toResult(row, commissions.get(id) ?? null);
+    return toPaymentResult(
+      row,
+      commissions.get(id) ?? null,
+      await this.authors.nameOf(row.createdBy),
+    );
   }
 
   private async loadMembership(
@@ -201,26 +221,4 @@ export class PaymentsService {
    * suficiente para permitir 3+ abonos intermedios, RF-12) vive aparte en
    * `installment_number` — ver `create()`.
    */
-  private classifyPaymentType(previousCount: number, settles: boolean): PaymentType {
-    if (previousCount === 0) {
-      return settles ? 'full' : 'first_installment';
-    }
-    return settles ? 'final_installment' : 'second_installment';
-  }
-
-  private toResult(row: PaymentRow, commission: CommissionSummary | null): PaymentResult {
-    return {
-      id: row.id,
-      clientMembershipId: row.clientMembershipId,
-      amount: row.amount,
-      paymentType: row.paymentType as PaymentType,
-      installmentNumber: row.installmentNumber,
-      paymentMethod: row.paymentMethod as PaymentResult['paymentMethod'],
-      balanceAfter: row.balanceAfter,
-      paidAt: row.paidAt,
-      notes: row.notes,
-      receiptPath: row.receiptPath,
-      commission,
-    };
-  }
 }

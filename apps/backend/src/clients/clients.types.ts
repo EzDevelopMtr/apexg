@@ -41,8 +41,15 @@ export interface ClientResult {
   bloodType: string | null;
   birthDate: string | null;
   medicalCondition: string | null;
+  /**
+   * Si tiene foto, no cuál: el nombre del archivo es cosa del servidor, y el
+   * navegador solo necesita saber si pedirla a `GET /clients/:id/photo`.
+   */
+  hasPhoto: boolean;
   state: ClientState;
   registeredAt: string;
+  /** Quién lo dio de alta, para el rastro de RNF-07. "—" si es anterior. */
+  registeredBy: string;
   retiredAt: string | null;
   currentMembership: ClientMembershipSummary | null;
 }

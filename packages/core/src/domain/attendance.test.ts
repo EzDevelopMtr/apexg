@@ -30,6 +30,7 @@ function visit(id: string, leftAt = ""): Attendance {
     membershipName: "Mensualidad",
     weeklyVisits: 3,
     usedThisWeek: 1,
+    recordedBy: "Recepción",
   };
 }
 

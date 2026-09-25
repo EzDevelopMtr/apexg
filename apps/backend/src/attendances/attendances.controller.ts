@@ -67,7 +67,7 @@ export class AttendancesController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateAttendanceDto,
   ): Promise<AttendanceResult> {
-    return this.attendances.create(user.companyId, dto.clientId);
+    return this.attendances.create(user.companyId, user.id, dto.clientId);
   }
 
   @Post(":clientId/check-out")

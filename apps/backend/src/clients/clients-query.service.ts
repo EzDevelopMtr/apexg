@@ -8,6 +8,10 @@ import { clients } from "../database/schema/schema.js";
 import { ClientMembershipLookupService } from "./client-membership-lookup.service.js";
 import { ClientOverdueSyncService } from "./client-overdue-sync.service.js";
 import { toClientResult } from "./client-result.mapper.js";
+import {
+  AuthorLookupService,
+  authorName,
+} from "../shared/author-lookup.service.js";
 import type { ClientResult, ListClientsFilter } from "./clients.types.js";
 import { calculateEndDate, today } from "./membership-date.util.js";
 
@@ -26,7 +30,19 @@ export class ClientsQueryService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly overdueSync: ClientOverdueSyncService,
     private readonly memberships: ClientMembershipLookupService,
+    private readonly authors: AuthorLookupService,
   ) {}
+
+  /**
+   * El nombre de quien está haciendo la acción.
+   *
+   * Se expone desde aquí para que `ClientsService` no tenga que inyectar
+   * `AuthorLookupService` por su cuenta: ya depende de este servicio, y una
+   * dependencia más lo pasaba del límite de parámetros del constructor.
+   */
+  authorName(userId: string): Promise<string> {
+    return this.authors.nameOf(userId);
+  }
 
   async findAll(
     companyId: string,
@@ -48,8 +64,13 @@ export class ClientsQueryService {
     const memberships = await this.memberships.latestFor(
       rows.map((row) => row.id),
     );
+    const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
     const results = rows.map((row) =>
-      toClientResult(row, memberships.get(row.id) ?? null),
+      toClientResult(
+        row,
+        memberships.get(row.id) ?? null,
+        authorName(authors, row.createdBy),
+      ),
     );
 
     return filter.expiringWithinDays === undefined
@@ -62,7 +83,11 @@ export class ClientsQueryService {
 
     const row = await this.load(companyId, id);
     const memberships = await this.memberships.latestFor([id]);
-    return toClientResult(row, memberships.get(id) ?? null);
+    return toClientResult(
+      row,
+      memberships.get(id) ?? null,
+      await this.authors.nameOf(row.createdBy),
+    );
   }
 
   async load(companyId: string, id: string): Promise<ClientRow> {

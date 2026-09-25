@@ -38,8 +38,12 @@ export class ClientsService {
     companyId: string,
     userId: string,
     input: CreateClientDto,
+    photoPath: string | null = null,
   ): Promise<ClientResult> {
     const startDate = input.startDate ?? today();
+    // Fuera de la transacción: es una lectura del usuario que ya está
+    // autenticado, no parte de lo que se escribe.
+    const author = await this.queries.authorName(userId);
 
     return this.db.transaction(async (tx) => {
       const plan = await this.memberships.loadActivePlan(
@@ -91,6 +95,7 @@ export class ClientsService {
           bloodType: input.bloodType ?? null,
           birthDate: input.birthDate ?? null,
           medicalCondition: input.medicalCondition ?? null,
+          photoPath,
           registeredAt: startDate,
           createdBy: userId,
         })
@@ -110,7 +115,7 @@ export class ClientsService {
         endDate,
       });
 
-      return toClientResult(client, membership);
+      return toClientResult(client, membership, author);
     });
   }
 
@@ -129,10 +134,17 @@ export class ClientsService {
     companyId: string,
     id: string,
     input: UpdateClientDto,
+    photoPath?: string,
   ): Promise<ClientResult> {
     await this.queries.load(companyId, id);
 
-    const patch = toClientPatch(input);
+    // `undefined` es "no mandó foto nueva", que no es lo mismo que borrarla:
+    // guardar la vieja aquí permite borrarla del disco solo si de verdad la
+    // reemplazaron.
+    const patch = {
+      ...toClientPatch(input),
+      ...(photoPath !== undefined ? { photoPath } : {}),
+    };
 
     if (Object.keys(patch).length > 0) {
       await this.db
@@ -142,6 +154,12 @@ export class ClientsService {
     }
 
     return this.findOne(companyId, id);
+  }
+
+  /** El nombre del archivo de la foto, o null. Solo lo usa la ruta que la sirve. */
+  async photoPathOf(companyId: string, id: string): Promise<string | null> {
+    const client = await this.queries.load(companyId, id);
+    return client.photoPath;
   }
 
   /**

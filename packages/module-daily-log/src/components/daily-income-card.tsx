@@ -43,12 +43,15 @@ export default function DailyIncomeCard({
   const salesToday = productSales.filter((sale) => sale.soldOn === on);
   const count = paymentsToday.length + salesToday.length;
 
+  // El autor va en la misma línea que el concepto: al cuadrar la caja, la
+  // pregunta que sigue a "¿de dónde salió esto?" es "¿quién lo recibió?".
   const paymentRows: readonly IncomeSourceRow[] = paymentsToday.map(
     (payment) => ({
       key: payment.id,
-      label:
+      label: `${
         clients.find((client) => client.id === payment.clientId)?.fullName ??
-        "Cliente",
+        "Cliente"
+      } · ${payment.recordedBy}`,
       amount: payment.amount,
     }),
   );
@@ -56,8 +59,8 @@ export default function DailyIncomeCard({
   const saleRows: readonly IncomeSourceRow[] = salesToday.map((sale) => ({
     key: sale.id,
     label: sale.clientName
-      ? `${sale.itemName} × ${sale.quantity} · ${sale.clientName}`
-      : `${sale.itemName} × ${sale.quantity}`,
+      ? `${sale.itemName} × ${sale.quantity} · ${sale.clientName} · ${sale.recordedBy}`
+      : `${sale.itemName} × ${sale.quantity} · ${sale.recordedBy}`,
     amount: sale.amount,
   }));
 

@@ -17,6 +17,7 @@ interface ApiExpenseResult {
   concept: string;
   amount: string;
   expenseDate: string;
+  recordedBy: string;
 }
 
 function fromCategoryResult(row: ApiExpenseCategoryResult): ExpenseCategory {
@@ -34,11 +35,7 @@ function fromExpenseResult(row: ApiExpenseResult): Expense {
     description: row.concept,
     amount: fromApiString(row.amount),
     spentOn: row.expenseDate as IsoDate,
-    // The backend records `created_by` (a user id) but `ExpenseResult`
-    // does not expose it — nothing on this side to resolve it from.
-    // `ExpenseList` shows this column, so it will read blank until the
-    // backend's read DTO carries who logged the expense.
-    recordedBy: "",
+    recordedBy: row.recordedBy,
   };
 }
 
