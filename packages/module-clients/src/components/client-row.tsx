@@ -1,36 +1,44 @@
 "use client";
 
-import { Pencil, UserRound } from "lucide-react";
+import { Pencil } from "lucide-react";
 import type { Client, IsoDate, MembershipType } from "@apexg/core";
-import { resolveStatus } from "@apexg/core";
-import { Badge, Button, TableCell, TableRow } from "@apexg/ui";
-import { STATUS_LABELS, STATUS_TONES } from "./client-status";
+import { expiryNotice, resolveStanding } from "@apexg/core";
+import { Avatar, Badge, Button, TableCell, TableRow } from "@apexg/ui";
+import { STANDING_LABELS, STANDING_TONES } from "./client-status";
 
 export interface ClientRowProps {
   client: Client;
   referenceDate: IsoDate;
   /** `undefined` while the catalogue is still loading, or if the plan was since removed. */
   membershipType: MembershipType | undefined;
+  /** Dónde está su foto. `undefined` si no tiene. */
+  photoUrl: string | undefined;
   onEdit: (client: Client) => void;
+  onOpenPhoto: () => void;
 }
 
 export default function ClientRow({
   client,
   referenceDate,
   membershipType,
+  photoUrl,
   onEdit,
+  onOpenPhoto,
 }: ClientRowProps) {
   // Derived rather than read from the record, so the row cannot show "active"
   // for a membership that lapsed overnight (RF-21).
-  const status = resolveStatus(client, referenceDate);
+  const standing = resolveStanding(client, referenceDate);
+  const soon = standing === "expiringSoon";
 
   return (
     <TableRow>
       <TableCell>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-brand-ink">
-            <UserRound size={19} />
-          </div>
+          <Avatar
+            name={client.fullName}
+            photoUrl={photoUrl}
+            onOpen={onOpenPhoto}
+          />
           <div>
             <p className="font-semibold text-body">{client.fullName}</p>
             <p className="text-sm text-body-soft">{client.email}</p>
@@ -45,10 +53,21 @@ export default function ClientRow({
       </TableCell>
 
       <TableCell>
-        <Badge tone={STATUS_TONES[status]}>{STATUS_LABELS[status]}</Badge>
+        <Badge tone={STANDING_TONES[standing]}>
+          {STANDING_LABELS[standing]}
+        </Badge>
       </TableCell>
 
-      <TableCell className="text-sm">{client.expirationDate}</TableCell>
+      <TableCell className="text-sm">
+        {/* La fecha sola no dice nada a quien no lleva el calendario en la
+            cabeza: al lado va cuánto falta, y en ámbar cuando urge. */}
+        <p className={soon ? "font-semibold text-warn-ink" : "text-body"}>
+          {client.expirationDate}
+        </p>
+        {soon && (
+          <p className="text-warn-ink">{expiryNotice(client, referenceDate)}</p>
+        )}
+      </TableCell>
 
       <TableCell className="text-right">
         <Button

@@ -70,6 +70,11 @@ export interface Client {
    */
   readonly birthDate?: IsoDate;
   readonly medicalCondition: string;
+  /**
+   * Si tiene foto, no cuál: el archivo lo nombra y lo sirve el servidor, y
+   * quien pinta la fila solo necesita saber si pedirla.
+   */
+  readonly hasPhoto: boolean;
 }
 
 /**
@@ -122,8 +127,68 @@ export function isExpiringSoon(
   if (resolveStatus(client, referenceDate) !== "active") {
     return false;
   }
-  const remaining = daysUntilExpiration(client, referenceDate);
+  return expiresWithin(client.expirationDate, referenceDate, withinDays);
+}
+
+/**
+ * Lo mismo, sobre una fecha suelta.
+ *
+ * El panel de ingreso no maneja `Client` entero: trae una vista de lectura con
+ * el vencimiento y poco más. La regla de cuántos días cuentan como "pronto"
+ * es una sola y vive aquí, no duplicada en cada pantalla que la pregunte.
+ */
+export function expiresWithin(
+  expirationDate: IsoDate,
+  referenceDate: IsoDate,
+  withinDays: number = EXPIRING_SOON_DAYS,
+): boolean {
+  const remaining = daysBetween(referenceDate, expirationDate);
   return remaining >= 0 && remaining <= withinDays;
+}
+
+/** El aviso en español para una fecha de vencimiento suelta. */
+export function noticeFor(
+  expirationDate: IsoDate,
+  referenceDate: IsoDate,
+): string {
+  const remaining = daysBetween(referenceDate, expirationDate);
+  if (remaining < 0) return "Vencida";
+  if (remaining === 0) return "Vence hoy";
+  if (remaining === 1) return "Vence mañana";
+  return `Vence en ${remaining} días`;
+}
+
+/**
+ * Cómo está el cliente, para quien lo tiene enfrente.
+ *
+ * Es `ClientStatus` más "por vencer", que NO es un cuarto estado de §4.2: no
+ * se guarda, se deduce de la fecha cada vez que se mira. Existe aparte porque
+ * el mostrador necesita distinguir a quien está al día de quien lo estará
+ * hasta el jueves, y `ClientStatus` responde "activo" a los dos.
+ */
+export type ClientStanding = ClientStatus | "expiringSoon";
+
+export function resolveStanding(
+  client: Client,
+  referenceDate: IsoDate,
+  withinDays: number = EXPIRING_SOON_DAYS,
+): ClientStanding {
+  const status = resolveStatus(client, referenceDate);
+  if (status !== "active") return status;
+  return isExpiringSoon(client, referenceDate, withinDays)
+    ? "expiringSoon"
+    : "active";
+}
+
+/**
+ * Cuántos días le quedan, en español y ya redondeado.
+ *
+ * Vive aquí y no en el componente porque "hoy" y "mañana" son casos que
+ * cambian la frase entera, no el formato: un `${dias} días` diría "0 días"
+ * el mismo día del vencimiento.
+ */
+export function expiryNotice(client: Client, referenceDate: IsoDate): string {
+  return noticeFor(client.expirationDate, referenceDate);
 }
 
 /** Marks a client as retired. No reason is required (SRS §4.5). */

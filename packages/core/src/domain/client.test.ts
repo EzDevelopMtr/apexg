@@ -7,8 +7,10 @@ import type { Client, ClientStatus } from "./client";
 import {
   createClient,
   daysUntilExpiration,
+  expiryNotice,
   isExpiringSoon,
   matchesQuery,
+  resolveStanding,
   resolveStatus,
   retire,
   toClientId,
@@ -37,6 +39,7 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     emergencyContactPhone: "",
     bloodType: "",
     medicalCondition: "",
+    hasPhoto: false,
     ...overrides,
   };
 }
@@ -94,6 +97,66 @@ describe("isExpiringSoon (derived view, not a stored state)", () => {
       expirationDate: date("2026-06-16"),
     });
     expect(isExpiringSoon(client, TODAY)).toBe(false);
+  });
+});
+
+describe("resolveStanding (vista, no un cuarto estado de §4.2)", () => {
+  it("distingue al que está al día del que vence esta semana", () => {
+    expect(resolveStanding(makeClient(), TODAY)).toBe("active");
+    expect(
+      resolveStanding(makeClient({ expirationDate: date("2026-06-20") }), TODAY),
+    ).toBe("expiringSoon");
+  });
+
+  it("el mismo día del vencimiento todavía está por vencer, no vencido", () => {
+    expect(resolveStanding(makeClient({ expirationDate: TODAY }), TODAY)).toBe(
+      "expiringSoon",
+    );
+  });
+
+  it("la mora y el retiro mandan sobre el aviso", () => {
+    expect(
+      resolveStanding(
+        makeClient({ expirationDate: date("2020-01-01") }),
+        TODAY,
+      ),
+    ).toBe("overdue");
+    expect(
+      resolveStanding(
+        makeClient({ status: "inactive", expirationDate: date("2026-06-20") }),
+        TODAY,
+      ),
+    ).toBe("inactive");
+  });
+
+  it("respeta una ventana distinta a la de siete días", () => {
+    const client = makeClient({ expirationDate: date("2026-06-25") });
+
+    expect(resolveStanding(client, TODAY)).toBe("active");
+    expect(resolveStanding(client, TODAY, 15)).toBe("expiringSoon");
+  });
+});
+
+describe("expiryNotice", () => {
+  it("dice hoy y mañana con palabras, no con un cero", () => {
+    expect(expiryNotice(makeClient({ expirationDate: TODAY }), TODAY)).toBe(
+      "Vence hoy",
+    );
+    expect(
+      expiryNotice(makeClient({ expirationDate: date("2026-06-16") }), TODAY),
+    ).toBe("Vence mañana");
+  });
+
+  it("cuenta los días que faltan", () => {
+    expect(
+      expiryNotice(makeClient({ expirationDate: date("2026-06-20") }), TODAY),
+    ).toBe("Vence en 5 días");
+  });
+
+  it("pasada la fecha, ya no cuenta días", () => {
+    expect(
+      expiryNotice(makeClient({ expirationDate: date("2026-06-01") }), TODAY),
+    ).toBe("Vencida");
   });
 });
 
