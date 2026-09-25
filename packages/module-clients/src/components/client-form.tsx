@@ -11,7 +11,11 @@ import ClientFormFields from "./client-form-fields";
 export interface ClientFormProps {
   /** Present when editing, absent when creating. */
   client?: Client;
-  onSave: (draft: ClientDraft, existing?: Client) => Promise<void>;
+  onSave: (
+    draft: ClientDraft,
+    existing?: Client,
+    photo?: File,
+  ) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -39,7 +43,7 @@ export default function ClientForm({
     setSaving(true);
     setFailure(null);
     try {
-      await onSave(draft, client);
+      await onSave(draft, client, form.values.photo ?? undefined);
     } catch (cause) {
       setFailure(
         cause instanceof Error

@@ -114,7 +114,7 @@ export class PaymentsController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<StreamableFile> {
     const payment = await this.payments.findOne(user.companyId, id);
-    const { stream, contentType } = this.receipts.open(
+    const { stream, contentType } = this.receipts.openReceipt(
       payment.receiptPath ?? "",
     );
     response.setHeader("Content-Type", contentType);

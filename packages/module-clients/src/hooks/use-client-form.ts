@@ -38,6 +38,8 @@ export interface ClientFormValues {
   /** Empty until set. Only settable at registration — see `Client.birthDate`. */
   birthDate: string;
   medicalCondition: string;
+  /** Foto recién elegida. `null` = no tocó la foto. */
+  photo: File | null;
 }
 
 export type ClientFormErrors = Partial<Record<keyof ClientFormValues, string>>;
@@ -62,6 +64,9 @@ function initialValues(client?: Client): ClientFormValues {
     bloodType: client?.bloodType ?? "",
     birthDate: client?.birthDate ?? "",
     medicalCondition: client?.medicalCondition ?? "",
+    // Nunca se precarga con la que ya tiene: el `<input type="file">` no
+    // admite un valor inicial, y fingir que sí solo confundiría.
+    photo: null,
   };
 }
 
@@ -178,6 +183,8 @@ export function useClientForm(client?: Client): UseClientFormResult {
       bloodType: values.bloodType,
       birthDate: values.birthDate ? (values.birthDate as IsoDate) : undefined,
       medicalCondition: values.medicalCondition.trim(),
+      // Lo decide el servidor al guardar el archivo; el borrador no lo sabe.
+      hasPhoto: false,
     };
   }, [values, membershipTypes.items]);
 

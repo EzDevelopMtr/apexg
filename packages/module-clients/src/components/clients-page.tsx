@@ -28,7 +28,8 @@ export default function ClientsPage({
   // function cannot cross the server/client boundary.
   const section = getClientSection(sectionId);
 
-  const { items: clients, state, error, save, reload } = useClients();
+  const { items: clients, state, error, save, photoUrl, reload } =
+    useClients();
 
   // Pinned once per mount: recomputing "today" on every render would make the
   // derived statuses flicker across a midnight boundary mid-session.
@@ -39,7 +40,7 @@ export default function ClientsPage({
       <div className="p-8">
         <ClientsFormView
           title={section.title}
-          onSave={(draft) => save(draft)}
+          onSave={(draft, _existing, photo) => save(draft, undefined, photo)}
           onDone={() => onNavigate("all")}
         />
       </div>
@@ -60,6 +61,7 @@ export default function ClientsPage({
           section={section}
           referenceDate={referenceDate}
           onSave={save}
+          photoUrl={photoUrl}
           onAdd={() => onNavigate("add")}
         />
       )}

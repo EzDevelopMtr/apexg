@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module.js";
 
 import { ClientMembershipService } from "./client-membership.service.js";
+import { ClientPhotoService } from "./client-photo.service.js";
 import { ClientMembershipLookupService } from "./client-membership-lookup.service.js";
 import { ClientsQueryService } from "./clients-query.service.js";
 import { ClientRenewalService } from "./client-renewal.service.js";
@@ -28,6 +29,7 @@ import { ClientsService } from "./clients.service.js";
     ClientRenewalService,
     ClientMembershipLookupService,
     ClientsQueryService,
+    ClientPhotoService,
   ],
   exports: [ClientsService, ClientOverdueSyncService],
 })

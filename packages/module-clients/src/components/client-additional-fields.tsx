@@ -1,7 +1,7 @@
 "use client";
 
 import { BLOOD_TYPES } from "@apexg/core";
-import { Input, Select, Textarea, type SelectOption } from "@apexg/ui";
+import { FileInput, Input, Select, Textarea, type SelectOption } from "@apexg/ui";
 import type { UseClientFormResult } from "../hooks/use-client-form";
 
 type Props = Pick<UseClientFormResult, "values" | "errors" | "setValue">;
@@ -68,6 +68,18 @@ export default function ClientAdditionalFields({
           onChange={(event) => setValue("birthDate", event.target.value)}
         />
       </div>
+
+      {/* En el mostrador se reconoce a la gente por la cara, no por el
+          documento. Opcional: la mayoría de los clientes viejos no tiene, y
+          eso no es un dato faltante que haya que perseguir. */}
+      <FileInput
+        id="photo"
+        label="Foto (opcional)"
+        accept="image/jpeg,image/png,image/webp"
+        hint="Se ve en la lista y al registrar el ingreso. JPG, PNG o WEBP, hasta 2 MB."
+        file={values.photo}
+        onChange={(file) => setValue("photo", file)}
+      />
 
       <Textarea
         id="medicalCondition"

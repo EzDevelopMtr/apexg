@@ -1,13 +1,17 @@
 "use client";
 
-import { LogIn, LogOut } from "lucide-react";
+import type { IsoDate } from "@apexg/core";
 import {
   CHECK_IN_REFUSAL_LABELS,
   checkInRefusal,
+  expiresWithin,
+  noticeFor,
+  today,
   visitQuota,
 } from "@apexg/core";
 import type { AttendanceCandidate } from "@apexg/data";
-import { Badge, Button } from "@apexg/ui";
+import { Avatar, Badge } from "@apexg/ui";
+import CheckInActions from "./check-in-actions";
 import VisitQuotaDots from "./visit-quota-dots";
 
 export interface CheckInRowProps {
@@ -16,15 +20,9 @@ export interface CheckInRowProps {
   onCheckOut: () => void;
   /** Opens the payment form for this client, with their id carried over. */
   onCharge: () => void;
-}
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0] ?? "")
-    .join("")
-    .toUpperCase();
+  /** Dónde está su foto. `undefined` si no tiene. */
+  photoUrl?: string;
+  onOpenPhoto: () => void;
 }
 
 /** One search result: who they are, their plan, their week, and the action. */
@@ -33,9 +31,17 @@ export default function CheckInRow({
   onCheckIn,
   onCheckOut,
   onCharge,
+  photoUrl,
+  onOpenPhoto,
 }: CheckInRowProps) {
   const quota = visitQuota(candidate.weeklyVisits, candidate.usedThisWeek);
   const refusal = checkInRefusal(candidate.status, quota);
+  // Le queda poco pero todavía entra: se avisa en ámbar sin bloquear nada.
+  // El día que venza, `refusal` lo pinta en rojo y esto sobra.
+  const soon =
+    refusal === null &&
+    candidate.expiresOn !== null &&
+    expiresWithin(candidate.expiresOn as IsoDate, today());
   // Already inside is not a refusal: the useful action is the way out.
   const blocked = refusal !== null && !candidate.inside;
   const payable = refusal === "overdue" || refusal === "quotaSpent";
@@ -43,12 +49,20 @@ export default function CheckInRow({
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${
-        blocked ? "border-danger-line bg-danger-soft" : "border-line"
+        blocked
+          ? "border-danger-line bg-danger-soft"
+          : soon
+            ? "border-warn-line bg-warn-soft"
+            : "border-line"
       }`}
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-bold text-brand-ink">
-        {initials(candidate.clientName)}
-      </span>
+      {/* La foto es lo primero de la fila: la recepcionista confirma de un
+          vistazo que quien está enfrente es quien dice ser. */}
+      <Avatar
+        name={candidate.clientName}
+        photoUrl={photoUrl}
+        onOpen={onOpenPhoto}
+      />
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-body">
@@ -58,6 +72,12 @@ export default function CheckInRow({
           {candidate.membershipName}
           {candidate.expiresOn && ` · vence ${candidate.expiresOn}`}
         </p>
+        {soon && candidate.expiresOn && (
+          <p className="mt-1 text-sm font-semibold text-warn-ink">
+            {noticeFor(candidate.expiresOn as IsoDate, today())} · ofrécele
+            renovar
+          </p>
+        )}
         {blocked && refusal && (
           <p className="mt-1 text-sm text-danger-ink">
             {CHECK_IN_REFUSAL_LABELS[refusal]}
@@ -76,27 +96,14 @@ export default function CheckInRow({
         />
       )}
 
-      {/* Already inside offers the exit, never a second entry.
-
-          A blocked client gets the charge button instead of a greyed-out one:
-          the person is at the counter, and the useful next step is taking
-          their money. Retired or without a membership has nothing to charge
-          here, so that case offers nothing at all. */}
-      {candidate.inside ? (
-        <Button variant="secondary" size="sm" onClick={onCheckOut}>
-          <LogOut size={16} />
-          Registrar salida
-        </Button>
-      ) : payable ? (
-        <Button size="sm" onClick={onCharge}>
-          Renovar o pagar día
-        </Button>
-      ) : blocked ? null : (
-        <Button variant="secondary" size="sm" onClick={onCheckIn}>
-          <LogIn size={16} />
-          Registrar ingreso
-        </Button>
-      )}
+      <CheckInActions
+        inside={candidate.inside}
+        blocked={blocked}
+        payable={payable}
+        onCheckIn={onCheckIn}
+        onCheckOut={onCheckOut}
+        onCharge={onCharge}
+      />
     </div>
   );
 }

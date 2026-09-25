@@ -1,12 +1,16 @@
 "use client";
 
-import type { ClientDraft } from "@apexg/core";
+import type { Client, ClientDraft } from "@apexg/core";
 import { Card, CardBody, PageHeader } from "@apexg/ui";
 import ClientForm from "./client-form";
 
 export interface ClientsFormViewProps {
   title: string;
-  onSave: (draft: ClientDraft) => Promise<void>;
+  onSave: (
+    draft: ClientDraft,
+    existing?: Client,
+    photo?: File,
+  ) => Promise<void>;
   onDone: () => void;
 }
 
@@ -25,8 +29,8 @@ export default function ClientsFormView({
       <Card>
         <CardBody>
           <ClientForm
-            onSave={async (draft) => {
-              await onSave(draft);
+            onSave={async (draft, existing, photo) => {
+              await onSave(draft, existing, photo);
               onDone();
             }}
             onCancel={onDone}

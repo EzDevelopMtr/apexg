@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import type { Client, ClientDraft, ClientSection, IsoDate } from "@apexg/core";
+import type {
+  Client,
+  ClientDraft,
+  ClientId,
+  ClientSection,
+  IsoDate,
+} from "@apexg/core";
 import { useMembershipTypeCatalog } from "@apexg/module-kit";
 import { Button, Modal, PageHeader } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
@@ -14,7 +20,12 @@ export interface ClientsListViewProps {
   clients: readonly Client[];
   section: ClientSection;
   referenceDate: IsoDate;
-  onSave: (draft: ClientDraft, existing?: Client) => Promise<void>;
+  onSave: (
+    draft: ClientDraft,
+    existing?: Client,
+    photo?: File,
+  ) => Promise<void>;
+  photoUrl: (clientId: ClientId) => string;
   onAdd: () => void;
 }
 
@@ -23,6 +34,7 @@ export default function ClientsListView({
   section,
   referenceDate,
   onSave,
+  photoUrl,
   onAdd,
 }: ClientsListViewProps) {
   const [query, setQuery] = useState("");
@@ -52,6 +64,7 @@ export default function ClientsListView({
         clients={visible}
         referenceDate={referenceDate}
         membershipTypes={membershipTypes.items}
+        photoUrl={photoUrl}
         onEdit={setEditing}
       />
 
@@ -64,8 +77,8 @@ export default function ClientsListView({
         {editing && (
           <ClientForm
             client={editing}
-            onSave={async (draft, existing) => {
-              await onSave(draft, existing);
+            onSave={async (draft, existing, photo) => {
+              await onSave(draft, existing, photo);
               setEditing(null);
             }}
             onCancel={() => setEditing(null)}

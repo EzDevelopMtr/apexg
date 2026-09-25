@@ -45,6 +45,7 @@ type SeedDraft = Omit<
   | "emergencyContactPhone"
   | "bloodType"
   | "medicalCondition"
+  | "hasPhoto"
 > & { readonly seedId: string };
 
 const CLIENT_DRAFTS: readonly SeedDraft[] = [
@@ -132,6 +133,7 @@ export function buildSeedClients(): Client[] {
         emergencyContactPhone: "",
         bloodType: "",
         medicalCondition: "",
+        hasPhoto: false,
       },
       type,
     );
