@@ -7,6 +7,7 @@ import type { Money } from "./money";
 import { ZERO, add, subtract } from "./money";
 import type { Payment } from "./payment";
 import type { ProductSale } from "./product-sale";
+import type { SavingsContribution } from "./savings";
 
 export type BalancePeriod = "day" | "week" | "month";
 
@@ -14,7 +15,7 @@ export type BalancePeriod = "day" | "week" | "month";
  * The records every financial figure is computed from.
  *
  * Grouped because they always travel together: a balance, a comparison and the
- * daily log all need the same four collections. Income has two sources —
+ * daily log all need the same collections. Income has two sources —
  * membership payments and product sales (RF-28/29) — counted separately so
  * the daily log can show where the money came from, not just the total.
  */
@@ -23,6 +24,11 @@ export interface FinancialRecords {
   readonly productSales: readonly ProductSale[];
   readonly expenses: readonly Expense[];
   readonly clients: readonly Client[];
+  /**
+   * Lo apartado en bolsillos de ahorro. Baja la utilidad igual que un egreso:
+   * es plata comprometida con un destino, no ganancia disponible.
+   */
+  readonly savings: readonly SavingsContribution[];
 }
 
 /** Income against outgoings for a period (RF-31). */
@@ -30,6 +36,8 @@ export interface Balance {
   readonly range: DateRange;
   readonly income: Money;
   readonly expenses: Money;
+  /** Lo apartado a bolsillos en el periodo. Se muestra aparte de `expenses`. */
+  readonly savings: Money;
   readonly profit: Money;
   readonly activeClients: number;
   readonly overdueClients: number;
@@ -83,6 +91,15 @@ export function calculateBalance(
     (e) => e.spentOn,
     (e) => e.amount,
   );
+  // Aparte de los egresos, no sumado a ellos: un egreso ya se gastó y un
+  // ahorro sigue en caja. Ambos salen de la utilidad, pero quien lee el
+  // balance necesita distinguirlos.
+  const saved = sumIn(
+    records.savings,
+    range,
+    (c) => c.contributedOn,
+    (c) => c.amount,
+  );
 
   const statuses = records.clients.map((client) => resolveStatus(client, on));
 
@@ -90,7 +107,8 @@ export function calculateBalance(
     range,
     income,
     expenses: spent,
-    profit: subtract(income, spent),
+    savings: saved,
+    profit: subtract(income, add(spent, saved)),
     activeClients: statuses.filter((status) => status === "active").length,
     overdueClients: statuses.filter((status) => status === "overdue").length,
   };

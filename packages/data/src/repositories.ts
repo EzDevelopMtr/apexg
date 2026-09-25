@@ -16,10 +16,14 @@ import type {
   MonthlyClosure,
   Payment,
   PaymentId,
+  Money,
   ProductSale,
+  SavingsContribution,
+  SavingsPocketId,
   Trainer,
   TrainerId,
 } from "@apexg/core";
+import type { PocketWithSaved } from "./http/http-savings-repository";
 
 /**
  * The contracts the application reads and writes through.
@@ -34,9 +38,23 @@ import type {
 export interface ClientRepository {
   list(): Promise<readonly Client[]>;
   findById(id: ClientId): Promise<Client | undefined>;
-  /** Generates the id and derives the expiration date (RF-07). */
-  create(draft: ClientDraft): Promise<Client>;
-  update(client: Client): Promise<Client>;
+  /**
+   * Generates the id and derives the expiration date (RF-07).
+   *
+   * La foto viaja en la MISMA llamada: entre dos peticiones existiría un
+   * cliente sin foto y, si la segunda fallara, un archivo huérfano.
+   */
+  create(draft: ClientDraft, photo?: Blob): Promise<Client>;
+  update(client: Client, photo?: Blob): Promise<Client>;
+  /**
+   * Dónde abrir la foto de un cliente.
+   *
+   * La arma esta capa para que ningún módulo tenga que saber que la API vive
+   * detrás de `/api/backend`. La dirección es todo lo que recibe un
+   * componente: el archivo lo sirve un endpoint que comprueba permisos, nunca
+   * una carpeta pública.
+   */
+  photoUrl(clientId: ClientId): string;
   /**
    * Opens a new period on the SAME plan, closing the previous one.
    *
@@ -104,6 +122,8 @@ export interface AttendanceCandidate {
   readonly usedThisWeek: number;
   /** Already in the gym and not yet marked out. */
   readonly inside: boolean;
+  /** Si tiene foto. La dirección la arma `ClientRepository.photoUrl`. */
+  readonly hasPhoto: boolean;
 }
 
 export interface AttendanceRepository {
@@ -157,8 +177,30 @@ export interface ProductSaleRepository {
   list(): Promise<readonly ProductSale[]>;
   /** Records a sale and discounts the item's stock (RF-28/29), atomically on the backend. */
   create(
-    draft: Omit<ProductSale, "id" | "itemName" | "clientName">,
+    draft: Omit<ProductSale, "id" | "itemName" | "clientName" | "recordedBy">,
   ): Promise<ProductSale>;
+}
+
+/**
+ * Bolsillos de ahorro: apartar utilidad con un destino concreto.
+ *
+ * No hay `remove`: un bolsillo se cierra (`updatePocket({ closed: true })`) y
+ * conserva sus aportes, que son registros financieros (RNF-07). Los aportes
+ * tampoco se editan — para deshacer uno se registra otro en contra.
+ */
+export interface SavingsRepository {
+  listPockets(): Promise<readonly PocketWithSaved[]>;
+  createPocket(name: string, goal: Money): Promise<PocketWithSaved>;
+  updatePocket(
+    id: SavingsPocketId,
+    changes: { name?: string; goal?: Money; closed?: boolean },
+  ): Promise<PocketWithSaved>;
+  listContributions(): Promise<readonly SavingsContribution[]>;
+  contribute(
+    pocketId: SavingsPocketId,
+    amount: Money,
+    notes: string,
+  ): Promise<SavingsContribution>;
 }
 
 /** Everything the application needs to read and write. */
@@ -172,6 +214,7 @@ export interface Repositories {
   readonly inventory: InventoryRepository;
   readonly dailyLog: DailyLogRepository;
   readonly productSales: ProductSaleRepository;
+  readonly savings: SavingsRepository;
 }
 
 /** Raised when a write targets a record that no longer exists. */

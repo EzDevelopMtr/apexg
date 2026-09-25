@@ -32,6 +32,12 @@ export default function BalancePanel({
             <CardBody className="space-y-3">
               <Line label="Ingresos" value={formatCOP(balance.income)} />
               <Line label="Egresos" value={formatCOP(balance.expenses)} />
+              {/* Aparte de los egresos: esta plata sigue en caja, pero ya
+                  tiene destino, así que tampoco es utilidad disponible. */}
+              <Line
+                label="Apartado a bolsillos"
+                value={formatCOP(balance.savings)}
+              />
               <div className="border-t border-line-soft pt-3">
                 <Line
                   label="Utilidad"

@@ -24,6 +24,12 @@ export { default as Textarea } from "./components/textarea";
 export type { TextareaProps } from "./components/textarea";
 
 /* Display */
+export { default as Avatar } from "./components/avatar";
+export type { AvatarProps, AvatarSize } from "./components/avatar";
+
+export { default as PhotoViewer } from "./components/photo-viewer";
+export type { PhotoViewerProps } from "./components/photo-viewer";
+
 export { default as Badge } from "./components/badge";
 export type { BadgeProps, BadgeTone } from "./components/badge";
 

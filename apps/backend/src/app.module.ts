@@ -6,6 +6,8 @@ import { ClientsModule } from "./clients/clients.module.js";
 import { DailyLogModule } from "./daily-log/daily-log.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { ExpensesModule } from "./expenses/expenses.module.js";
+import { SavingsModule } from "./savings/savings.module.js";
+import { SharedModule } from "./shared/shared.module.js";
 import { FinanceModule } from "./finance/finance.module.js";
 import { InventoryModule } from "./inventory/inventory.module.js";
 import { MembershipTypesModule } from "./membership-types/membership-types.module.js";
@@ -26,7 +28,9 @@ import { TrainersModule } from "./trainers/trainers.module.js";
     AttendancesModule,
     PaymentsModule,
     TrainersModule,
+    SharedModule,
     ExpensesModule,
+    SavingsModule,
     InventoryModule,
     FinanceModule,
     DailyLogModule,

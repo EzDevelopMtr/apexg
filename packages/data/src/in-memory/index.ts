@@ -7,6 +7,7 @@ import { InMemoryInventoryRepository } from "./inventory-repository";
 import { InMemoryMembershipTypeRepository } from "./membership-type-repository";
 import { InMemoryPaymentRepository } from "./payment-repository";
 import { InMemoryProductSaleRepository } from "./product-sale-repository";
+import { InMemorySavingsRepository } from "./savings-repository";
 import { InMemoryTrainerRepository } from "./trainer-repository";
 import {
   buildSeedClients,
@@ -41,6 +42,7 @@ export function createInMemoryRepositories(): Repositories {
       buildSeedInventory(),
       buildSeedClients(),
     ),
+    savings: new InMemorySavingsRepository(),
   };
 }
 

@@ -12,6 +12,8 @@ import type { Payment } from "./payment";
 import { toCycleId, toPaymentId } from "./payment";
 import type { ProductSale } from "./product-sale";
 import { toProductSaleId } from "./product-sale";
+import type { SavingsContribution } from "./savings";
+import { toSavingsContributionId, toSavingsPocketId } from "./savings";
 import {
   buildDailyLog,
   calculateBalance,
@@ -41,6 +43,7 @@ function client(id: string, overrides: Partial<Client> = {}): Client {
     emergencyContactPhone: "",
     bloodType: "",
     medicalCondition: "",
+    hasPhoto: false,
     ...overrides,
   };
 }
@@ -86,6 +89,7 @@ function sale(id: string, soldOn: string, pesos: number): ProductSale {
     paymentMethod: "cash",
     soldOn: date(soldOn),
     notes: "",
+    recordedBy: "Recepción",
   };
 }
 
@@ -103,7 +107,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up only the day in question", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [], savings: [] },
       "day",
       TODAY,
     );
@@ -112,9 +116,57 @@ describe("calculateBalance (RF-31)", () => {
     expect(balance.profit).toBe(fromPesos(45_000));
   });
 
+  it("lo apartado a un bolsillo baja la utilidad, aparte de los egresos", () => {
+    const savings: SavingsContribution[] = [
+      {
+        id: toSavingsContributionId("a1"),
+        pocketId: toSavingsPocketId("maquina"),
+        amount: fromPesos(15_000),
+        contributedOn: TODAY,
+        notes: "",
+        recordedBy: "recepcion",
+      },
+    ];
+
+    const balance = calculateBalance(
+      { payments, productSales, expenses, clients: [], savings },
+      "day",
+      TODAY,
+    );
+
+    expect(balance.income).toBe(fromPesos(65_000));
+    expect(balance.expenses).toBe(fromPesos(20_000));
+    expect(balance.savings).toBe(fromPesos(15_000));
+    // 65.000 - 20.000 - 15.000: el ahorro sale de la utilidad, pero no se
+    // suma a los egresos — esa plata sigue en caja.
+    expect(balance.profit).toBe(fromPesos(30_000));
+  });
+
+  it("solo cuenta los aportes del periodo", () => {
+    const savings: SavingsContribution[] = [
+      {
+        id: toSavingsContributionId("a2"),
+        pocketId: toSavingsPocketId("maquina"),
+        amount: fromPesos(500_000),
+        contributedOn: date("2026-05-30"),
+        notes: "",
+        recordedBy: "recepcion",
+      },
+    ];
+
+    const balance = calculateBalance(
+      { payments, productSales, expenses, clients: [], savings },
+      "day",
+      TODAY,
+    );
+
+    expect(balance.savings).toBe(fromPesos(0));
+    expect(balance.profit).toBe(fromPesos(45_000));
+  });
+
   it("adds up the Monday-to-Sunday week", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [], savings: [] },
       "week",
       TODAY,
     );
@@ -124,7 +176,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the month and excludes the previous one", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [] },
+      { payments, productSales, expenses, clients: [], savings: [] },
       "month",
       TODAY,
     );
@@ -144,6 +196,7 @@ describe("calculateBalance (RF-31)", () => {
         ],
         expenses,
         clients: [],
+        savings: [],
       },
       "day",
       TODAY,
@@ -161,7 +214,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments: [], productSales: [], expenses: [], clients },
+      { payments: [], productSales: [], expenses: [], clients, savings: [] },
       "month",
       TODAY,
     );
@@ -178,7 +231,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
     ];
 
     const comparison = compareWithPreviousMonth(
-      { payments, productSales: [], expenses: [], clients: [] },
+      { payments, productSales: [], expenses: [], clients: [], savings: [] },
       TODAY,
     );
     expect(comparison.current.income).toBe(fromPesos(100_000));
@@ -189,7 +242,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
   it("steps back correctly from the 31st", () => {
     // previousMonth clamps, so this must not land in March.
     const comparison = compareWithPreviousMonth(
-      { payments: [], productSales: [], expenses: [], clients: [] },
+      { payments: [], productSales: [], expenses: [], clients: [], savings: [] },
       date("2026-03-31"),
     );
     expect(comparison.previous.range.from).toBe("2026-02-01");

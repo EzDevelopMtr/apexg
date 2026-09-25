@@ -7,6 +7,7 @@ import type {
   FinancialRecords,
   Payment,
   ProductSale,
+  SavingsContribution,
 } from "@apexg/core";
 import { useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection, LoadState } from "@apexg/module-kit";
@@ -21,30 +22,38 @@ export interface UseFinancialRecordsResult {
 }
 
 /**
- * Loads the three collections every financial figure needs.
+ * Loads every collection a financial figure needs.
  *
  * They are fetched together because a balance is meaningless with only some of
- * them: income comes from payments, outgoings from expenses, and the client
- * counts are derived, not stored (RF-33).
+ * them: income comes from payments, outgoings from expenses, lo apartado a
+ * bolsillos baja la utilidad, y los conteos de clientes se derivan, no se
+ * leen (RF-33).
  */
 export function useFinancialRecords(): UseFinancialRecordsResult {
-  const { payments, productSales, expenses, clients } = useRepositories();
+  const { payments, productSales, expenses, clients, savings } =
+    useRepositories();
 
   const loadPayments = useCallback(() => payments.list(), [payments]);
   const loadSales = useCallback(() => productSales.list(), [productSales]);
   const loadExpenses = useCallback(() => expenses.list(), [expenses]);
   const loadClients = useCallback(() => clients.list(), [clients]);
+  const loadSavings = useCallback(
+    () => savings.listContributions(),
+    [savings],
+  );
 
   const paymentCollection = useCollection<Payment>(loadPayments);
   const saleCollection = useCollection<ProductSale>(loadSales);
   const expenseCollection = useCollection<Expense>(loadExpenses);
   const clientCollection = useCollection<Client>(loadClients);
+  const savingsCollection = useCollection<SavingsContribution>(loadSavings);
 
   const parts = [
     paymentCollection,
     saleCollection,
     expenseCollection,
     clientCollection,
+    savingsCollection,
   ];
   const state: LoadState = parts.some((part) => part.state === "error")
     ? "error"
@@ -61,6 +70,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     saleCollection.reload,
     expenseCollection.reload,
     clientCollection.reload,
+    savingsCollection.reload,
   ]);
 
   return {
@@ -69,13 +79,15 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
       productSales: saleCollection.items,
       expenses: expenseCollection.items,
       clients: clientCollection.items,
+      savings: savingsCollection.items,
     },
     state,
     error:
       paymentCollection.error ??
       saleCollection.error ??
       expenseCollection.error ??
-      clientCollection.error,
+      clientCollection.error ??
+      savingsCollection.error,
     reload,
     gate: {
       ...paymentCollection,

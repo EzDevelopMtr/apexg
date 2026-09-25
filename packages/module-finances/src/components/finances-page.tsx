@@ -8,6 +8,7 @@ import { useFinancialRecords } from "../hooks/use-financial-records";
 import BalancePanel from "./balance-panel";
 import CommissionsPanel from "./commissions-panel";
 import DashboardPanel from "./dashboard-panel";
+import SavingsPanel from "./savings-panel";
 
 export interface FinancesPageProps {
   sectionId: FinanceSectionId;
@@ -35,6 +36,7 @@ export default function FinancesPage({ sectionId }: FinancesPageProps) {
       {sectionId === "monthlyBalance" && (
         <BalancePanel records={records} on={referenceDate} />
       )}
+      {sectionId === "savings" && <SavingsPanel />}
       {sectionId === "commissions" && <CommissionsPanel />}
     </CollectionGate>
   );

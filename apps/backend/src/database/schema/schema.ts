@@ -128,6 +128,7 @@ export const clients = pgTable("clients", {
 	bloodType: varchar("blood_type", { length: 5 }),
 	birthDate: date("birth_date"),
 	medicalCondition: text("medical_condition"),
+	photoPath: varchar("photo_path", { length: 80 }),
 	state: integer().default(1).notNull(),
 	registeredAt: date("registered_at").notNull(),
 	retiredAt: timestamp("retired_at", { withTimezone: true, mode: 'string' }),
@@ -608,6 +609,7 @@ export const attendances = pgTable("attendances", {
 	checkIn: timestamp("check_in", { withTimezone: true, mode: 'string' }).notNull(),
 	checkOut: timestamp("check_out", { withTimezone: true, mode: 'string' }),
 	source: varchar({ length: 20 }).default('manual').notNull(),
+	createdBy: uuid("created_by"),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 }, (table) => [
 	index("idx_attendances_client_checkin").using("btree", table.clientId.asc().nullsLast().op("timestamptz_ops"), table.checkIn.asc().nullsLast().op("timestamptz_ops")),
@@ -734,4 +736,56 @@ export const promotionGroupMembers = pgTable("promotion_group_members", {
 			name: "promotion_group_members_promotion_group_id_fkey"
 		}),
 	primaryKey({ columns: [table.promotionGroupId, table.clientId], name: "promotion_group_members_pkey"}),
+]);
+
+export const savingsPockets = pgTable("savings_pockets", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	name: varchar({ length: 120 }).notNull(),
+	goalAmount: numeric("goal_amount", { precision: 12, scale:  2 }).notNull(),
+	closed: boolean().default(false).notNull(),
+	createdBy: uuid("created_by"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_savings_pockets_company").using("btree", table.companyId.asc().nullsLast().op("bool_ops"), table.closed.asc().nullsLast().op("bool_ops")),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "savings_pockets_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "savings_pockets_created_by_fkey"
+		}),
+]);
+
+export const savingsContributions = pgTable("savings_contributions", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	pocketId: uuid("pocket_id").notNull(),
+	amount: numeric({ precision: 12, scale:  2 }).notNull(),
+	savedOn: date("saved_on").notNull(),
+	notes: text(),
+	createdBy: uuid("created_by").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_savings_contrib_company_date").using("btree", table.companyId.asc().nullsLast().op("date_ops"), table.savedOn.asc().nullsLast().op("date_ops")),
+	index("idx_savings_contrib_pocket").using("btree", table.pocketId.asc().nullsLast().op("uuid_ops")),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "savings_contributions_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.pocketId],
+			foreignColumns: [savingsPockets.id],
+			name: "savings_contributions_pocket_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "savings_contributions_created_by_fkey"
+		}),
 ]);
