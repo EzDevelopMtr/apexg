@@ -83,6 +83,25 @@ export function formatCOP(amount: Money): string {
   return COP_FORMATTER.format(toPesos(amount));
 }
 
+/**
+ * Pesos abreviados para los ejes y rótulos de un gráfico: `$ 1,2 M`,
+ * `$ 850 mil`, `$ 900`.
+ *
+ * Solo para leer una escala de un vistazo. Donde el valor se consulta —la
+ * tabla, el detalle al pasar el mouse— va {@link formatCOP}, completo.
+ */
+export function formatCOPCompact(amount: Money): string {
+  const pesos = toPesos(amount);
+  const sign = pesos < 0 ? "-" : "";
+  const absolute = Math.abs(pesos);
+  const oneDecimal = (value: number) =>
+    value.toLocaleString("es-CO", { maximumFractionDigits: 1 });
+
+  if (absolute >= 1_000_000) return `${sign}$ ${oneDecimal(absolute / 1_000_000)} M`;
+  if (absolute >= 1_000) return `${sign}$ ${Math.round(absolute / 1_000)} mil`;
+  return `${sign}$ ${absolute}`;
+}
+
 const API_MONEY_PATTERN = /^-?\d+\.\d{2}$/;
 
 /**

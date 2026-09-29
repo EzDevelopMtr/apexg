@@ -2,11 +2,18 @@
 
 import { useMemo, useState } from "react";
 import type { Payment, PaymentSectionId } from "@apexg/core";
-import { cyclesWithBalance, paymentSections, today } from "@apexg/core";
+import {
+  cyclesWithBalance,
+  paymentSections,
+  settlementDates,
+  today,
+} from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
 import { Card, CardBody } from "@apexg/ui";
 import { useClientDirectory, usePayments } from "../hooks/use-payments";
 import PaymentForm from "./payment-form";
+import { usePaymentFilter } from "../hooks/use-payment-filter";
+import PaymentFilters from "./payment-filters";
 import PaymentList from "./payment-list";
 
 export interface PaymentsPageProps {
@@ -53,6 +60,14 @@ export default function PaymentsPage({
       .sort((a, b) => b.paidOn.localeCompare(a.paidOn));
   }, [payments.items, section, sectionId, referenceDate]);
 
+  // Sobre lo que ya dejó pasar la sección ("Con saldo pendiente"), no sobre
+  // todos los pagos: los filtros de columna afinan la vista, no la reemplazan.
+  const filters = usePaymentFilter(visible, clients.items);
+  const settlements = useMemo(
+    () => settlementDates(payments.items),
+    [payments.items],
+  );
+
   if (section.view.kind === "form") {
     return (
       <CollectionGate
@@ -85,10 +100,12 @@ export default function PaymentsPage({
       loadingMessage="Cargando pagos..."
       errorMessage="No pudimos cargar los pagos."
     >
+      <PaymentFilters filters={filters} />
       <PaymentList
-        payments={visible}
+        payments={filters.visible}
         clients={clients.items}
         receiptUrl={payments.receiptUrl}
+        settlements={settlements}
       />
     </CollectionGate>
   );

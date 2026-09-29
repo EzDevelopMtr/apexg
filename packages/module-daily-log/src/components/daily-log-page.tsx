@@ -74,6 +74,7 @@ export default function DailyLogPage({
         <DailyLogPanel
           payments={log.payments}
           productSales={log.productSales}
+          dayPasses={log.dayPasses}
           clients={log.clients}
           notes={log.notes}
           on={referenceDate}

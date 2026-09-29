@@ -77,6 +77,19 @@
   --color-accent-lime: #c6f24e;
   --color-accent-amber: #f59e0b;
 
+  /*
+    Chart series — identity of a data series, nothing else.
+
+    Validated as a pair against the panel surface (#171a1f) with the dataviz
+    palette checker: lightness band, chroma floor, colour-blind separation and
+    contrast all pass. Magenta and not orange for the second series: orange
+    sits too close to the amber of "Por vencer", and a bar of expenses would
+    start to read as a warning. Neither is green, amber or red — those are the
+    client states, and a chart must never borrow them.
+  */
+  --color-chart-1: #3987e5;
+  --color-chart-2: #d55181;
+
   /* Status — reserved for the client states of SRS §4.2 */
   --color-ok-soft: #12331f;
   --color-ok-ink: #6ee7a0;

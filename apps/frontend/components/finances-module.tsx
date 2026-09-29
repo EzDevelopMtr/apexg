@@ -1,9 +1,9 @@
 "use client";
 
+import SectionHeading from "./section-heading";
 import type { FinanceSectionId } from "@apexg/core";
 import { financeSections } from "@apexg/core";
 import { FinancesPage } from "@apexg/module-finances";
-import { PageHeader } from "@apexg/ui";
 
 export default function FinancesModule({
   sectionId,
@@ -15,12 +15,12 @@ export default function FinancesModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <PageHeader
-          eyebrow="Finanzas"
+        <SectionHeading
+          moduleId="finances"
+          sectionId={sectionId}
           title={section.title}
-          description="Balances, utilidad y comisiones. Solo para el administrador."
         />
-        <FinancesPage sectionId={sectionId} />
+        <FinancesPage />
       </div>
     </div>
   );

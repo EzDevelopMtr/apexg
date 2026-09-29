@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import type {
   Client,
   DailyLog,
+  DayPass,
   IsoDate,
   Payment,
   ProductSale,
@@ -18,51 +19,82 @@ export interface DailyIncomeCardProps {
   log: DailyLog;
   payments: readonly Payment[];
   productSales: readonly ProductSale[];
+  dayPasses: readonly DayPass[];
   clients: readonly Client[];
   on: IsoDate;
+}
+
+/**
+ * One line per movement of the day, by source.
+ *
+ * El autor va en la misma línea que el concepto: al cuadrar la caja, la
+ * pregunta que sigue a "¿de dónde salió esto?" es "¿quién lo recibió?".
+ */
+function rowsFor({
+  payments,
+  productSales,
+  dayPasses,
+  clients,
+  on,
+}: Omit<DailyIncomeCardProps, "log">) {
+  const nameOf = (id: string) =>
+    clients.find((client) => client.id === id)?.fullName ?? "Cliente";
+
+  const paymentRows: readonly IncomeSourceRow[] = payments
+    .filter((payment) => payment.paidOn === on)
+    .map((payment) => ({
+      key: payment.id,
+      label: `${nameOf(payment.clientId)} · ${payment.recordedBy}`,
+      amount: payment.amount,
+    }));
+
+  const saleRows: readonly IncomeSourceRow[] = productSales
+    .filter((sale) => sale.soldOn === on)
+    .map((sale) => ({
+      key: sale.id,
+      label: [`${sale.itemName} × ${sale.quantity}`, sale.clientName, sale.recordedBy]
+        .filter(Boolean)
+        .join(" · "),
+      amount: sale.amount,
+    }));
+
+  const passRows: readonly IncomeSourceRow[] = dayPasses
+    .filter((pass) => pass.soldOn === on)
+    .map((pass) => ({
+      key: pass.id,
+      label: `${pass.visitorName} · ${pass.recordedBy}`,
+      amount: pass.amount,
+    }));
+
+  return { paymentRows, saleRows, passRows };
 }
 
 /**
  * What came in today, and where it came from (RF-34).
  *
  * Collapsed, it shows the total the way it always has. Expanded, it lists
- * every payment and every sale behind that total — a receptionist can see
- * not just "membership payments vs. product sales" but which client paid
- * and which product moved.
+ * every payment, sale and day pass behind that total — a receptionist can
+ * see not just where the money came from but which client paid, which
+ * product moved and which visitor came in.
  */
 export default function DailyIncomeCard({
   log,
   payments,
   productSales,
+  dayPasses,
   clients,
   on,
 }: DailyIncomeCardProps) {
   const [expanded, setExpanded] = useState(false);
 
-  const paymentsToday = payments.filter((payment) => payment.paidOn === on);
-  const salesToday = productSales.filter((sale) => sale.soldOn === on);
-  const count = paymentsToday.length + salesToday.length;
-
-  // El autor va en la misma línea que el concepto: al cuadrar la caja, la
-  // pregunta que sigue a "¿de dónde salió esto?" es "¿quién lo recibió?".
-  const paymentRows: readonly IncomeSourceRow[] = paymentsToday.map(
-    (payment) => ({
-      key: payment.id,
-      label: `${
-        clients.find((client) => client.id === payment.clientId)?.fullName ??
-        "Cliente"
-      } · ${payment.recordedBy}`,
-      amount: payment.amount,
-    }),
-  );
-
-  const saleRows: readonly IncomeSourceRow[] = salesToday.map((sale) => ({
-    key: sale.id,
-    label: sale.clientName
-      ? `${sale.itemName} × ${sale.quantity} · ${sale.clientName} · ${sale.recordedBy}`
-      : `${sale.itemName} × ${sale.quantity} · ${sale.recordedBy}`,
-    amount: sale.amount,
-  }));
+  const { paymentRows, saleRows, passRows } = rowsFor({
+    payments,
+    productSales,
+    dayPasses,
+    clients,
+    on,
+  });
+  const count = paymentRows.length + saleRows.length + passRows.length;
 
   return (
     <Card>
@@ -95,16 +127,22 @@ export default function DailyIncomeCard({
         {expanded && (
           <div className="mt-4 space-y-5 border-t border-line-soft pt-4">
             <IncomeSourceBreakdown
-              title={`Pagos de membresía (${paymentsToday.length})`}
+              title={`Pagos de membresía (${paymentRows.length})`}
               total={log.incomeFromPayments}
               rows={paymentRows}
               emptyMessage="Ninguno hoy."
             />
             <IncomeSourceBreakdown
-              title={`Venta de productos (${salesToday.length})`}
+              title={`Venta de productos (${saleRows.length})`}
               total={log.incomeFromSales}
               rows={saleRows}
               emptyMessage="Ninguna hoy."
+            />
+            <IncomeSourceBreakdown
+              title={`Pases de día (${passRows.length})`}
+              total={log.incomeFromDayPasses}
+              rows={passRows}
+              emptyMessage="Ninguno hoy."
             />
           </div>
         )}

@@ -2,6 +2,7 @@ import type { payments } from '../database/schema/schema.js';
 
 import type {
   CommissionSummary,
+  PaymentMembership,
   PaymentResult,
   PaymentType,
 } from './payments.types.js';
@@ -22,12 +23,14 @@ export function classifyPaymentType(
 /** La fila del pago tal como la expone la API. */
 export function toPaymentResult(
   row: PaymentRow,
+  membership: PaymentMembership,
   commission: CommissionSummary | null,
   recordedBy: string,
 ): PaymentResult {
   return {
     id: row.id,
     clientMembershipId: row.clientMembershipId,
+    membership,
     amount: row.amount,
     paymentType: row.paymentType as PaymentType,
     installmentNumber: row.installmentNumber,

@@ -26,6 +26,8 @@ Rationale: without a fixed glossary, eight modules would independently invent
 | Auditoría           | `AuditLogEntry`   |                                                                           |
 | Apartado diario     | `DailyLog`        | The day's logbook                                                         |
 | Novedad             | `DailyLogNote`    | An entry within the daily log                                             |
+| Pase de día         | `DayPass`         | One day sold to a visitor with no client record behind it                 |
+| Visitante           | `Visitor`         | Whoever holds a day pass. **Never** a `Client`                            |
 
 ## Client state (SRS §4.2)
 

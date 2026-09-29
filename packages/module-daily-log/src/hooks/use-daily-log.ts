@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import type {
   Client,
   DailyLogNote,
+  DayPass,
   IsoDate,
   Payment,
   ProductSale,
@@ -16,6 +17,7 @@ export interface UseDailyLogResult {
   readonly notes: readonly DailyLogNote[];
   readonly payments: readonly Payment[];
   readonly productSales: readonly ProductSale[];
+  readonly dayPasses: readonly DayPass[];
   readonly clients: readonly Client[];
   readonly state: LoadState;
   readonly addNote: (
@@ -28,16 +30,19 @@ export interface UseDailyLogResult {
 
 /** Everything the day's logbook shows (RF-34). */
 export function useDailyLog(): UseDailyLogResult {
-  const { dailyLog, payments, productSales, clients } = useRepositories();
+  const { dailyLog, payments, productSales, dayPasses, clients } =
+    useRepositories();
 
   const loadNotes = useCallback(() => dailyLog.listNotes(), [dailyLog]);
   const loadPayments = useCallback(() => payments.list(), [payments]);
   const loadSales = useCallback(() => productSales.list(), [productSales]);
+  const loadPasses = useCallback(() => dayPasses.list(), [dayPasses]);
   const loadClients = useCallback(() => clients.list(), [clients]);
 
   const noteCollection = useCollection<DailyLogNote>(loadNotes);
   const paymentCollection = useCollection<Payment>(loadPayments);
   const saleCollection = useCollection<ProductSale>(loadSales);
+  const passCollection = useCollection<DayPass>(loadPasses);
   const clientCollection = useCollection<Client>(loadClients);
   const { apply } = noteCollection;
 
@@ -45,6 +50,7 @@ export function useDailyLog(): UseDailyLogResult {
     noteCollection,
     paymentCollection,
     saleCollection,
+    passCollection,
     clientCollection,
   ];
   const state: LoadState = parts.some((part) => part.state === "error")
@@ -65,6 +71,7 @@ export function useDailyLog(): UseDailyLogResult {
     notes: noteCollection.items,
     payments: paymentCollection.items,
     productSales: saleCollection.items,
+    dayPasses: passCollection.items,
     clients: clientCollection.items,
     state,
     addNote,

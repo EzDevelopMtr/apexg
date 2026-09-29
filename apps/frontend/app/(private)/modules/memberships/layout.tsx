@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ModuleLayout } from "@apexg/ui";
-import ModuleSidebar from "../../../../components/module-sidebar";
+import ModuleTopBar from "../../../../components/module-top-bar";
 import RequireModule from "../../../../components/require-module";
 
 export default function MembershipsLayout({
@@ -11,8 +11,8 @@ export default function MembershipsLayout({
   return (
     <RequireModule moduleId="memberships">
       <ModuleLayout
-        sidebar={
-          <ModuleSidebar
+        topBar={
+          <ModuleTopBar
             moduleId="memberships"
             basePath="/modules/memberships"
           />

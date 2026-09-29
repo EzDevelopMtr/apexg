@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 import { ModuleLayout } from "@apexg/ui";
-import ModuleSidebar from "../../../../components/module-sidebar";
+import ModuleTopBar from "../../../../components/module-top-bar";
 import RequireModule from "../../../../components/require-module";
 
 export default function DailyLogLayout({ children }: { children: ReactNode }) {
   return (
     <RequireModule moduleId="dailyLog">
       <ModuleLayout
-        sidebar={
-          <ModuleSidebar moduleId="dailyLog" basePath="/modules/daily-log" />
+        topBar={
+          <ModuleTopBar moduleId="dailyLog" basePath="/modules/daily-log" />
         }
       >
         {children}

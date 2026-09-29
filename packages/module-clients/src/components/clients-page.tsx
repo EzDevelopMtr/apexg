@@ -37,18 +37,15 @@ export default function ClientsPage({
 
   if (section.view.kind === "form") {
     return (
-      <div className="p-8">
-        <ClientsFormView
-          title={section.title}
-          onSave={(draft, _existing, photo) => save(draft, undefined, photo)}
-          onDone={() => onNavigate("all")}
-        />
-      </div>
+      <ClientsFormView
+        onSave={(draft, _existing, photo) => save(draft, undefined, photo)}
+        onDone={() => onNavigate("all")}
+      />
     );
   }
 
   return (
-    <div className="p-8">
+    <>
       {state === "loading" && <LoadingState />}
 
       {state === "error" && (
@@ -62,9 +59,8 @@ export default function ClientsPage({
           referenceDate={referenceDate}
           onSave={save}
           photoUrl={photoUrl}
-          onAdd={() => onNavigate("add")}
         />
       )}
-    </div>
+    </>
   );
 }

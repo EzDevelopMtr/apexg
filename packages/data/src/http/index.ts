@@ -2,6 +2,7 @@ import type { Repositories } from "../repositories";
 import { HttpAttendanceRepository } from "./http-attendance-repository";
 import { HttpClientRepository } from "./http-client-repository";
 import { HttpDailyLogRepository } from "./http-daily-log-repository";
+import { HttpDayPassRepository } from "./http-day-pass-repository";
 import { HttpExpenseRepository } from "./http-expense-repository";
 import { HttpInventoryRepository } from "./http-inventory-repository";
 import { HttpMembershipTypeRepository } from "./http-membership-type-repository";
@@ -22,6 +23,7 @@ export function createHttpRepositories(): Repositories {
     inventory: new HttpInventoryRepository(),
     dailyLog: new HttpDailyLogRepository(),
     productSales: new HttpProductSaleRepository(),
+    dayPasses: new HttpDayPassRepository(),
     savings: new HttpSavingsRepository(),
   };
 }
@@ -29,6 +31,7 @@ export function createHttpRepositories(): Repositories {
 export { HttpAttendanceRepository } from "./http-attendance-repository";
 export { HttpClientRepository } from "./http-client-repository";
 export { HttpDailyLogRepository } from "./http-daily-log-repository";
+export { HttpDayPassRepository } from "./http-day-pass-repository";
 export { HttpExpenseRepository } from "./http-expense-repository";
 export { HttpInventoryRepository } from "./http-inventory-repository";
 export { HttpMembershipTypeRepository } from "./http-membership-type-repository";

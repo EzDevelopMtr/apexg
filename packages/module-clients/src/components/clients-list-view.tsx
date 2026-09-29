@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
 import type {
   Client,
   ClientDraft,
@@ -10,7 +9,7 @@ import type {
   IsoDate,
 } from "@apexg/core";
 import { useMembershipTypeCatalog } from "@apexg/module-kit";
-import { Button, Modal, PageHeader } from "@apexg/ui";
+import { Modal } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
 import ClientForm from "./client-form";
 import ClientList from "./client-list";
@@ -26,7 +25,6 @@ export interface ClientsListViewProps {
     photo?: File,
   ) => Promise<void>;
   photoUrl: (clientId: ClientId) => string;
-  onAdd: () => void;
 }
 
 export default function ClientsListView({
@@ -35,7 +33,6 @@ export default function ClientsListView({
   referenceDate,
   onSave,
   photoUrl,
-  onAdd,
 }: ClientsListViewProps) {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Client | null>(null);
@@ -43,21 +40,7 @@ export default function ClientsListView({
   const membershipTypes = useMembershipTypeCatalog();
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <PageHeader
-        eyebrow="Gestión de clientes"
-        title={section.title}
-        description="Administra los clientes registrados en el gimnasio."
-        action={
-          // Routes to the dedicated form section rather than opening a second,
-          // divergent modal for the same task.
-          <Button onClick={onAdd}>
-            <Plus size={20} />
-            Agregar cliente
-          </Button>
-        }
-      />
-
+    <>
       <ClientSearch value={query} onChange={setQuery} />
 
       <ClientList
@@ -85,6 +68,6 @@ export default function ClientsListView({
           />
         )}
       </Modal>
-    </div>
+    </>
   );
 }

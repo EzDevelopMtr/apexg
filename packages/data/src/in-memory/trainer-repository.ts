@@ -42,4 +42,15 @@ export class InMemoryTrainerRepository implements TrainerRepository {
   recordCommission(draft: Omit<Commission, "id">): Promise<Commission> {
     return this.#commissions.save({ ...draft, id: newId() });
   }
+
+  async settleCommission(
+    _trainerId: TrainerId,
+    commissionId: string,
+  ): Promise<void> {
+    const found = (await this.#commissions.list()).find(
+      (commission) => commission.id === commissionId,
+    );
+    if (!found) throw new RecordNotFoundError("commission", commissionId);
+    await this.#commissions.save({ ...found, settled: true });
+  }
 }

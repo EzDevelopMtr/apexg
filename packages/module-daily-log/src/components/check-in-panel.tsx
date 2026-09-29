@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { Ticket } from "lucide-react";
 import type { ClientId } from "@apexg/core";
 import type { AttendanceCandidate } from "@apexg/data";
 import { useRepositories } from "@apexg/module-kit";
-import { Card, CardBody, CardHeader, PhotoViewer } from "@apexg/ui";
+import { Button, Card, CardBody, CardHeader, PhotoViewer } from "@apexg/ui";
 import { useAttendance } from "../hooks/use-attendance";
+import { useDayPasses } from "../hooks/use-day-passes";
 import AttendanceList from "./attendance-list";
 import CheckInRow from "./check-in-row";
 import CheckInSearch from "./check-in-search";
+import DayPassDialog from "./day-pass-dialog";
+import DayPassList from "./day-pass-list";
 
 export interface CheckInPanelProps {
   /** Opens the payment form for a client who has run out of days. */
@@ -17,6 +21,8 @@ export interface CheckInPanelProps {
 
 export default function CheckInPanel({ onCharge }: CheckInPanelProps) {
   const attendance = useAttendance();
+  const dayPasses = useDayPasses();
+  const [sellingPass, setSellingPass] = useState(false);
   const { clients } = useRepositories();
   const [query, setQuery] = useState("");
   // Una sola foto abierta a la vez; si cada fila tuviera la suya, dos se
@@ -34,6 +40,13 @@ export default function CheckInPanel({ onCharge }: CheckInPanelProps) {
         <CardHeader
           title="Registrar ingreso"
           description="Busca por nombre, o elige de la lista."
+          action={
+            // Para quien viene un solo día: se le cobra sin abrirle ficha.
+            <Button variant="secondary" size="sm" onClick={() => setSellingPass(true)}>
+              <Ticket size={16} />
+              Pase de día
+            </Button>
+          }
         />
         <CardBody>
           <CheckInSearch value={query} onChange={search}>
@@ -70,6 +83,8 @@ export default function CheckInPanel({ onCharge }: CheckInPanelProps) {
         </CardBody>
       </Card>
 
+      <DayPassList passes={dayPasses.today} receiptUrl={dayPasses.receiptUrl} />
+
       <AttendanceList
         entries={attendance.today.items}
         onCheckOut={attendance.checkOut}
@@ -85,6 +100,12 @@ export default function CheckInPanel({ onCharge }: CheckInPanelProps) {
             : null
         }
         onClose={() => setViewing(null)}
+      />
+
+      <DayPassDialog
+        open={sellingPass}
+        onClose={() => setSellingPass(false)}
+        pass={dayPasses}
       />
     </div>
   );

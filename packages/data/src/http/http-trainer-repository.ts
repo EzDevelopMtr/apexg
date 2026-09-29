@@ -189,6 +189,16 @@ export class HttpTrainerRepository implements TrainerRepository {
    * Nothing in the UI calls this today; it exists only to satisfy the
    * interface, same as the in-memory version's counterpart is a demo-only op.
    */
+  async settleCommission(
+    trainerId: TrainerId,
+    commissionId: string,
+  ): Promise<void> {
+    await apiFetch<void>(
+      `/trainers/${trainerId}/commissions/${commissionId}/settle`,
+      { method: "POST" },
+    );
+  }
+
   recordCommission(): Promise<Commission> {
     throw new Error(
       "Las comisiones se generan automáticamente al registrar un pago — no se crean directamente.",

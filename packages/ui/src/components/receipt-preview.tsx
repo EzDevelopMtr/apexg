@@ -1,10 +1,13 @@
 "use client";
 
-import { Modal } from "@apexg/ui";
+import Modal from "./modal";
 
 export interface ReceiptPreviewProps {
-  /** Null while nothing is being previewed. */
-  receipt: { url: string; fileName: string; clientName: string } | null;
+  /**
+   * Null while nothing is being previewed. `subject` says whose money it is,
+   * in Spanish: "Pago de Ana", "Pase de día de Luis".
+   */
+  receipt: { url: string; fileName: string; subject: string } | null;
   onClose: () => void;
 }
 
@@ -26,7 +29,7 @@ export default function ReceiptPreview({
     <Modal
       open={receipt !== null}
       title="Comprobante"
-      description={receipt ? `Pago de ${receipt.clientName}` : undefined}
+      description={receipt?.subject}
       onClose={onClose}
     >
       {receipt &&
@@ -36,7 +39,7 @@ export default function ReceiptPreview({
             data={receipt.url}
             type="application/pdf"
             className="h-[70vh] w-full rounded-xl border border-line"
-            aria-label={`Comprobante del pago de ${receipt.clientName}`}
+            aria-label={`Comprobante: ${receipt.subject}`}
           >
             <p className="p-6 text-center text-body-soft">
               Tu navegador no puede mostrar este PDF aquí.
@@ -45,7 +48,7 @@ export default function ReceiptPreview({
         ) : (
           <img
             src={receipt.url}
-            alt={`Comprobante del pago de ${receipt.clientName}`}
+            alt={`Comprobante: ${receipt.subject}`}
             className="mx-auto max-h-[70vh] rounded-xl border border-line"
           />
         ))}

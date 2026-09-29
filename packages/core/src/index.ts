@@ -15,12 +15,17 @@ export * from "./domain/attendance";
 export * from "./domain/membership";
 export * from "./domain/membership-catalog";
 export * from "./domain/payment";
+export * from "./domain/payment-filter";
+export * from "./domain/payment-settlement";
 export * from "./domain/trainer";
 export * from "./domain/expense";
 export * from "./domain/inventory";
 export * from "./domain/product-sale";
+export * from "./domain/day-pass";
 export * from "./domain/savings";
 export * from "./domain/finance";
+export * from "./domain/finance-insights";
+export * from "./domain/finance-period";
 
 /* Access control */
 export * from "./domain/permissions";

@@ -41,11 +41,23 @@ export default defineConfig({
     {
       name: "apexg",
       dependencies: ["setup"],
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: [/auth\.setup\.ts/, /\.anon\.spec\.ts/],
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1440, height: 900 },
         storageState: "reports/session.json",
+      },
+    },
+    {
+      // Sin sesión guardada: para lo que solo se puede probar SIN haber
+      // iniciado sesión — el formulario de login en sí. El proyecto "apexg"
+      // ya trae la cookie puesta, así que /login redirige de inmediato antes
+      // de que la prueba llegue a ver el formulario.
+      name: "anon",
+      testMatch: /\.anon\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
       },
     },
   ],

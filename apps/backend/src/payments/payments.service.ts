@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
 
 import { DATABASE } from '../database/database.constants.js';
@@ -15,6 +15,7 @@ import {
 } from '../shared/author-lookup.service.js';
 import { fromCents, toCents } from '../shared/money-amount.util.js';
 
+import { checkAmount } from './payment-amount.rule.js';
 import { PaymentCommissionService } from './payment-commission.service.js';
 import type { CreatePaymentDto } from './create-payment.dto.js';
 import type {
@@ -53,7 +54,7 @@ export class PaymentsService {
       const balanceBeforeCents = agreedCents - paidCents;
 
       const amountCents = toCents(input.amount);
-      this.checkAmount(amountCents, balanceBeforeCents, plan);
+      checkAmount(amountCents, balanceBeforeCents, plan);
 
       const balanceAfterCents = balanceBeforeCents - amountCents;
       const paymentType = classifyPaymentType(
@@ -91,6 +92,12 @@ export class PaymentsService {
 
       return toPaymentResult(
         payment,
+        {
+          clientId: membership.clientId,
+          membershipTypeId: membership.membershipTypeId,
+          agreedPrice: membership.agreedPrice,
+          startDate: membership.startDate,
+        },
         commission,
         await this.authors.nameOf(userId),
       );
@@ -103,41 +110,58 @@ export class PaymentsService {
       conditions.push(eq(payments.clientMembershipId, filter.clientMembershipId));
     }
 
-    const rows = await this.db
-      .select()
-      .from(payments)
+    const rows = await this.withMembership()
       .where(and(...conditions))
       .orderBy(payments.paidAt);
 
-    const commissions = await this.commissions.byPaymentId(
-      companyId,
-      rows.map((row) => row.id),
-    );
-    const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
-    return rows.map((row) =>
+    const ids = rows.map((row) => row.payment.id);
+    const commissions = await this.commissions.byPaymentId(companyId, ids);
+    const authors = await this.authors.namesOf(rows.map((row) => row.payment.createdBy));
+    return rows.map(({ payment, membership }) =>
       toPaymentResult(
-        row,
-        commissions.get(row.id) ?? null,
-        authorName(authors, row.createdBy),
+        payment,
+        membership,
+        commissions.get(payment.id) ?? null,
+        authorName(authors, payment.createdBy),
       ),
     );
   }
 
   async findOne(companyId: string, id: string): Promise<PaymentResult> {
-    const [row] = await this.db
-      .select()
-      .from(payments)
-      .where(and(eq(payments.id, id), eq(payments.companyId, companyId)));
+    const [row] = await this.withMembership().where(
+      and(eq(payments.id, id), eq(payments.companyId, companyId)),
+    );
     if (!row) {
       throw new NotFoundException('El pago no existe.');
     }
 
     const commissions = await this.commissions.byPaymentId(companyId, [id]);
     return toPaymentResult(
-      row,
+      row.payment,
+      row.membership,
       commissions.get(id) ?? null,
-      await this.authors.nameOf(row.createdBy),
+      await this.authors.nameOf(row.payment.createdBy),
     );
+  }
+
+  /**
+   * Cada pago junto a la membresía a la que pertenece, vigente o no: tras una
+   * renovación, los pagos del ciclo anterior siguen siendo de ese cliente y
+   * ese plan.
+   */
+  private withMembership() {
+    return this.db
+      .select({
+        payment: payments,
+        membership: {
+          clientId: clientMemberships.clientId,
+          membershipTypeId: clientMemberships.membershipTypeId,
+          agreedPrice: clientMemberships.agreedPrice,
+          startDate: clientMemberships.startDate,
+        },
+      })
+      .from(payments)
+      .innerJoin(clientMemberships, eq(clientMemberships.id, payments.clientMembershipId));
   }
 
   private async loadMembership(
@@ -148,6 +172,8 @@ export class PaymentsService {
     const [membership] = await tx
       .select({
         id: clientMemberships.id,
+        clientId: clientMemberships.clientId,
+        startDate: clientMemberships.startDate,
         membershipTypeId: clientMemberships.membershipTypeId,
         trainerId: clientMemberships.trainerId,
         agreedPrice: clientMemberships.agreedPrice,
@@ -182,36 +208,6 @@ export class PaymentsService {
       throw new NotFoundException('El tipo de membresía de esta membresía no existe.');
     }
     return plan;
-  }
-
-  /** RF-19: rechaza montos inválidos; el abono mínimo no aplica si el pago salda. */
-  private checkAmount(
-    amountCents: number,
-    balanceBeforeCents: number,
-    plan: { minimumPayment: string | null; allowsPartialPayment: boolean },
-  ): void {
-    if (amountCents <= 0) {
-      throw new BadRequestException('El monto debe ser mayor que cero.');
-    }
-    if (amountCents > balanceBeforeCents) {
-      throw new BadRequestException('El monto no puede superar el saldo pendiente.');
-    }
-
-    const settles = amountCents === balanceBeforeCents;
-    if (settles) {
-      return;
-    }
-
-    if (!plan.allowsPartialPayment) {
-      throw new BadRequestException(
-        'Este plan no admite abonos: debe pagarse de forma completa.',
-      );
-    }
-    if (plan.minimumPayment !== null && amountCents < toCents(plan.minimumPayment)) {
-      throw new BadRequestException(
-        `El abono mínimo para este plan es ${plan.minimumPayment}.`,
-      );
-    }
   }
 
   /**

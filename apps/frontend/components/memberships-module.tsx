@@ -1,11 +1,12 @@
 "use client";
 
+import ListToolbar from "./list-toolbar";
+import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
 import type { MembershipSectionId } from "@apexg/core";
 import { membershipSections } from "@apexg/core";
 import { MembershipsPage } from "@apexg/module-memberships";
 import { useSession } from "../lib/use-session";
-import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/memberships";
 
@@ -25,11 +26,12 @@ export default function MembershipsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <PageHeader
-          eyebrow="Catálogo"
+        <SectionHeading
+          moduleId="memberships"
+          sectionId={sectionId}
           title={section.title}
-          description="Planes, tarifas y condiciones del gimnasio."
         />
+        <ListToolbar moduleId="memberships" basePath={BASE_PATH} />
         <MembershipsPage
           sectionId={sectionId}
           role={session.role}

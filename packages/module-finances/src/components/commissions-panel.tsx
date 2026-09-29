@@ -23,7 +23,7 @@ export default function CommissionsPanel() {
   const commissionList = useCollection<Commission>(loadCommissions);
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-x-auto">
       <Table headers={HEADERS}>
         {trainerList.items.length === 0 ? (
           <TableEmpty
@@ -35,9 +35,8 @@ export default function CommissionsPanel() {
             const own = commissionList.items.filter(
               (commission) => commission.trainerId === trainer.id,
             );
-            const pending = unsettledCommissions(
-              commissionList.items,
-              trainer.id as TrainerId,
+            const pending = commissionTotal(
+              unsettledCommissions(commissionList.items, trainer.id as TrainerId),
             );
 
             return (
@@ -46,8 +45,10 @@ export default function CommissionsPanel() {
                   {trainer.fullName}
                 </TableCell>
                 <TableCell>{formatCOP(commissionTotal(own))}</TableCell>
-                <TableCell className="font-semibold text-warn-ink">
-                  {formatCOP(commissionTotal(pending))}
+                <TableCell
+                  className={pending > 0 ? "font-semibold text-warn-ink" : "text-body-soft"}
+                >
+                  {formatCOP(pending)}
                 </TableCell>
               </TableRow>
             );

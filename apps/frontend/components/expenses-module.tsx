@@ -1,11 +1,12 @@
 "use client";
 
+import ListToolbar from "./list-toolbar";
+import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
 import type { ExpenseSectionId } from "@apexg/core";
 import { expenseSections } from "@apexg/core";
 import { ExpensesPage } from "@apexg/module-expenses";
 import { useSession } from "../lib/use-session";
-import { PageHeader } from "@apexg/ui";
 
 const BASE_PATH = "/modules/expenses";
 
@@ -25,11 +26,12 @@ export default function ExpensesModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <PageHeader
-          eyebrow="Gastos"
+        <SectionHeading
+          moduleId="expenses"
+          sectionId={sectionId}
           title={section.title}
-          description="Registra los egresos del gimnasio y administra sus categorías."
         />
+        <ListToolbar moduleId="expenses" basePath={BASE_PATH} />
         <ExpensesPage
           sectionId={sectionId}
           recordedBy={session.username}

@@ -5,6 +5,7 @@ import type {
   AttendanceRepository,
 } from "../repositories";
 import { apiFetch } from "./http-client";
+import { localTime } from "./local-time";
 
 interface ApiAttendance {
   id: string;
@@ -29,21 +30,6 @@ interface ApiCandidate {
   weeklyVisits: number;
   usedThisWeek: number;
   inside: boolean;
-}
-
-/**
- * `HH:MM` local from a UTC instant.
- *
- * Read through a real `Date` rather than sliced off the ISO string: the
- * backend stores TIMESTAMPTZ, and slicing would show UTC's clock, which is
- * five hours ahead of Colombia's.
- */
-function localTime(instant: string): string {
-  return new Date(instant).toLocaleTimeString("es-CO", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
 }
 
 function fromApi(row: ApiAttendance): Attendance {

@@ -69,6 +69,8 @@ export default function TrainersPage({
         <CommissionPanel
           trainers={trainers.items}
           commissions={commissions.items}
+          clients={clients.items}
+          onSettle={commissions.settleAll}
         />
       </CollectionGate>
     );

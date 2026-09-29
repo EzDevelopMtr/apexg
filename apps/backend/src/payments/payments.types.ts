@@ -32,9 +32,24 @@ export interface CommissionSummary {
   businessAmount: string;
 }
 
+/**
+ * La membresía a la que pertenece el pago, sea o no la vigente.
+ *
+ * Va dentro del pago porque `/clients` solo expone la membresía actual: tras
+ * una renovación, los pagos del ciclo anterior no tendrían cómo saber de qué
+ * cliente y plan son.
+ */
+export interface PaymentMembership {
+  clientId: string;
+  membershipTypeId: string;
+  agreedPrice: string;
+  startDate: string;
+}
+
 export interface PaymentResult {
   id: string;
   clientMembershipId: string;
+  membership: PaymentMembership;
   amount: string;
   paymentType: PaymentType;
   /** 1 para el primer pago de la membresía, 2 para el segundo, etc. */

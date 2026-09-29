@@ -63,7 +63,6 @@ export default function ExpensesPage({
         errorMessage="No pudimos cargar las categorías."
       >
         <CategoryPanel
-          title="Categorías de egreso"
           placeholder="Ej. Publicidad"
           categories={categories.items}
           onCreate={categories.create}

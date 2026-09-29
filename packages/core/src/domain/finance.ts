@@ -1,6 +1,7 @@
 import type { DateRange, IsoDate } from "./calendar";
 import { isWithin, previousMonth, rangeFor, startOfMonth } from "./calendar";
 import type { Client } from "./client";
+import type { DayPass } from "./day-pass";
 import { resolveStatus } from "./client";
 import type { Expense } from "./expense";
 import type { Money } from "./money";
@@ -15,13 +16,15 @@ export type BalancePeriod = "day" | "week" | "month";
  * The records every financial figure is computed from.
  *
  * Grouped because they always travel together: a balance, a comparison and the
- * daily log all need the same collections. Income has two sources —
- * membership payments and product sales (RF-28/29) — counted separately so
- * the daily log can show where the money came from, not just the total.
+ * daily log all need the same collections. Income has three sources —
+ * membership payments, product sales (RF-28/29) and day passes sold to
+ * visitors — counted separately so the daily log can show where the money
+ * came from, not just the total.
  */
 export interface FinancialRecords {
   readonly payments: readonly Payment[];
   readonly productSales: readonly ProductSale[];
+  readonly dayPasses: readonly DayPass[];
   readonly expenses: readonly Expense[];
   readonly clients: readonly Client[];
   /**
@@ -69,21 +72,27 @@ export function calculateBalance(
   period: BalancePeriod,
   on: IsoDate,
 ): Balance {
-  const range = rangeFor(period, on);
+  return balanceOver(records, rangeFor(period, on), on);
+}
+
+/**
+ * The balance for any range — a week, a month or dates the owner picked.
+ *
+ * `on` is only for the client counts, which describe a moment rather than a
+ * period: how many are active today, not "during" the range.
+ */
+export function balanceOver(
+  records: FinancialRecords,
+  range: DateRange,
+  on: IsoDate,
+): Balance {
 
   const income = add(
-    sumIn(
-      records.payments,
-      range,
-      (p) => p.paidOn,
-      (p) => p.amount,
+    add(
+      sumIn(records.payments, range, (p) => p.paidOn, (p) => p.amount),
+      sumIn(records.productSales, range, (s) => s.soldOn, (s) => s.amount),
     ),
-    sumIn(
-      records.productSales,
-      range,
-      (s) => s.soldOn,
-      (s) => s.amount,
-    ),
+    sumIn(records.dayPasses, range, (d) => d.soldOn, (d) => d.amount),
   );
   const spent = sumIn(
     records.expenses,
@@ -152,6 +161,17 @@ export function percentChange(before: Money, after: Money): number {
   return Math.round(((after - before) / Math.abs(before)) * 100);
 }
 
+/**
+ * Percentage change from `before` to `after`, or `null` when there is no base
+ * to compare against.
+ *
+ * For display: "+100% vs. mes anterior" after a month at zero reads as
+ * doubling, when the honest answer is that there is nothing to compare with.
+ */
+export function comparableChange(before: Money, after: Money): number | null {
+  return before === 0 ? null : percentChange(before, after);
+}
+
 /** An observation recorded when closing a month (RF-32). */
 export interface MonthlyClosure {
   /** The month being closed, as `YYYY-MM`. */
@@ -174,19 +194,23 @@ export interface DailyLogNote {
  *
  * `income` splits by source so the day's total is never a black box: a
  * receptionist can see whether it came from membership payments, product
- * sales, or both.
+ * sales or day passes.
  */
 export interface DailyLog {
   readonly on: IsoDate;
   readonly income: Money;
   readonly incomeFromPayments: Money;
   readonly incomeFromSales: Money;
+  readonly incomeFromDayPasses: Money;
   readonly newClients: readonly Client[];
   readonly notes: readonly DailyLogNote[];
 }
 
 export function buildDailyLog(
-  records: Pick<FinancialRecords, "payments" | "clients" | "productSales">,
+  records: Pick<
+    FinancialRecords,
+    "payments" | "clients" | "productSales" | "dayPasses"
+  >,
   notes: readonly DailyLogNote[],
   on: IsoDate,
 ): DailyLog {
@@ -204,11 +228,19 @@ export function buildDailyLog(
     (s) => s.amount,
   );
 
+  const incomeFromDayPasses = sumIn(
+    records.dayPasses,
+    range,
+    (d) => d.soldOn,
+    (d) => d.amount,
+  );
+
   return {
     on,
-    income: add(incomeFromPayments, incomeFromSales),
+    income: add(add(incomeFromPayments, incomeFromSales), incomeFromDayPasses),
     incomeFromPayments,
     incomeFromSales,
+    incomeFromDayPasses,
     newClients: records.clients.filter((client) => client.startDate === on),
     notes: notes.filter((note) => note.on === on),
   };

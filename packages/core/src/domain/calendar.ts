@@ -162,3 +162,20 @@ export function rangeFor(
 export function previousMonth(date: IsoDate): IsoDate {
   return addMonths(date, -1);
 }
+
+/** Meses abreviados en español, en minúscula como se escriben en una fecha. */
+const MONTH_ABBREVIATIONS = [
+  "ene", "feb", "mar", "abr", "may", "jun",
+  "jul", "ago", "sep", "oct", "nov", "dic",
+] as const;
+
+/** "2026-09-23" → "sep". Acepta también "2026-09". */
+export function monthAbbreviation(date: string): string {
+  return MONTH_ABBREVIATIONS[Number(date.slice(5, 7)) - 1] ?? "";
+}
+
+/** "2026-09-23" → "23 sep". */
+export function formatDayMonth(date: IsoDate): string {
+  return `${Number(date.slice(8, 10))} ${monthAbbreviation(date)}`;
+}
+

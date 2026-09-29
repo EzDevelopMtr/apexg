@@ -3,6 +3,7 @@
 import type {
   Client,
   DailyLogNote,
+  DayPass,
   IsoDate,
   Payment,
   ProductSale,
@@ -16,6 +17,7 @@ import NotesCard from "./notes-card";
 export interface DailyLogPanelProps {
   payments: readonly Payment[];
   productSales: readonly ProductSale[];
+  dayPasses: readonly DayPass[];
   clients: readonly Client[];
   notes: readonly DailyLogNote[];
   on: IsoDate;
@@ -31,12 +33,17 @@ export interface DailyLogPanelProps {
 export default function DailyLogPanel({
   payments,
   productSales,
+  dayPasses,
   clients,
   notes,
   on,
   onAddNote,
 }: DailyLogPanelProps) {
-  const log = buildDailyLog({ payments, productSales, clients }, notes, on);
+  const log = buildDailyLog(
+    { payments, productSales, dayPasses, clients },
+    notes,
+    on,
+  );
   const membershipTypes = useMembershipTypeCatalog();
 
   return (
@@ -45,6 +52,7 @@ export default function DailyLogPanel({
         log={log}
         payments={payments}
         productSales={productSales}
+        dayPasses={dayPasses}
         clients={clients}
         on={on}
       />

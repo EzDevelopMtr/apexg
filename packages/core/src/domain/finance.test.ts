@@ -10,6 +10,8 @@ import { toMembershipTypeId } from "./membership";
 import { fromPesos } from "./money";
 import type { Payment } from "./payment";
 import { toCycleId, toPaymentId } from "./payment";
+import type { DayPass } from "./day-pass";
+import { toDayPassId } from "./day-pass";
 import type { ProductSale } from "./product-sale";
 import { toProductSaleId } from "./product-sale";
 import type { SavingsContribution } from "./savings";
@@ -18,6 +20,7 @@ import {
   buildDailyLog,
   calculateBalance,
   compareWithPreviousMonth,
+  comparableChange,
   percentChange,
 } from "./finance";
 
@@ -93,6 +96,21 @@ function sale(id: string, soldOn: string, pesos: number): ProductSale {
   };
 }
 
+function dayPass(id: string, soldOn: string, pesos: number): DayPass {
+  return {
+    id: toDayPassId(id),
+    membershipTypeId: toMembershipTypeId("day"),
+    visitorName: "Visitante",
+    visitorContact: "",
+    amount: fromPesos(pesos),
+    paymentMethod: "cash",
+    soldOn: date(soldOn),
+    soldAt: "08:00",
+    receiptPath: "",
+    recordedBy: "Recepción",
+  };
+}
+
 describe("calculateBalance (RF-31)", () => {
   const payments = [
     payment("p1", "2026-06-18", 65_000),
@@ -107,7 +125,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up only the day in question", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
       "day",
       TODAY,
     );
@@ -129,7 +147,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [], savings },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings },
       "day",
       TODAY,
     );
@@ -155,7 +173,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [], savings },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings },
       "day",
       TODAY,
     );
@@ -166,7 +184,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the Monday-to-Sunday week", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
       "week",
       TODAY,
     );
@@ -176,7 +194,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the month and excludes the previous one", () => {
     const balance = calculateBalance(
-      { payments, productSales, expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
       "month",
       TODAY,
     );
@@ -194,6 +212,7 @@ describe("calculateBalance (RF-31)", () => {
           sale("s1", "2026-06-18", 8_000),
           sale("s2", "2026-05-30", 100_000), // outside the day in question
         ],
+        dayPasses: [],
         expenses,
         clients: [],
         savings: [],
@@ -214,7 +233,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments: [], productSales: [], expenses: [], clients, savings: [] },
+      { payments: [], productSales: [], dayPasses: [], expenses: [], clients, savings: [] },
       "month",
       TODAY,
     );
@@ -231,7 +250,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
     ];
 
     const comparison = compareWithPreviousMonth(
-      { payments, productSales: [], expenses: [], clients: [], savings: [] },
+      { payments, productSales: [], dayPasses: [], expenses: [], clients: [], savings: [] },
       TODAY,
     );
     expect(comparison.current.income).toBe(fromPesos(100_000));
@@ -242,7 +261,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
   it("steps back correctly from the 31st", () => {
     // previousMonth clamps, so this must not land in March.
     const comparison = compareWithPreviousMonth(
-      { payments: [], productSales: [], expenses: [], clients: [], savings: [] },
+      { payments: [], productSales: [], dayPasses: [], expenses: [], clients: [], savings: [] },
       date("2026-03-31"),
     );
     expect(comparison.previous.range.from).toBe("2026-02-01");
@@ -267,6 +286,18 @@ describe("percentChange", () => {
   });
 });
 
+describe("comparableChange", () => {
+  it("has no answer when the previous month was zero", () => {
+    expect(comparableChange(fromPesos(0), fromPesos(100))).toBeNull();
+    expect(comparableChange(fromPesos(0), fromPesos(0))).toBeNull();
+  });
+
+  it("matches percentChange otherwise", () => {
+    expect(comparableChange(fromPesos(100), fromPesos(150))).toBe(50);
+    expect(comparableChange(fromPesos(-100), fromPesos(-50))).toBe(50);
+  });
+});
+
 describe("buildDailyLog (RF-34)", () => {
   it("collects the day's income, new clients and notes", () => {
     const clients = [
@@ -287,6 +318,7 @@ describe("buildDailyLog (RF-34)", () => {
       {
         payments: [payment("p1", "2026-06-18", 65_000)],
         productSales: [],
+        dayPasses: [],
         clients,
       },
       notes,
@@ -298,7 +330,7 @@ describe("buildDailyLog (RF-34)", () => {
     expect(log.notes).toHaveLength(1);
   });
 
-  it("splits income by source: payments vs product sales", () => {
+  it("splits income by source: payments, product sales and day passes", () => {
     const log = buildDailyLog(
       {
         payments: [payment("p1", "2026-06-18", 65_000)],
@@ -306,6 +338,7 @@ describe("buildDailyLog (RF-34)", () => {
           sale("s1", "2026-06-18", 8_000),
           sale("s2", "2026-06-17", 5_000), // a different day, excluded
         ],
+        dayPasses: [dayPass("d1", "2026-06-18", 6_000)],
         clients: [],
       },
       [],
@@ -314,6 +347,7 @@ describe("buildDailyLog (RF-34)", () => {
 
     expect(log.incomeFromPayments).toBe(fromPesos(65_000));
     expect(log.incomeFromSales).toBe(fromPesos(8_000));
-    expect(log.income).toBe(fromPesos(73_000));
+    expect(log.incomeFromDayPasses).toBe(fromPesos(6_000));
+    expect(log.income).toBe(fromPesos(79_000));
   });
 });

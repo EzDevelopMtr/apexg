@@ -6,6 +6,8 @@ import type {
   ClientStatus,
   Commission,
   DailyLogNote,
+  DayPass,
+  DayPassId,
   Expense,
   ExpenseCategory,
   InventoryCategory,
@@ -148,6 +150,11 @@ export interface TrainerRepository {
   update(trainer: Trainer): Promise<Trainer>;
   listCommissions(): Promise<readonly Commission[]>;
   recordCommission(draft: Omit<Commission, "id">): Promise<Commission>;
+  /**
+   * Marca una comisión como pagada al entrenador. No se deshace (RNF-07): una
+   * liquidación es un movimiento de plata, igual que un pago.
+   */
+  settleCommission(trainerId: TrainerId, commissionId: string): Promise<void>;
 }
 
 export interface ExpenseRepository {
@@ -179,6 +186,26 @@ export interface ProductSaleRepository {
   create(
     draft: Omit<ProductSale, "id" | "itemName" | "clientName" | "recordedBy">,
   ): Promise<ProductSale>;
+}
+
+/** What selling a day pass needs; price and plan are the server's to set. */
+export interface DayPassSale {
+  readonly visitorName: string;
+  readonly visitorContact: string;
+  readonly paymentMethod: DayPass["paymentMethod"];
+}
+
+/**
+ * Pases de día para visitantes sin ficha de cliente.
+ *
+ * Append-only like payments (RNF-07). The receipt travels in the SAME request
+ * as the pass, for the same reason it does with a payment.
+ */
+export interface DayPassRepository {
+  list(): Promise<readonly DayPass[]>;
+  sell(sale: DayPassSale, receipt?: Blob): Promise<DayPass>;
+  /** Where to open a pass's receipt; served behind a permission check. */
+  receiptUrl(id: DayPassId): string;
 }
 
 /**
@@ -214,6 +241,7 @@ export interface Repositories {
   readonly inventory: InventoryRepository;
   readonly dailyLog: DailyLogRepository;
   readonly productSales: ProductSaleRepository;
+  readonly dayPasses: DayPassRepository;
   readonly savings: SavingsRepository;
 }
 

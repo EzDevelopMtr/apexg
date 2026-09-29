@@ -22,7 +22,6 @@ function InventoryCategoryPanel({
 }) {
   return (
     <CategoryPanel
-      title="Categorías de inventario"
       placeholder="Ej. Suplementos"
       categories={categories.items}
       onCreate={categories.create}

@@ -5,8 +5,8 @@ import { irA, marca } from "../support/app";
 
 const ID = marca();
 const BOLSILLO = `Máquina de remo ${ID}`;
-const AHORRO = "/modules/finances/savings";
-const BALANCE = "/modules/finances/monthlyBalance";
+// Finanzas es una sola vista: los bolsillos y el balance viven en el resumen.
+const AHORRO = "/modules/finances/dashboard";
 
 /**
  * La tarjeta de ese bolsillo.
@@ -67,9 +67,30 @@ test.describe("F10 · Bolsillos de ahorro", () => {
   });
 
   caso("CP-35", "Lo apartado baja la utilidad del balance", async ({ page }, info) => {
-    await irA(page, BALANCE);
+    await irA(page, AHORRO);
 
-    await expect(page.getByText(/apartado a bolsillos/i).first()).toBeVisible();
+    // El detalle del mes en curso, en el gráfico de tendencia: lo apartado
+    // aparece como línea propia, separada de los egresos, junto a la utilidad.
+    // La columna de hoy: la vista abre en el mes actual, día a día.
+    const mesActual = page
+      .getByRole("figure", { name: /ingresos y egresos/i })
+      .locator('[aria-current="true"]');
+    await mesActual.hover();
+    const detalle = mesActual.locator("div.absolute.bottom-full");
+    await expect(detalle).toBeVisible();
+
+    // El mes acumula aportes de corridas anteriores: no se compara contra una
+    // cifra fija sino contra la regla, Utilidad = Ingresos − Egresos − Apartado.
+    const texto = (await detalle.textContent()) ?? "";
+    const cifra = (etiqueta: string) => {
+      const hallado = texto.match(new RegExp(`${etiqueta}(-?)\\$\\s*([\\d.]+)`, "i"));
+      expect(hallado, `Falta "${etiqueta}" en el detalle`).toBeTruthy();
+      const [, signo, valor] = hallado as RegExpMatchArray;
+      return (signo ? -1 : 1) * Number((valor ?? "").replaceAll(".", ""));
+    };
+    const apartado = cifra("Apartado a bolsillos");
+    expect(apartado).toBeGreaterThanOrEqual(500_000);
+    expect(cifra("Utilidad")).toBe(cifra("Ingresos") - cifra("Egresos") - apartado);
     await info.attach("balance-con-ahorro", {
       body: await page.screenshot({ fullPage: true }),
       contentType: "image/png",

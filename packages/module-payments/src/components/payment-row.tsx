@@ -1,8 +1,13 @@
 "use client";
 
 import { Eye } from "lucide-react";
-import type { Payment } from "@apexg/core";
-import { PAYMENT_METHOD_LABELS, formatCOP, paymentLabel } from "@apexg/core";
+import type { IsoDate, Payment } from "@apexg/core";
+import {
+  PAYMENT_METHOD_LABELS,
+  formatCOP,
+  formatDayMonth,
+  paymentLabel,
+} from "@apexg/core";
 import { Badge, Button, TableCell, TableRow } from "@apexg/ui";
 
 export interface PaymentRowProps {
@@ -11,12 +16,15 @@ export interface PaymentRowProps {
   clientName: string;
   /** Opens the receipt over the page. Only called when there is one. */
   onViewReceipt: () => void;
+  /** Si el saldo que dejó este abono se pagó después, el día en que se saldó. */
+  settledOn: IsoDate | null;
 }
 
 export default function PaymentRow({
   payment,
   clientName,
   onViewReceipt,
+  settledOn,
 }: PaymentRowProps) {
   const settled = payment.balanceAfter <= 0;
 
@@ -31,7 +39,7 @@ export default function PaymentRow({
         )}
       </TableCell>
 
-      <TableCell className="text-sm">{payment.paidOn}</TableCell>
+      <TableCell className="whitespace-nowrap text-sm">{payment.paidOn}</TableCell>
 
       <TableCell className="font-semibold">
         {formatCOP(payment.amount)}
@@ -45,6 +53,13 @@ export default function PaymentRow({
 
       <TableCell className="text-sm">
         {settled ? "—" : formatCOP(payment.balanceAfter)}
+        {/* El saldo de la columna es el de ESE momento; sin esto, un abono
+            ya completado se leía como una deuda vigente. */}
+        {settledOn && (
+          <p className="text-xs text-ok-ink">
+            Saldado el {formatDayMonth(settledOn)}
+          </p>
+        )}
       </TableCell>
 
       <TableCell className="text-sm">

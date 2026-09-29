@@ -15,6 +15,17 @@ export const RUTAS = {
   pagosTodos: "/modules/payments/all",
   categoriasInventario: "/modules/inventory/categories",
   categoriasEgresos: "/modules/expenses/categories",
+  inventarioTodos: "/modules/inventory/all",
+  inventarioNuevo: "/modules/inventory/add",
+  inventarioBajoMinimo: "/modules/inventory/lowStock",
+  inventarioAgotados: "/modules/inventory/outOfStock",
+  pagosPendientes: "/modules/payments/outstanding",
+  entrenadoresTodos: "/modules/trainers/all",
+  entrenadoresNuevo: "/modules/trainers/add",
+  entrenadoresComisiones: "/modules/trainers/commissions",
+  egresosTodos: "/modules/expenses/all",
+  egresosNuevo: "/modules/expenses/add",
+  finanzasPanel: "/modules/finances/dashboard",
 } as const;
 
 /** Sufijo unico por corrida: dos ejecuciones no pueden pisarse los datos. */
@@ -72,6 +83,8 @@ export interface ClienteNuevo {
   plan: string;
   /** `YYYY-MM-DD`. Una fecha vieja deja la membresia vencida. */
   inicio?: string;
+  /** Nombre del entrenador, para los planes personalizado/semipersonalizado. */
+  entrenador?: string;
 }
 
 export async function crearCliente(
@@ -83,11 +96,52 @@ export async function crearCliente(
   await page.getByLabel("Documento").fill(cliente.documento);
   await page.getByLabel("Teléfono").first().fill("3000000000");
   await elegirOpcion(page, "Tipo de membresía", cliente.plan);
+  if (cliente.entrenador) {
+    await elegirOpcion(page, "Entrenador", cliente.entrenador);
+  }
   if (cliente.inicio) {
     await page.getByLabel("Fecha de inicio").fill(cliente.inicio);
   }
   await page.getByRole("button", { name: /guardar cliente/i }).click();
   await expect(page.getByText(cliente.nombre).first()).toBeVisible();
+}
+
+export interface ItemNuevo {
+  nombre: string;
+  stock: number;
+  minimo: number;
+}
+
+export async function crearItemInventario(
+  page: Page,
+  item: ItemNuevo,
+): Promise<void> {
+  await irA(page, RUTAS.inventarioNuevo);
+  await page.getByLabel("Nombre").fill(item.nombre);
+  await page.getByLabel("Existencias").fill(String(item.stock));
+  await page.getByLabel("Stock mínimo").fill(String(item.minimo));
+  await page.getByRole("button", { name: /guardar ítem/i }).click();
+  await expect(page.getByText(item.nombre).first()).toBeVisible();
+}
+
+export interface EntrenadorNuevo {
+  nombre: string;
+  documento: string;
+}
+
+export async function crearEntrenador(
+  page: Page,
+  entrenador: EntrenadorNuevo,
+): Promise<void> {
+  await irA(page, RUTAS.entrenadoresNuevo);
+  await page.getByLabel("Nombre completo").fill(entrenador.nombre);
+  await page.getByLabel("Documento").fill(entrenador.documento);
+  await page.getByLabel("Teléfono").fill("3000000000");
+  await page.getByLabel("Fecha de contratación").fill(new Date().toISOString().slice(0, 10));
+  await page.getByLabel("Sueldo (COP)").fill("1500000");
+  await page.getByLabel("Cupo máximo").fill("20");
+  await page.getByRole("button", { name: /guardar entrenador/i }).click();
+  await expect(page.getByText(entrenador.nombre).first()).toBeVisible();
 }
 
 /** La fila del panel de ingreso para ese nombre, con la lista ya desplegada. */

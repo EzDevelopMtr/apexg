@@ -789,3 +789,34 @@ export const savingsContributions = pgTable("savings_contributions", {
 			name: "savings_contributions_created_by_fkey"
 		}),
 ]);
+
+export const dayPasses = pgTable("day_passes", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	membershipTypeId: uuid("membership_type_id").notNull(),
+	visitorName: varchar("visitor_name", { length: 150 }).notNull(),
+	visitorContact: varchar("visitor_contact", { length: 50 }),
+	amount: numeric({ precision: 12, scale:  2 }).notNull(),
+	paymentMethod: varchar("payment_method", { length: 20 }).notNull(),
+	receiptPath: varchar("receipt_path", { length: 255 }),
+	soldAt: timestamp("sold_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	createdBy: uuid("created_by").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+}, (table) => [
+	index("idx_day_passes_company_sold").using("btree", table.companyId.asc().nullsLast().op("timestamptz_ops"), table.soldAt.asc().nullsLast().op("timestamptz_ops")),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "day_passes_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.membershipTypeId],
+			foreignColumns: [membershipTypes.id],
+			name: "day_passes_membership_type_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [users.id],
+			name: "day_passes_created_by_fkey"
+		}),
+]);

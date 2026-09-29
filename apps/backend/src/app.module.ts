@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./auth/auth.module.js";
 import { ClientsModule } from "./clients/clients.module.js";
 import { DailyLogModule } from "./daily-log/daily-log.module.js";
+import { DayPassesModule } from "./day-passes/day-passes.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { ExpensesModule } from "./expenses/expenses.module.js";
 import { SavingsModule } from "./savings/savings.module.js";
@@ -35,6 +36,7 @@ import { TrainersModule } from "./trainers/trainers.module.js";
     FinanceModule,
     DailyLogModule,
     ProductSalesModule,
+    DayPassesModule,
   ],
 })
 export class AppModule {}

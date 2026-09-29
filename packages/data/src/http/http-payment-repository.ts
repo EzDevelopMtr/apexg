@@ -1,9 +1,5 @@
 import type {
-  ClientId,
-  CycleId,
   IsoDate,
-  MembershipTypeId,
-  Money,
   Payment,
   PaymentKind,
   PaymentId,
@@ -27,6 +23,13 @@ type ApiPaymentType =
 interface ApiPaymentResult {
   id: string;
   clientMembershipId: string;
+  /** The membership the payment belongs to — current or not. */
+  membership: {
+    clientId: string;
+    membershipTypeId: string;
+    agreedPrice: string;
+    startDate: string;
+  };
   amount: string;
   paymentType: ApiPaymentType;
   installmentNumber: number;
@@ -38,22 +41,9 @@ interface ApiPaymentResult {
   recordedBy: string;
 }
 
-/** Only what `/clients` carries that a payment needs to resolve its cycle. */
+/** Only what `/clients/:id` carries that recording a payment needs. */
 interface ClientLookupRow {
-  id: string;
-  currentMembership: {
-    id: string;
-    membershipTypeId: string;
-    agreedPrice: string;
-    startDate: string;
-  } | null;
-}
-
-interface MembershipContext {
-  clientId: ClientId;
-  membershipTypeId: MembershipTypeId;
-  agreedPrice: Money;
-  cycleId: CycleId;
+  currentMembership: { id: string } | null;
 }
 
 /**
@@ -89,19 +79,18 @@ function toFormData(fields: Record<string, string>, receipt: Blob): FormData {
   form.append("receipt", receipt);
   return form;
 }
-function fromResult(
-  row: ApiPaymentResult,
-  context: MembershipContext,
-): Payment {
+function fromResult(row: ApiPaymentResult): Payment {
+  const { membership } = row;
+  const clientId = toClientId(membership.clientId);
   // Notes come back exactly as stored. They used to be unpacked with a regex,
   // because `reference` had no column and travelled folded in here behind a
   // "Referencia:" prefix; the field is gone and so is that convention.
   return {
     id: toPaymentId(row.id),
-    clientId: context.clientId,
-    cycleId: context.cycleId,
-    membershipTypeId: context.membershipTypeId,
-    agreedPrice: context.agreedPrice,
+    clientId,
+    cycleId: toCycleId(clientId, membership.startDate as IsoDate),
+    membershipTypeId: toMembershipTypeId(membership.membershipTypeId),
+    agreedPrice: fromApiString(membership.agreedPrice),
     amount: fromApiString(row.amount),
     balanceAfter: fromApiString(row.balanceAfter),
     kind: KIND_BY_TYPE[row.paymentType],
@@ -120,48 +109,9 @@ function fromResult(
 }
 
 export class HttpPaymentRepository implements PaymentRepository {
-  /**
-   * `GET /payments` only carries `clientMembershipId` — resolving `clientId`,
-   * plan and agreed price needs a join against `/clients`, which exposes
-   * only each client's CURRENT membership. There is today no way to create
-   * a second membership for an existing client (no renew endpoint yet), so
-   * "current" and "the one every existing payment belongs to" are the same
-   * thing — this will need revisiting once renewals exist.
-   */
-  private async loadMembershipContexts(): Promise<
-    Map<string, MembershipContext>
-  > {
-    const rows = await apiFetch<ClientLookupRow[]>("/clients");
-    const contexts = new Map<string, MembershipContext>();
-    for (const row of rows) {
-      const membership = row.currentMembership;
-      if (!membership) continue;
-      contexts.set(membership.id, {
-        clientId: toClientId(row.id),
-        membershipTypeId: toMembershipTypeId(membership.membershipTypeId),
-        agreedPrice: fromApiString(membership.agreedPrice),
-        cycleId: toCycleId(toClientId(row.id), membership.startDate as IsoDate),
-      });
-    }
-    return contexts;
-  }
-
   async list(): Promise<readonly Payment[]> {
-    const [rows, contexts] = await Promise.all([
-      apiFetch<ApiPaymentResult[]>("/payments"),
-      this.loadMembershipContexts(),
-    ]);
-
-    return rows.map((row) => {
-      const context = contexts.get(row.clientMembershipId);
-      if (!context) {
-        throw new Error(
-          "Este pago pertenece a una membresía que ya no es la vigente del cliente " +
-            "(el backend todavía no expone membresías históricas por separado).",
-        );
-      }
-      return fromResult(row, context);
-    });
+    const rows = await apiFetch<ApiPaymentResult[]>("/payments");
+    return rows.map(fromResult);
   }
 
   receiptUrl(paymentId: PaymentId): string {
@@ -204,12 +154,6 @@ export class HttpPaymentRepository implements PaymentRepository {
           body: fields,
         });
 
-    const context: MembershipContext = {
-      clientId: draft.clientId,
-      membershipTypeId: draft.membershipTypeId,
-      agreedPrice: draft.agreedPrice,
-      cycleId: draft.cycleId,
-    };
-    return fromResult(row, context);
+    return fromResult(row);
   }
 }

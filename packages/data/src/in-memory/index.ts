@@ -1,7 +1,9 @@
+import { DEFAULT_MEMBERSHIP_TYPES } from "@apexg/core";
 import type { Repositories } from "../repositories";
 import { InMemoryAttendanceRepository } from "./attendance-repository";
 import { InMemoryClientRepository } from "./client-repository";
 import { InMemoryDailyLogRepository } from "./daily-log-repository";
+import { InMemoryDayPassRepository } from "./day-pass-repository";
 import { InMemoryExpenseRepository } from "./expense-repository";
 import { InMemoryInventoryRepository } from "./inventory-repository";
 import { InMemoryMembershipTypeRepository } from "./membership-type-repository";
@@ -42,12 +44,14 @@ export function createInMemoryRepositories(): Repositories {
       buildSeedInventory(),
       buildSeedClients(),
     ),
+    dayPasses: new InMemoryDayPassRepository(DEFAULT_MEMBERSHIP_TYPES),
     savings: new InMemorySavingsRepository(),
   };
 }
 
 export { InMemoryClientRepository } from "./client-repository";
 export { InMemoryDailyLogRepository } from "./daily-log-repository";
+export { InMemoryDayPassRepository } from "./day-pass-repository";
 export { InMemoryExpenseRepository } from "./expense-repository";
 export { InMemoryInventoryRepository } from "./inventory-repository";
 export { InMemoryMembershipTypeRepository } from "./membership-type-repository";

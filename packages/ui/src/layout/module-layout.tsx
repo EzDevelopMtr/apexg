@@ -1,16 +1,21 @@
 import type { ReactNode } from "react";
 
 export interface ModuleLayoutProps {
-  sidebar: ReactNode;
+  topBar: ReactNode;
   children: ReactNode;
 }
 
-/** Shell shared by every module page: fixed sidebar plus offset content. */
-export default function ModuleLayout({ sidebar, children }: ModuleLayoutProps) {
+/**
+ * Esqueleto de cada pantalla de módulo: barra superior y contenido.
+ *
+ * El contenido ocupa el ancho completo; antes cedía 80 px a la izquierda para
+ * el riel lateral.
+ */
+export default function ModuleLayout({ topBar, children }: ModuleLayoutProps) {
   return (
     <div className="ground-grain min-h-screen">
-      {sidebar}
-      <main className="min-h-screen pl-20">{children}</main>
+      {topBar}
+      <main className="min-h-[calc(100vh-5rem)]">{children}</main>
     </div>
   );
 }

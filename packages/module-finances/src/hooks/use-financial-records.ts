@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import type {
   Client,
+  DayPass,
   Expense,
   FinancialRecords,
   Payment,
@@ -25,16 +26,17 @@ export interface UseFinancialRecordsResult {
  * Loads every collection a financial figure needs.
  *
  * They are fetched together because a balance is meaningless with only some of
- * them: income comes from payments, outgoings from expenses, lo apartado a
+ * them: income comes from payments, sales and day passes, outgoings from expenses, lo apartado a
  * bolsillos baja la utilidad, y los conteos de clientes se derivan, no se
  * leen (RF-33).
  */
 export function useFinancialRecords(): UseFinancialRecordsResult {
-  const { payments, productSales, expenses, clients, savings } =
+  const { payments, productSales, dayPasses, expenses, clients, savings } =
     useRepositories();
 
   const loadPayments = useCallback(() => payments.list(), [payments]);
   const loadSales = useCallback(() => productSales.list(), [productSales]);
+  const loadPasses = useCallback(() => dayPasses.list(), [dayPasses]);
   const loadExpenses = useCallback(() => expenses.list(), [expenses]);
   const loadClients = useCallback(() => clients.list(), [clients]);
   const loadSavings = useCallback(
@@ -44,6 +46,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
 
   const paymentCollection = useCollection<Payment>(loadPayments);
   const saleCollection = useCollection<ProductSale>(loadSales);
+  const passCollection = useCollection<DayPass>(loadPasses);
   const expenseCollection = useCollection<Expense>(loadExpenses);
   const clientCollection = useCollection<Client>(loadClients);
   const savingsCollection = useCollection<SavingsContribution>(loadSavings);
@@ -51,6 +54,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
   const parts = [
     paymentCollection,
     saleCollection,
+    passCollection,
     expenseCollection,
     clientCollection,
     savingsCollection,
@@ -68,6 +72,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
   }, [
     paymentCollection.reload,
     saleCollection.reload,
+    passCollection.reload,
     expenseCollection.reload,
     clientCollection.reload,
     savingsCollection.reload,
@@ -77,6 +82,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     records: {
       payments: paymentCollection.items,
       productSales: saleCollection.items,
+      dayPasses: passCollection.items,
       expenses: expenseCollection.items,
       clients: clientCollection.items,
       savings: savingsCollection.items,
@@ -85,6 +91,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     error:
       paymentCollection.error ??
       saleCollection.error ??
+      passCollection.error ??
       expenseCollection.error ??
       clientCollection.error ??
       savingsCollection.error,

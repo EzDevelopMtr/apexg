@@ -23,18 +23,22 @@ export default function KpiCard({
   tone = "neutral",
   icon,
 }: KpiCardProps) {
+  // Una región con nombre: el lector de pantalla anuncia "Ingresos" antes de
+  // leer la cifra, en vez de una lista suelta de números.
   return (
-    <Card>
-      <CardBody>
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-body-soft">
-            {label}
-          </p>
-          {icon && <span className="text-body-faint">{icon}</span>}
-        </div>
-        <p className={`mt-2 text-2xl font-bold ${TONES[tone]}`}>{value}</p>
-        {hint && <p className="mt-1 text-sm text-body-soft">{hint}</p>}
-      </CardBody>
-    </Card>
+    <section aria-label={label}>
+      <Card>
+        <CardBody>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-body-soft">
+              {label}
+            </p>
+            {icon && <span className="text-body-faint">{icon}</span>}
+          </div>
+          <p className={`mt-2 text-2xl font-bold ${TONES[tone]}`}>{value}</p>
+          {hint && <p className="mt-1 text-sm text-body-soft">{hint}</p>}
+        </CardBody>
+      </Card>
+    </section>
   );
 }

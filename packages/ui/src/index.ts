@@ -28,12 +28,15 @@ export { default as Avatar } from "./components/avatar";
 export type { AvatarProps, AvatarSize } from "./components/avatar";
 
 export { default as PhotoViewer } from "./components/photo-viewer";
+export { default as ReceiptPreview } from "./components/receipt-preview";
+export type { ReceiptPreviewProps } from "./components/receipt-preview";
 export type { PhotoViewerProps } from "./components/photo-viewer";
 
 export { default as Badge } from "./components/badge";
 export type { BadgeProps, BadgeTone } from "./components/badge";
 
 export { default as Button } from "./components/button";
+export { buttonClasses } from "./components/button-classes";
 export type {
   ButtonProps,
   ButtonVariant,
@@ -67,14 +70,27 @@ export {
 } from "./components/table";
 export type { TableProps } from "./components/table";
 
+/* Charts */
+export { default as ColumnChart } from "./components/column-chart";
+export type {
+  ColumnChartProps,
+  ColumnGroup,
+  ColumnSeries,
+} from "./components/column-chart";
+export { default as BarList } from "./components/bar-list";
+export type { BarListItem, BarListProps } from "./components/bar-list";
+
 /* Layout */
 export { default as ModuleLayout } from "./layout/module-layout";
 export type { ModuleLayoutProps } from "./layout/module-layout";
 
-export { SidebarShell, SidebarLabel } from "./layout/sidebar";
-export type { SidebarShellProps } from "./layout/sidebar";
+export { TopBarShell } from "./layout/top-bar";
+export { topBarTabClasses } from "./layout/top-bar-classes";
+export type { TopBarShellProps } from "./layout/top-bar";
 
-export { sidebarItemClasses } from "./layout/sidebar-classes";
+export { default as FilterBar } from "./components/filter-bar";
+export { filterChipClasses } from "./components/filter-chip-classes";
+export type { FilterBarProps } from "./components/filter-bar";
 
 /* Accents */
 export { ACCENT_TILE, ACCENT_GLOW } from "./accents";

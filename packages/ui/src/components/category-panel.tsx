@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Badge from "./badge";
 import Button from "./button";
-import Card, { CardBody, CardHeader } from "./card";
+import Card, { CardBody } from "./card";
 import Input from "./input";
 
 /** The shape both category kinds share. Nothing else about them is used here. */
@@ -14,8 +14,6 @@ export interface CategoryLike {
 }
 
 export interface CategoryPanelProps<T extends CategoryLike> {
-  /** Card heading, in Spanish. */
-  title: string;
   /** Example name under the new-category box, in Spanish. */
   placeholder: string;
   categories: readonly T[];
@@ -28,8 +26,8 @@ export interface CategoryPanelProps<T extends CategoryLike> {
  * Lets the admin extend or retire a category list.
  *
  * One component for expenses and inventory, whose categories are the same
- * three fields; it used to be two near-identical copies differing in a title
- * and a placeholder.
+ * three fields; it used to be two near-identical copies differing only in a
+ * placeholder and a title.
  *
  * It hands `onCreate` a name and nothing else. The previous copies built an id
  * from the name here, which both put an id outside the data layer and hid a
@@ -37,7 +35,6 @@ export interface CategoryPanelProps<T extends CategoryLike> {
  * an existing one.
  */
 export default function CategoryPanel<T extends CategoryLike>({
-  title,
   placeholder,
   categories,
   onCreate,
@@ -53,11 +50,10 @@ export default function CategoryPanel<T extends CategoryLike>({
   };
 
   return (
+    // Sin encabezado propio: el panel se abre desde la pestaña "Categorías"
+    // del módulo, y titularlo "Categorías de inventario" repetía la pestaña y
+    // el nombre del módulo, que están justo encima.
     <Card>
-      <CardHeader
-        title={title}
-        description="El administrador puede ampliar o retirar categorías."
-      />
       <CardBody className="space-y-4">
         <ul className="divide-y divide-line-soft">
           {categories.map((category) => (
