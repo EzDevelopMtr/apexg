@@ -44,7 +44,7 @@ export default function ClientContactFields({
 
       <Input
         id="email"
-        label="Correo electrónico"
+        label="Correo electrónico (opcional)"
         type="email"
         value={values.email}
         error={errors.email}
