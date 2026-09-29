@@ -1,9 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import type { Client, Commission, Trainer } from "@apexg/core";
-import { commissionTotal, formatCOP } from "@apexg/core";
-import { Button, Modal } from "@apexg/ui";
+import type {
+  Client,
+  Commission,
+  CommissionSettlementProblem,
+  PaymentMethod,
+  Trainer,
+} from "@apexg/core";
+import {
+  PAYMENT_METHOD_LABELS,
+  commissionTotal,
+  formatCOP,
+  requiresReceipt,
+} from "@apexg/core";
+import { Button, FileInput, Modal, Select } from "@apexg/ui";
+import type { SelectOption } from "@apexg/ui";
+import { useSettlement } from "../hooks/use-settlement";
+import type { UseSettlementResult } from "../hooks/use-settlement";
+
+const METHOD_OPTIONS: readonly SelectOption[] = (
+  Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]
+).map((method) => ({ value: method, label: PAYMENT_METHOD_LABELS[method] }));
+
+const PROBLEM_TEXT: Record<CommissionSettlementProblem, string> = {
+  nothingToSettle: "No hay comisiones pendientes por pagar.",
+  receiptRequired: "Adjunta la foto del comprobante de la transferencia.",
+};
 
 export interface SettleDialogProps {
   /** Null mientras no se está liquidando a nadie. */
@@ -11,7 +33,71 @@ export interface SettleDialogProps {
   pending: readonly Commission[];
   clients: readonly Client[];
   onClose: () => void;
-  onConfirm: () => Promise<void>;
+  onConfirm: (method: PaymentMethod, receipt?: Blob) => Promise<void>;
+}
+
+function PayoutFields({ settlement }: { settlement: UseSettlementResult }) {
+  const { method, receipt, problems } = settlement;
+  return (
+    <div className="mt-4 space-y-4">
+      <Select
+        id="settlementMethod"
+        label="Forma de pago"
+        options={METHOD_OPTIONS}
+        value={method}
+        onChange={(event) =>
+          settlement.setMethod(event.target.value as PaymentMethod)
+        }
+      />
+      {requiresReceipt(method) && (
+        <FileInput
+          id="settlementReceipt"
+          label="Comprobante"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          hint="Captura de la transferencia. JPG, PNG, WEBP o PDF, hasta 5 MB."
+          file={receipt}
+          onChange={settlement.setReceipt}
+          error={
+            problems.includes("receiptRequired")
+              ? PROBLEM_TEXT.receiptRequired
+              : undefined
+          }
+        />
+      )}
+      {problems.includes("nothingToSettle") && (
+        <p role="alert" className="text-sm text-danger-ink">
+          {PROBLEM_TEXT.nothingToSettle}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PendingList({
+  pending,
+  clients,
+}: Pick<SettleDialogProps, "pending" | "clients">) {
+  const nameOf = (commission: Commission) =>
+    clients.find((client) => client.id === commission.clientId)?.fullName ??
+    "Cliente";
+  return (
+    <ul className="divide-y divide-line-soft rounded-xl border border-line">
+      {pending.map((commission) => (
+        <li
+          key={commission.id}
+          className="flex items-center justify-between px-4 py-3 text-sm"
+        >
+          <span className="text-body">
+            {nameOf(commission)}
+            <span className="text-body-soft"> · {commission.earnedOn}</span>
+          </span>
+          <span className="font-semibold text-body">
+            {formatCOP(commission.amount)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 /**
@@ -19,7 +105,8 @@ export interface SettleDialogProps {
  *
  * Una liquidación no se deshace (RNF-07), así que se muestra de qué pagos
  * sale cada peso: la recepcionista confirma contra lo que le va a entregar
- * al entrenador, no contra un total suelto.
+ * al entrenador, no contra un total suelto. Una transferencia exige su
+ * comprobante, igual que un cobro.
  */
 export default function SettleDialog({
   trainer,
@@ -28,26 +115,11 @@ export default function SettleDialog({
   onClose,
   onConfirm,
 }: SettleDialogProps) {
-  const [saving, setSaving] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const settlement = useSettlement(pending, onConfirm);
 
-  const nameOf = (commission: Commission) =>
-    clients.find((client) => client.id === commission.clientId)?.fullName ??
-    "Cliente";
-
-  const confirm = async () => {
-    setSaving(true);
-    setFailure(null);
-    try {
-      await onConfirm();
-      onClose();
-    } catch (cause) {
-      setFailure(
-        cause instanceof Error ? cause.message : "No se pudo registrar el pago.",
-      );
-    } finally {
-      setSaving(false);
-    }
+  const close = () => {
+    settlement.reset();
+    onClose();
   };
 
   return (
@@ -55,24 +127,9 @@ export default function SettleDialog({
       open={trainer !== null}
       title="Pagar comisiones"
       description={trainer?.fullName}
-      onClose={onClose}
+      onClose={close}
     >
-      <ul className="divide-y divide-line-soft rounded-xl border border-line">
-        {pending.map((commission) => (
-          <li
-            key={commission.id}
-            className="flex items-center justify-between px-4 py-3 text-sm"
-          >
-            <span className="text-body">
-              {nameOf(commission)}
-              <span className="text-body-soft"> · {commission.earnedOn}</span>
-            </span>
-            <span className="font-semibold text-body">
-              {formatCOP(commission.amount)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <PendingList pending={pending} clients={clients} />
 
       <div className="mt-4 flex items-baseline justify-between">
         <span className="text-body-soft">Total a entregar</span>
@@ -81,22 +138,29 @@ export default function SettleDialog({
         </span>
       </div>
 
+      <PayoutFields settlement={settlement} />
+
       <p className="mt-2 text-sm text-body-soft">
         Queda registrado como pagado y no se puede deshacer.
       </p>
 
-      {failure && (
+      {settlement.failure && (
         <p role="alert" className="mt-3 text-sm text-danger-ink">
-          {failure}
+          {settlement.failure}
         </p>
       )}
 
       <div className="mt-5 flex justify-end gap-3">
-        <Button variant="ghost" onClick={onClose} disabled={saving}>
+        <Button variant="ghost" onClick={close} disabled={settlement.saving}>
           Cancelar
         </Button>
-        <Button onClick={confirm} disabled={saving}>
-          {saving ? "Registrando..." : "Confirmar pago"}
+        <Button
+          onClick={async () => {
+            if (await settlement.confirm()) onClose();
+          }}
+          disabled={settlement.saving}
+        >
+          {settlement.saving ? "Registrando..." : "Confirmar pago"}
         </Button>
       </div>
     </Modal>

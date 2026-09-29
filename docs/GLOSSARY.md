@@ -66,6 +66,8 @@ Note: "Por vencer" is **not** a state. It is a derived filter
 | Fecha de cumpleaños     | `birthDate`                  |
 | Condición médica        | `medicalCondition`           |
 | Forma de pago           | `paymentMethod`              |
+| Comprobante             | `receipt`                    |
+| Liquidación (comisión)  | `settlement`                 |
 | Fecha de ingreso        | `startDate`                  |
 | Fecha de vencimiento    | `expirationDate`             |
 | Saldo pendiente         | `outstandingBalance`         |

@@ -1,10 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { HandCoins } from "lucide-react";
-import type { Client, Commission, Trainer, TrainerId } from "@apexg/core";
-import { commissionTotal, formatCOP, unsettledCommissions } from "@apexg/core";
-import { Button, Card, Table, TableCell, TableEmpty, TableRow } from "@apexg/ui";
+import { Eye, HandCoins } from "lucide-react";
+import type {
+  Client,
+  Commission,
+  PaymentMethod,
+  Trainer,
+  TrainerId,
+} from "@apexg/core";
+import {
+  commissionTotal,
+  formatCOP,
+  latestSettlementWithReceipt,
+  unsettledCommissions,
+} from "@apexg/core";
+import {
+  Button,
+  Card,
+  ReceiptPreview,
+  Table,
+  TableCell,
+  TableEmpty,
+  TableRow,
+} from "@apexg/ui";
 import SettleDialog from "./settle-dialog";
 
 const HEADERS = [
@@ -18,7 +37,75 @@ export interface CommissionPanelProps {
   trainers: readonly Trainer[];
   commissions: readonly Commission[];
   clients: readonly Client[];
-  onSettle: (trainerId: TrainerId) => Promise<void>;
+  onSettle: (
+    trainerId: TrainerId,
+    method: PaymentMethod,
+    receipt?: Blob,
+  ) => Promise<void>;
+  receiptUrl: (commission: Commission) => string;
+}
+
+interface TrainerCommissionRowProps {
+  trainer: Trainer;
+  commissions: readonly Commission[];
+  onPay: (trainer: Trainer) => void;
+  onViewReceipt: (commission: Commission) => void;
+}
+
+function TrainerCommissionRow({
+  trainer,
+  commissions,
+  onPay,
+  onViewReceipt,
+}: TrainerCommissionRowProps) {
+  const id = trainer.id as TrainerId;
+  const own = commissions.filter((commission) => commission.trainerId === id);
+  const pending = unsettledCommissions(commissions, id);
+  const lastReceipt = latestSettlementWithReceipt(commissions, id);
+
+  return (
+    <TableRow>
+      <TableCell>
+        <p className="font-semibold text-body">{trainer.fullName}</p>
+        <p className="text-sm text-body-soft">
+          {own.length} {own.length === 1 ? "registro" : "registros"}
+        </p>
+      </TableCell>
+      <TableCell>{formatCOP(commissionTotal(own))}</TableCell>
+      <TableCell className="font-semibold text-warn-ink">
+        {formatCOP(commissionTotal(pending))}
+      </TableCell>
+      <TableCell>
+        <span className="flex items-center gap-2">
+          {/* Sin pendiente no hay nada que pagar: el botón
+              desaparece en vez de quedar apagado. */}
+          {pending.length > 0 ? (
+            <Button
+              size="sm"
+              onClick={() => onPay(trainer)}
+              aria-label={`Pagar comisiones de ${trainer.fullName}`}
+            >
+              <HandCoins size={16} />
+              Pagar
+            </Button>
+          ) : (
+            <span className="text-sm text-body-faint">Al día</span>
+          )}
+          {lastReceipt && (
+            <button
+              type="button"
+              onClick={() => onViewReceipt(lastReceipt)}
+              aria-label={`Ver comprobante del último pago a ${trainer.fullName}`}
+              className="inline-flex items-center gap-1 rounded-md p-1 text-sm text-body-soft hover:text-body"
+            >
+              <Eye size={16} />
+              Comprobante
+            </button>
+          )}
+        </span>
+      </TableCell>
+    </TableRow>
+  );
 }
 
 /**
@@ -33,9 +120,11 @@ export default function CommissionPanel({
   commissions,
   clients,
   onSettle,
+  receiptUrl,
 }: CommissionPanelProps) {
   // Uno a la vez, y por eso vive aquí y no en la fila.
   const [paying, setPaying] = useState<Trainer | null>(null);
+  const [viewing, setViewing] = useState<Commission | null>(null);
 
   return (
     <>
@@ -47,46 +136,15 @@ export default function CommissionPanel({
               message="No hay entrenadores registrados."
             />
           ) : (
-            trainers.map((trainer) => {
-              const own = commissions.filter(
-                (commission) => commission.trainerId === trainer.id,
-              );
-              const pending = unsettledCommissions(
-                commissions,
-                trainer.id as TrainerId,
-              );
-
-              return (
-                <TableRow key={trainer.id}>
-                  <TableCell>
-                    <p className="font-semibold text-body">{trainer.fullName}</p>
-                    <p className="text-sm text-body-soft">
-                      {own.length} {own.length === 1 ? "registro" : "registros"}
-                    </p>
-                  </TableCell>
-                  <TableCell>{formatCOP(commissionTotal(own))}</TableCell>
-                  <TableCell className="font-semibold text-warn-ink">
-                    {formatCOP(commissionTotal(pending))}
-                  </TableCell>
-                  <TableCell>
-                    {/* Sin pendiente no hay nada que pagar: el botón
-                        desaparece en vez de quedar apagado. */}
-                    {pending.length > 0 ? (
-                      <Button
-                        size="sm"
-                        onClick={() => setPaying(trainer)}
-                        aria-label={`Pagar comisiones de ${trainer.fullName}`}
-                      >
-                        <HandCoins size={16} />
-                        Pagar
-                      </Button>
-                    ) : (
-                      <span className="text-sm text-body-faint">Al día</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })
+            trainers.map((trainer) => (
+              <TrainerCommissionRow
+                key={trainer.id}
+                trainer={trainer}
+                commissions={commissions}
+                onPay={setPaying}
+                onViewReceipt={setViewing}
+              />
+            ))
           )}
         </Table>
       </Card>
@@ -94,13 +152,29 @@ export default function CommissionPanel({
       <SettleDialog
         trainer={paying}
         pending={
-          paying ? unsettledCommissions(commissions, paying.id as TrainerId) : []
+          paying
+            ? unsettledCommissions(commissions, paying.id as TrainerId)
+            : []
         }
         clients={clients}
         onClose={() => setPaying(null)}
-        onConfirm={() =>
-          paying ? onSettle(paying.id as TrainerId) : Promise.resolve()
+        onConfirm={(method, receipt) =>
+          paying
+            ? onSettle(paying.id as TrainerId, method, receipt)
+            : Promise.resolve()
         }
+      />
+      <ReceiptPreview
+        receipt={
+          viewing
+            ? {
+                url: receiptUrl(viewing),
+                fileName: viewing.settlementReceiptPath,
+                subject: "Pago de comisiones",
+              }
+            : null
+        }
+        onClose={() => setViewing(null)}
       />
     </>
   );

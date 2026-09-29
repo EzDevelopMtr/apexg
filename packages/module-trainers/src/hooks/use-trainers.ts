@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, Commission, Trainer, TrainerId } from "@apexg/core";
+import type {
+  Client,
+  Commission,
+  PaymentMethod,
+  Trainer,
+  TrainerId,
+} from "@apexg/core";
 import { unsettledCommissions } from "@apexg/core";
 import { useCollection, upsertById, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
@@ -35,13 +41,20 @@ export function useTrainers(): UseTrainersResult {
 
 export interface UseCommissionsResult extends Collection<Commission> {
   /**
-   * Marca como pagadas TODAS las comisiones pendientes del entrenador.
+   * Marca como pagadas TODAS las comisiones pendientes del entrenador, en un
+   * solo pago con un solo comprobante.
    *
    * Por entrenador y no una por una: en el gimnasio al entrenador se le paga
    * lo acumulado de una vez, y liquidar fila por fila era obligar a la
    * recepcionista a hacer diez clics para un solo pago.
    */
-  readonly settleAll: (trainerId: TrainerId) => Promise<void>;
+  readonly settleAll: (
+    trainerId: TrainerId,
+    method: PaymentMethod,
+    receipt?: Blob,
+  ) => Promise<void>;
+  /** Where to open the receipt of a settled commission. */
+  readonly receiptUrl: (commission: Commission) => string;
 }
 
 /** Commissions earned from personal-training payments (RF-23, §4.4). */
@@ -52,15 +65,14 @@ export function useCommissions(): UseCommissionsResult {
   const { items, reload } = collection;
 
   const settleAll = useCallback(
-    async (trainerId: TrainerId) => {
-      // En serie y no en paralelo: si una falla a mitad, las anteriores ya
-      // quedaron liquidadas y la recarga muestra el estado real, en vez de
-      // un lote a medias imposible de reconstruir.
-      const pending = unsettledCommissions(items, trainerId);
+    async (trainerId: TrainerId, method: PaymentMethod, receipt?: Blob) => {
+      // Una sola llamada: el backend liquida todas en una transacción, así
+      // que no queda un lote a medias si algo falla.
+      const ids = unsettledCommissions(items, trainerId).map(
+        (commission) => commission.id,
+      );
       try {
-        for (const commission of pending) {
-          await trainers.settleCommission(trainerId, commission.id);
-        }
+        await trainers.settleCommissions(trainerId, ids, method, receipt);
       } finally {
         reload();
       }
@@ -68,7 +80,13 @@ export function useCommissions(): UseCommissionsResult {
     [trainers, items, reload],
   );
 
-  return { ...collection, settleAll };
+  const receiptUrl = useCallback(
+    (commission: Commission) =>
+      trainers.commissionReceiptUrl(commission.trainerId, commission.id),
+    [trainers],
+  );
+
+  return { ...collection, settleAll, receiptUrl };
 }
 
 /** Clients, needed to count each trainer's current load (RF-25). */

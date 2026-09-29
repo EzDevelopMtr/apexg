@@ -14,6 +14,8 @@ export function buildSeedExpenses(): Expense[] {
       amount: fromPesos(1_500_000),
       spentOn: day("2026-08-30"),
       recordedBy: "apexg",
+      paymentMethod: "transfer",
+      receiptPath: "",
     },
     {
       id: toExpenseId("expense-2"),
@@ -22,6 +24,8 @@ export function buildSeedExpenses(): Expense[] {
       amount: fromPesos(420_000),
       spentOn: day("2026-09-02"),
       recordedBy: "apexg",
+      paymentMethod: "transfer",
+      receiptPath: "",
     },
   ];
 }

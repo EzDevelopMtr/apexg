@@ -340,6 +340,8 @@ export const trainerCommissions = pgTable("trainer_commissions", {
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	settled: boolean().default(false).notNull(),
 	settledAt: timestamp("settled_at", { withTimezone: true, mode: 'string' }),
+	settlementMethod: varchar("settlement_method", { length: 20 }),
+	settlementReceiptPath: varchar("settlement_receipt_path", { length: 255 }),
 }, (table) => [
 	index("idx_trainer_commissions_company_date").using("btree", table.companyId.asc().nullsLast().op("date_ops"), table.commissionDate.asc().nullsLast().op("uuid_ops")),
 	index("idx_trainer_commissions_trainer_date").using("btree", table.trainerId.asc().nullsLast().op("date_ops"), table.commissionDate.asc().nullsLast().op("uuid_ops")),
@@ -393,6 +395,8 @@ export const expenses = pgTable("expenses", {
 	createdBy: uuid("created_by"),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	paymentMethod: varchar("payment_method", { length: 20 }),
+	receiptPath: varchar("receipt_path", { length: 255 }),
 }, (table) => [
 	index("idx_expenses_category").using("btree", table.categoryId.asc().nullsLast().op("uuid_ops")),
 	index("idx_expenses_company_date").using("btree", table.companyId.asc().nullsLast().op("date_ops"), table.expenseDate.asc().nullsLast().op("date_ops")),

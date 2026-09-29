@@ -80,7 +80,11 @@ export default function ExpensesPage({
       loadingMessage="Cargando egresos..."
       errorMessage="No pudimos cargar los egresos."
     >
-      <ExpenseList expenses={visible} categories={categories.items} />
+      <ExpenseList
+        expenses={visible}
+        categories={categories.items}
+        receiptUrl={expenses.receiptUrl}
+      />
     </CollectionGate>
   );
 }

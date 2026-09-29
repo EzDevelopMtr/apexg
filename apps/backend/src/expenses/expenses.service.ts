@@ -5,10 +5,7 @@ import { DATABASE } from '../database/database.constants.js';
 import type { Database } from '../database/database.types.js';
 import { expenses } from '../database/schema/schema.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
-import {
-  AuthorLookupService,
-  authorName,
-} from '../shared/author-lookup.service.js';
+import { AuthorLookupService, authorName } from '../shared/author-lookup.service.js';
 import { today } from '../shared/date.util.js';
 
 import type { CreateExpenseDto } from './create-expense.dto.js';
@@ -25,7 +22,13 @@ export class ExpensesService {
     private readonly authors: AuthorLookupService,
   ) {}
 
-  async create(companyId: string, userId: string, input: CreateExpenseDto): Promise<ExpenseResult> {
+  /** `receiptPath` ya pasó por `PaymentReceiptService.storeFor`, que aplica la regla. */
+  async create(
+    companyId: string,
+    userId: string,
+    input: CreateExpenseDto,
+    receiptPath: string | null,
+  ): Promise<ExpenseResult> {
     const category = await this.categories.load(companyId, input.categoryId);
 
     const [row] = await this.db
@@ -36,6 +39,8 @@ export class ExpensesService {
         concept: input.concept,
         amount: input.amount,
         expenseDate: input.expenseDate ?? today(),
+        paymentMethod: input.paymentMethod,
+        receiptPath,
         createdBy: userId,
       })
       .returning();
@@ -70,11 +75,7 @@ export class ExpensesService {
 
     const authors = await this.authors.namesOf(rows.map((row) => row.createdBy));
     return rows.map((row) =>
-      this.toResult(
-        row,
-        nameById.get(row.categoryId) ?? '—',
-        authorName(authors, row.createdBy),
-      ),
+      this.toResult(row, nameById.get(row.categoryId) ?? '—', authorName(authors, row.createdBy)),
     );
   }
 
@@ -87,11 +88,7 @@ export class ExpensesService {
       throw new NotFoundException('El egreso no existe.');
     }
     const category = await this.categories.load(companyId, row.categoryId);
-    return this.toResult(
-      row,
-      category.name,
-      await this.authors.nameOf(row.createdBy),
-    );
+    return this.toResult(row, category.name, await this.authors.nameOf(row.createdBy));
   }
 
   async update(companyId: string, id: string, input: UpdateExpenseDto): Promise<ExpenseResult> {
@@ -116,11 +113,13 @@ export class ExpensesService {
     return this.findOne(companyId, id);
   }
 
-  async remove(companyId: string, id: string): Promise<void> {
-    await this.findOne(companyId, id);
+  /** Devuelve el comprobante que tenía, para que el llamador lo borre del disco. */
+  async remove(companyId: string, id: string): Promise<string | null> {
+    const { receiptPath } = await this.findOne(companyId, id);
     await this.db
       .delete(expenses)
       .where(and(eq(expenses.id, id), eq(expenses.companyId, companyId)));
+    return receiptPath;
   }
 
   private toResult(
@@ -136,6 +135,8 @@ export class ExpensesService {
       amount: row.amount,
       expenseDate: row.expenseDate,
       recordedBy,
+      paymentMethod: row.paymentMethod,
+      receiptPath: row.receiptPath,
     };
   }
 }

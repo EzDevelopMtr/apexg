@@ -10,14 +10,22 @@ import {
   Patch,
   Post,
   Query,
+  Res,
+  StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 
 import { AccessTokenGuard } from '../auth/access-token.guard.js';
 import type { AuthenticatedUser } from '../auth/auth.types.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import { PermissionGuard } from '../auth/permission.guard.js';
 import { RequirePermissions } from '../auth/require-permissions.decorator.js';
+import { PaymentReceiptService } from '../payments/payment-receipt.service.js';
+import type { UploadedFile as Upload } from '../shared/local-file-store.js';
 
 // Value imports: DI (ExpensesService, ExpenseCategoryService) and
 // @Body()/@Query() DTOs need the real class at runtime (see the note in
@@ -31,13 +39,19 @@ import { ListExpensesQueryDto } from './list-expenses-query.dto.js';
 import { UpdateExpenseCategoryDto } from './update-expense-category.dto.js';
 import { UpdateExpenseDto } from './update-expense.dto.js';
 
-/** RF-26, RF-27. Categorías y egresos comparten los mismos permisos `egresos.*`. */
+const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
+
+/**
+ * RF-26, RF-27. Categorías y egresos comparten los mismos permisos `egresos.*`.
+ * El comprobante de un egreso sigue la regla y el almacén de un pago (RNF-07).
+ */
 @Controller()
 @UseGuards(AccessTokenGuard, PermissionGuard)
 export class ExpensesController {
   constructor(
     private readonly expenses: ExpensesService,
     private readonly categories: ExpenseCategoryService,
+    private readonly receipts: PaymentReceiptService,
   ) {}
 
   @Post('expense-categories')
@@ -77,11 +91,19 @@ export class ExpensesController {
 
   @Post('expenses')
   @RequirePermissions('egresos.create')
-  create(
+  @UseInterceptors(FileInterceptor('receipt', { limits: { fileSize: MAX_RECEIPT_BYTES } }))
+  async create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateExpenseDto,
+    @UploadedFile() receipt?: Upload,
   ): Promise<ExpenseResult> {
-    return this.expenses.create(user.companyId, user.id, dto);
+    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, receipt);
+    try {
+      return await this.expenses.create(user.companyId, user.id, dto, receiptPath);
+    } catch (error) {
+      if (receiptPath) await this.receipts.discard(receiptPath);
+      throw error;
+    }
   }
 
   @Get('expenses')
@@ -106,6 +128,20 @@ export class ExpensesController {
     return this.expenses.findOne(user.companyId, id);
   }
 
+  @Get('expenses/:id/receipt')
+  @RequirePermissions('egresos.read')
+  async findReceipt(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<StreamableFile> {
+    const expense = await this.expenses.findOne(user.companyId, id);
+    const { stream, contentType } = this.receipts.openReceipt(expense.receiptPath ?? '');
+    response.setHeader('Content-Type', contentType);
+    response.setHeader('Cache-Control', 'private, no-store');
+    return new StreamableFile(stream);
+  }
+
   @Patch('expenses/:id')
   @RequirePermissions('egresos.update')
   update(
@@ -123,6 +159,8 @@ export class ExpensesController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<void> {
-    await this.expenses.remove(user.companyId, id);
+    const receiptPath = await this.expenses.remove(user.companyId, id);
+    // Después de borrar la fila: si el DELETE falla, el comprobante sigue ahí.
+    if (receiptPath) await this.receipts.discard(receiptPath);
   }
 }

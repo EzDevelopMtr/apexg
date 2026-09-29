@@ -10,6 +10,7 @@ import type {
   DayPassId,
   Expense,
   ExpenseCategory,
+  ExpenseId,
   InventoryCategory,
   InventoryItem,
   InventoryItemId,
@@ -18,6 +19,7 @@ import type {
   MonthlyClosure,
   Payment,
   PaymentId,
+  PaymentMethod,
   Money,
   ProductSale,
   SavingsContribution,
@@ -151,15 +153,30 @@ export interface TrainerRepository {
   listCommissions(): Promise<readonly Commission[]>;
   recordCommission(draft: Omit<Commission, "id">): Promise<Commission>;
   /**
-   * Marca una comisión como pagada al entrenador. No se deshace (RNF-07): una
-   * liquidación es un movimiento de plata, igual que un pago.
+   * Marca como pagadas al entrenador las comisiones dadas, en un solo pago con
+   * un solo comprobante. No se deshace (RNF-07): una liquidación es un
+   * movimiento de plata, igual que un pago. Todo o nada.
    */
-  settleCommission(trainerId: TrainerId, commissionId: string): Promise<void>;
+  settleCommissions(
+    trainerId: TrainerId,
+    commissionIds: readonly string[],
+    method: PaymentMethod,
+    receipt?: Blob,
+  ): Promise<void>;
+  /** Where to open the receipt of a settled commission; behind a permission check. */
+  commissionReceiptUrl(trainerId: TrainerId, commissionId: string): string;
 }
+
+/** An expense as recorded: the receipt name is decided by the store, not the caller. */
+export type ExpenseEntry = Omit<Expense, "id" | "receiptPath"> & {
+  readonly paymentMethod: PaymentMethod;
+};
 
 export interface ExpenseRepository {
   list(): Promise<readonly Expense[]>;
-  create(draft: Omit<Expense, "id">): Promise<Expense>;
+  create(draft: ExpenseEntry, receipt?: Blob): Promise<Expense>;
+  /** Where to open an expense's receipt; served behind a permission check. */
+  receiptUrl(id: ExpenseId): string;
   listCategories(): Promise<readonly ExpenseCategory[]>;
   saveCategory(category: ExpenseCategory): Promise<ExpenseCategory>;
 }

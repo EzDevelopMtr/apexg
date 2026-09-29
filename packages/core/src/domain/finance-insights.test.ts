@@ -69,6 +69,8 @@ function egreso(id: string, categoryId: string, pesos: number, spentOn: string):
     amount: fromPesos(pesos),
     spentOn: date(spentOn),
     recordedBy: "apexg",
+    paymentMethod: "cash",
+    receiptPath: "",
   };
 }
 
@@ -225,6 +227,8 @@ describe("receivables y pendingCommissions", () => {
       amount: fromPesos(pesos),
       earnedOn: HOY,
       settled,
+      settlementMethod: null,
+      settlementReceiptPath: "",
     });
     expect(pendingCommissions([comision("k1", 100_000, false), comision("k2", 50_000, true)])).toBe(
       fromPesos(100_000),

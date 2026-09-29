@@ -2,7 +2,7 @@ import type { IsoDate } from "./calendar";
 import type { MembershipType, MembershipTypeId } from "./membership";
 import type { Money } from "./money";
 import type { PaymentMethod } from "./payment";
-import { requiresReceipt } from "./payment";
+import { isMissingReceipt } from "./receipt";
 
 declare const dayPassIdBrand: unique symbol;
 export type DayPassId = string & { readonly [dayPassIdBrand]: true };
@@ -72,12 +72,12 @@ export type DayPassProblem = "nameRequired" | "receiptRequired";
  *
  * The name is the one thing always asked for: without it the day's list says
  * "someone paid $6.000" and nobody can answer who was in the gym. The receipt
- * follows the same rule as a membership payment ({@link requiresReceipt}).
+ * follows the same rule as a membership payment ({@link isMissingReceipt}).
  */
 export function dayPassProblems(draft: DayPassDraft): readonly DayPassProblem[] {
   const problems: DayPassProblem[] = [];
   if (draft.visitorName.trim().length === 0) problems.push("nameRequired");
-  if (requiresReceipt(draft.paymentMethod) && !draft.hasReceipt) {
+  if (isMissingReceipt(draft.paymentMethod, draft.hasReceipt)) {
     problems.push("receiptRequired");
   }
   return problems;

@@ -71,6 +71,7 @@ export default function TrainersPage({
           commissions={commissions.items}
           clients={clients.items}
           onSettle={commissions.settleAll}
+          receiptUrl={commissions.receiptUrl}
         />
       </CollectionGate>
     );

@@ -1,6 +1,6 @@
 import type { Expense, ExpenseCategory, ExpenseId } from "@apexg/core";
 import { DEFAULT_EXPENSE_CATEGORIES, toExpenseId } from "@apexg/core";
-import type { ExpenseRepository } from "../repositories";
+import type { ExpenseEntry, ExpenseRepository } from "../repositories";
 import { InMemoryStore, newId } from "./in-memory-store";
 
 export class InMemoryExpenseRepository implements ExpenseRepository {
@@ -19,8 +19,17 @@ export class InMemoryExpenseRepository implements ExpenseRepository {
     return this.#expenses.list();
   }
 
-  create(draft: Omit<Expense, "id">): Promise<Expense> {
-    return this.#expenses.save({ ...draft, id: toExpenseId(newId()) });
+  create(draft: ExpenseEntry, receipt?: Blob): Promise<Expense> {
+    return this.#expenses.save({
+      ...draft,
+      id: toExpenseId(newId()),
+      receiptPath: receipt ? "comprobante" : "",
+    });
+  }
+
+  /** No server behind this one, so there is nothing to open. */
+  receiptUrl(): string {
+    return "";
   }
 
   listCategories(): Promise<readonly ExpenseCategory[]> {

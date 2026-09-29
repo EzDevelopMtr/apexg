@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Expense, ExpenseCategory } from "@apexg/core";
+import type { Expense, ExpenseCategory, ExpenseId } from "@apexg/core";
+import type { ExpenseEntry } from "@apexg/data";
 import { useCollection, upsertById, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
 export interface UseExpensesResult extends Collection<Expense> {
-  readonly create: (draft: Omit<Expense, "id">) => Promise<void>;
+  readonly create: (draft: ExpenseEntry, receipt?: Blob) => Promise<void>;
+  /** Where to open an expense's receipt. */
+  readonly receiptUrl: (id: ExpenseId) => string;
 }
 
 export function useExpenses(): UseExpensesResult {
@@ -17,14 +20,19 @@ export function useExpenses(): UseExpensesResult {
   const { apply } = collection;
 
   const create = useCallback(
-    async (draft: Omit<Expense, "id">) => {
-      const saved = await expenses.create(draft);
+    async (draft: ExpenseEntry, receipt?: Blob) => {
+      const saved = await expenses.create(draft, receipt);
       apply((current) => [...current, saved]);
     },
     [expenses, apply],
   );
 
-  return { ...collection, create };
+  const receiptUrl = useCallback(
+    (id: ExpenseId) => expenses.receiptUrl(id),
+    [expenses],
+  );
+
+  return { ...collection, create, receiptUrl };
 }
 
 export interface UseExpenseCategoriesResult extends Collection<ExpenseCategory> {

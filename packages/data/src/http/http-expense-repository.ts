@@ -1,7 +1,13 @@
-import type { Expense, ExpenseCategory, IsoDate } from "@apexg/core";
-import { fromApiString, toApiString, toExpenseId } from "@apexg/core";
-import type { ExpenseRepository } from "../repositories";
-import { apiFetch } from "./http-client";
+import type { Expense, ExpenseCategory, ExpenseId, IsoDate } from "@apexg/core";
+import {
+  fromApiString,
+  isPaymentMethod,
+  toApiString,
+  toExpenseId,
+} from "@apexg/core";
+import type { ExpenseEntry, ExpenseRepository } from "../repositories";
+import { API_BASE, apiFetch } from "./http-client";
+import { toFormData } from "./multipart";
 
 type ApiCategoryState = 1 | 2;
 
@@ -18,6 +24,8 @@ interface ApiExpenseResult {
   amount: string;
   expenseDate: string;
   recordedBy: string;
+  paymentMethod: string | null;
+  receiptPath: string | null;
 }
 
 function fromCategoryResult(row: ApiExpenseCategoryResult): ExpenseCategory {
@@ -36,6 +44,12 @@ function fromExpenseResult(row: ApiExpenseResult): Expense {
     amount: fromApiString(row.amount),
     spentOn: row.expenseDate as IsoDate,
     recordedBy: row.recordedBy,
+    // Null on expenses recorded before the method was asked (migration 019).
+    paymentMethod:
+      row.paymentMethod !== null && isPaymentMethod(row.paymentMethod)
+        ? row.paymentMethod
+        : null,
+    receiptPath: row.receiptPath ?? "",
   };
 }
 
@@ -45,17 +59,28 @@ export class HttpExpenseRepository implements ExpenseRepository {
     return rows.map(fromExpenseResult);
   }
 
-  async create(draft: Omit<Expense, "id">): Promise<Expense> {
-    const row = await apiFetch<ApiExpenseResult>("/expenses", {
-      method: "POST",
-      body: {
-        categoryId: draft.categoryId,
-        concept: draft.description,
-        amount: toApiString(draft.amount),
-        expenseDate: draft.spentOn,
-      },
-    });
+  async create(draft: ExpenseEntry, receipt?: Blob): Promise<Expense> {
+    const fields = {
+      categoryId: draft.categoryId,
+      concept: draft.description,
+      amount: toApiString(draft.amount),
+      expenseDate: draft.spentOn,
+      paymentMethod: draft.paymentMethod,
+    };
+    const row = receipt
+      ? await apiFetch<ApiExpenseResult>("/expenses", {
+          method: "POST",
+          formData: toFormData(fields, receipt, "receipt"),
+        })
+      : await apiFetch<ApiExpenseResult>("/expenses", {
+          method: "POST",
+          body: fields,
+        });
     return fromExpenseResult(row);
+  }
+
+  receiptUrl(id: ExpenseId): string {
+    return `${API_BASE}/expenses/${id}/receipt`;
   }
 
   async listCategories(): Promise<readonly ExpenseCategory[]> {

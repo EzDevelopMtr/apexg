@@ -18,6 +18,10 @@ export interface ExpenseResult {
   expenseDate: string;
   /** Quién lo registró, para el rastro de RNF-07. "—" si es anterior. */
   recordedBy: string;
+  /** `null` solo en egresos anteriores a la migración 019: no se sabe. */
+  paymentMethod: string | null;
+  /** Nombre del comprobante; `null` si no hay (efectivo). */
+  receiptPath: string | null;
 }
 
 export interface ListExpensesFilter {

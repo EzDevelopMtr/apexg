@@ -79,6 +79,8 @@ function expense(id: string, spentOn: string, pesos: number): Expense {
     amount: fromPesos(pesos),
     spentOn: date(spentOn),
     recordedBy: "apexg",
+    paymentMethod: "cash",
+    receiptPath: "",
   };
 }
 

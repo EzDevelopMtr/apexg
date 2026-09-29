@@ -15,6 +15,7 @@ export * from "./domain/attendance";
 export * from "./domain/membership";
 export * from "./domain/membership-catalog";
 export * from "./domain/payment";
+export * from "./domain/receipt";
 export * from "./domain/payment-filter";
 export * from "./domain/payment-settlement";
 export * from "./domain/trainer";

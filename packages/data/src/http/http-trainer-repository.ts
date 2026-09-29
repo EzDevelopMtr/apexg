@@ -1,7 +1,14 @@
-import type { Commission, IsoDate, Trainer, TrainerId } from "@apexg/core";
+import type {
+  Commission,
+  IsoDate,
+  PaymentMethod,
+  Trainer,
+  TrainerId,
+} from "@apexg/core";
 import {
   fromApiString,
   fromPesos,
+  isPaymentMethod,
   toApiString,
   toClientId,
   toPaymentId,
@@ -9,7 +16,8 @@ import {
 } from "@apexg/core";
 import type { TrainerRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
-import { ApiError, apiFetch } from "./http-client";
+import { API_BASE, ApiError, apiFetch } from "./http-client";
+import { toFormData } from "./multipart";
 
 type ApiTrainerState = 1 | 2;
 
@@ -40,6 +48,8 @@ interface ApiCommissionRecord {
   trainerAmount: string;
   commissionDate: string;
   settled: boolean;
+  settlementMethod: string | null;
+  settlementReceiptPath: string | null;
 }
 
 const NO_CERTIFICATIONS = "N/A";
@@ -92,6 +102,11 @@ function fromCommissionResult(
     amount: fromApiString(row.trainerAmount),
     earnedOn: row.commissionDate as IsoDate,
     settled: row.settled,
+    settlementMethod:
+      row.settlementMethod !== null && isPaymentMethod(row.settlementMethod)
+        ? row.settlementMethod
+        : null,
+    settlementReceiptPath: row.settlementReceiptPath ?? "",
   };
 }
 
@@ -184,21 +199,37 @@ export class HttpTrainerRepository implements TrainerRepository {
   }
 
   /**
-   * There is no direct "create commission" endpoint — the backend generates
-   * one automatically from `POST /payments` (`PaymentCommissionService`).
-   * Nothing in the UI calls this today; it exists only to satisfy the
-   * interface, same as the in-memory version's counterpart is a demo-only op.
+   * One payout, one receipt: every id travels in the same request so the
+   * backend settles them in one transaction. Ids go as a JSON string because
+   * multipart has no arrays.
    */
-  async settleCommission(
+  async settleCommissions(
     trainerId: TrainerId,
-    commissionId: string,
+    commissionIds: readonly string[],
+    method: PaymentMethod,
+    receipt?: Blob,
   ): Promise<void> {
-    await apiFetch<void>(
-      `/trainers/${trainerId}/commissions/${commissionId}/settle`,
-      { method: "POST" },
-    );
+    const path = `/trainers/${trainerId}/commissions/settle`;
+    const fields = {
+      commissionIds: JSON.stringify(commissionIds),
+      paymentMethod: method,
+    };
+    await (receipt
+      ? apiFetch<void>(path, {
+          method: "POST",
+          formData: toFormData(fields, receipt, "receipt"),
+        })
+      : apiFetch<void>(path, { method: "POST", body: fields }));
   }
 
+  commissionReceiptUrl(trainerId: TrainerId, commissionId: string): string {
+    return `${API_BASE}/trainers/${trainerId}/commissions/${commissionId}/receipt`;
+  }
+
+  /**
+   * There is no direct "create commission" endpoint — the backend generates
+   * one automatically from `POST /payments` (`PaymentCommissionService`).
+   */
   recordCommission(): Promise<Commission> {
     throw new Error(
       "Las comisiones se generan automáticamente al registrar un pago — no se crean directamente.",

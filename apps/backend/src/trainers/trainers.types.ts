@@ -46,4 +46,8 @@ export interface CommissionRecord {
   /** true una vez que el gimnasio le pagó la comisión al entrenador. */
   settled: boolean;
   settledAt: string | null;
+  /** cash | transfer. `null` si no está liquidada o se liquidó antes de la migración 019. */
+  settlementMethod: string | null;
+  /** Comprobante del pago, compartido por las comisiones pagadas juntas. */
+  settlementReceiptPath: string | null;
 }

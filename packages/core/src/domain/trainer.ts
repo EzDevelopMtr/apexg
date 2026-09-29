@@ -1,7 +1,8 @@
 import type { IsoDate } from "./calendar";
 import type { ClientId } from "./client";
 import type { Money } from "./money";
-import type { PaymentId } from "./payment";
+import type { PaymentId, PaymentMethod } from "./payment";
+import { isMissingReceipt } from "./receipt";
 
 declare const trainerIdBrand: unique symbol;
 export type TrainerId = string & { readonly [trainerIdBrand]: true };
@@ -41,6 +42,54 @@ export interface Commission {
   readonly earnedOn: IsoDate;
   /** True once the gym has paid it out. */
   readonly settled: boolean;
+  /** How it was paid out. Null while unsettled, or if settled before it was asked. */
+  readonly settlementMethod: PaymentMethod | null;
+  /**
+   * Receipt of the payout, or empty when there is none. Every commission
+   * settled in one payout shares the same file.
+   */
+  readonly settlementReceiptPath: string;
+}
+
+/** What is confirmed to pay a trainer what they are owed. */
+export interface CommissionSettlementDraft {
+  readonly commissionCount: number;
+  readonly method: PaymentMethod;
+  readonly hasReceipt: boolean;
+}
+
+export type CommissionSettlementProblem = "nothingToSettle" | "receiptRequired";
+
+/**
+ * Why a payout cannot be recorded yet, or an empty list when it can.
+ *
+ * Money leaving the gym to a trainer follows the same receipt rule as any
+ * other ({@link isMissingReceipt}); one payout, one receipt.
+ */
+export function commissionSettlementProblems(
+  draft: CommissionSettlementDraft,
+): readonly CommissionSettlementProblem[] {
+  const problems: CommissionSettlementProblem[] = [];
+  if (draft.commissionCount === 0) problems.push("nothingToSettle");
+  if (isMissingReceipt(draft.method, draft.hasReceipt)) {
+    problems.push("receiptRequired");
+  }
+  return problems;
+}
+
+/** The latest payout of a trainer that carries a receipt, to show it again. */
+export function latestSettlementWithReceipt(
+  commissions: readonly Commission[],
+  trainerId: TrainerId,
+): Commission | undefined {
+  return commissions
+    .filter(
+      (commission) =>
+        commission.trainerId === trainerId &&
+        commission.settled &&
+        commission.settlementReceiptPath !== "",
+    )
+    .at(-1);
 }
 
 export function assignedClientCount(
