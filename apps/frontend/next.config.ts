@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Lets the dev server serve assets/HMR when accessed through a tunnel
-  // (Cloudflare quick tunnel), which uses a different host than localhost.
-  allowedDevOrigins: ["*.trycloudflare.com"],
+  // (Tailscale Funnel or a Cloudflare quick tunnel), which uses a different
+  // host than localhost. `*` matches a single label, so `*.ts.net` would not
+  // cover `<machine>.<tailnet>.ts.net`.
+  allowedDevOrigins: ["*.*.ts.net", "*.trycloudflare.com"],
   // Internal packages ship as uncompiled TypeScript, so Next transpiles them.
   // Editing a package is then visible immediately, with no intermediate build.
   transpilePackages: [
