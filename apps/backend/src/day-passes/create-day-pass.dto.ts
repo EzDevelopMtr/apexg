@@ -1,13 +1,13 @@
-import { IsIn, IsOptional, IsString, Matches, MaxLength } from "class-validator";
+import { IsIn, IsString, Matches, MaxLength } from "class-validator";
 
 import type { PaymentMethod } from "../payments/payments.types.js";
 
 /**
  * Body de `POST /day-passes`.
  *
- * Sin `amount`: el precio lo pone el servidor desde el plan de un día del
- * catálogo. Si lo mandara el formulario, cualquiera podría vender un día a
- * otro precio sin que quedara rastro de por qué.
+ * El valor lo escribe la recepcionista, como en un egreso: el pase de día ya
+ * no sale de un plan del catálogo (migración 020). Queda en la fila con quién
+ * lo vendió, así que el rastro de RNF-07 se conserva.
  */
 export class CreateDayPassDto {
   @IsString()
@@ -17,10 +17,11 @@ export class CreateDayPassDto {
   @Matches(/\S/, { message: "El nombre del visitante es obligatorio." })
   visitorName!: string;
 
-  @IsOptional()
   @IsString()
-  @MaxLength(50)
-  visitorContact?: string;
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: 'amount debe ser un monto válido (ej. "6000.00")',
+  })
+  amount!: string;
 
   @IsIn(["cash", "transfer"])
   paymentMethod!: PaymentMethod;

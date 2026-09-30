@@ -101,9 +101,7 @@ function sale(id: string, soldOn: string, pesos: number): ProductSale {
 function dayPass(id: string, soldOn: string, pesos: number): DayPass {
   return {
     id: toDayPassId(id),
-    membershipTypeId: toMembershipTypeId("day"),
     visitorName: "Visitante",
-    visitorContact: "",
     amount: fromPesos(pesos),
     paymentMethod: "cash",
     soldOn: date(soldOn),

@@ -59,6 +59,7 @@ export class ClientMembershipService {
         durationUnit: membershipTypes.durationUnit,
         trainerShare: membershipTypes.trainerShare,
         state: membershipTypes.state,
+        isPromotional: membershipTypes.isPromotional,
       })
       .from(membershipTypes)
       .where(
@@ -73,6 +74,14 @@ export class ClientMembershipService {
     }
     if (plan.state !== 1) {
       throw new BadRequestException("El tipo de membresía está inactivo.");
+    }
+    // El día regular se vende como pase de día a visitantes, nunca se asigna a
+    // un cliente. Espejo de `isDayPlan` en `@apexg/core`, que es la fuente: se
+    // repite porque este backend no depende de ese paquete.
+    if (!plan.isPromotional && plan.durationUnit === "day" && plan.durationValue === 1) {
+      throw new BadRequestException(
+        "El plan de un día no se asigna a clientes. Véndelo como pase de día en Ingreso.",
+      );
     }
     return plan;
   }

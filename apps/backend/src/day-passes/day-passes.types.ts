@@ -3,9 +3,7 @@ import type { PaymentMethod } from "../payments/payments.types.js";
 /** Un día vendido a un visitante — ver migración 018. */
 export interface DayPassResult {
   id: string;
-  membershipTypeId: string;
   visitorName: string;
-  visitorContact: string | null;
   amount: string;
   paymentMethod: PaymentMethod;
   soldAt: string;

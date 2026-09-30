@@ -1,9 +1,9 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { DATABASE } from "../database/database.constants.js";
 import type { Database } from "../database/database.types.js";
-import { dayPasses, membershipTypes } from "../database/schema/schema.js";
+import { dayPasses } from "../database/schema/schema.js";
 import { assertDefined } from "../shared/assert-defined.util.js";
 import {
   AuthorLookupService,
@@ -18,9 +18,7 @@ type DayPassRow = typeof dayPasses.$inferSelect;
 function toResult(row: DayPassRow, recordedBy: string): DayPassResult {
   return {
     id: row.id,
-    membershipTypeId: row.membershipTypeId,
     visitorName: row.visitorName,
-    visitorContact: row.visitorContact,
     amount: row.amount,
     paymentMethod: row.paymentMethod as DayPassResult["paymentMethod"],
     soldAt: row.soldAt,
@@ -48,17 +46,16 @@ export class DayPassesService {
     input: CreateDayPassDto,
     receiptPath: string | null,
   ): Promise<DayPassResult> {
-    const plan = await this.dayPlan(companyId);
-    const contact = input.visitorContact?.trim();
-
+    // El regex del DTO acepta "0"; un pase regalado no es una venta.
+    if (!(Number(input.amount) > 0)) {
+      throw new BadRequestException("El valor del pase debe ser mayor que cero.");
+    }
     const [inserted] = await this.db
       .insert(dayPasses)
       .values({
         companyId,
-        membershipTypeId: plan.id,
         visitorName: input.visitorName.trim(),
-        visitorContact: contact ? contact : null,
-        amount: plan.price,
+        amount: input.amount,
         paymentMethod: input.paymentMethod,
         receiptPath,
         createdBy: userId,
@@ -87,34 +84,5 @@ export class DayPassesService {
       throw new NotFoundException("El pase de día no existe.");
     }
     return toResult(row, await this.authors.nameOf(row.createdBy));
-  }
-
-  /**
-   * El plan regular activo que dura exactamente un día; el más barato si hay
-   * varios. Espejo de `dayPassPlan` en `@apexg/core`, que es la fuente: se
-   * repite porque este backend no depende de ese paquete, y el precio lo
-   * tiene que decidir la API, no el formulario.
-   */
-  private async dayPlan(companyId: string) {
-    const [plan] = await this.db
-      .select({ id: membershipTypes.id, price: membershipTypes.price })
-      .from(membershipTypes)
-      .where(
-        and(
-          eq(membershipTypes.companyId, companyId),
-          eq(membershipTypes.state, 1),
-          eq(membershipTypes.isPromotional, false),
-          eq(membershipTypes.durationUnit, "day"),
-          eq(membershipTypes.durationValue, 1),
-        ),
-      )
-      .orderBy(asc(membershipTypes.price))
-      .limit(1);
-    if (!plan) {
-      throw new BadRequestException(
-        "No hay un plan de un día en el catálogo. Créalo en Membresías para vender pases.",
-      );
-    }
-    return plan;
   }
 }

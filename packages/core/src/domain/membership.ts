@@ -98,3 +98,29 @@ export function checkInstallment(
   }
   return { accepted: true };
 }
+
+/**
+ * Whether the plan is the regular one-day plan: non-promotional, term of
+ * exactly one day.
+ *
+ * Found by its term, not its name or id, so renaming "Día" keeps the rule.
+ * That day is sold as a day pass to visitors who are never registered as
+ * clients, so it is never assigned to one nor listed in the catalogue screen.
+ */
+export function isDayPlan(type: MembershipType): boolean {
+  return (
+    !type.isPromotional && type.term.unit === "day" && type.term.amount === 1
+  );
+}
+
+/**
+ * The plans that can be offered: shown in the catalogue and assignable to a
+ * client. Leaves out the day plan ({@link isDayPlan}); `keep` is a plan
+ * already assigned that must stay selectable so an old record still reads.
+ */
+export function assignablePlans(
+  types: readonly MembershipType[],
+  keep?: MembershipTypeId,
+): readonly MembershipType[] {
+  return types.filter((type) => type.id === keep || !isDayPlan(type));
+}

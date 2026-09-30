@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import type { MembershipType } from "@apexg/core";
+import { assignablePlans } from "@apexg/core";
 import {
   upsertById,
   useMembershipTypeCatalog,
@@ -37,5 +38,11 @@ export function useMembershipTypes(): UseMembershipTypesResult {
     [membershipTypes, apply],
   );
 
-  return { ...collection, save, remove };
+  // The day plan is sold as a day pass, never offered as a membership.
+  return {
+    ...collection,
+    items: assignablePlans(collection.items),
+    save,
+    remove,
+  };
 }

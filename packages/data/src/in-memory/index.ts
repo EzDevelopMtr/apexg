@@ -1,4 +1,3 @@
-import { DEFAULT_MEMBERSHIP_TYPES } from "@apexg/core";
 import type { Repositories } from "../repositories";
 import { InMemoryAttendanceRepository } from "./attendance-repository";
 import { InMemoryClientRepository } from "./client-repository";
@@ -44,7 +43,7 @@ export function createInMemoryRepositories(): Repositories {
       buildSeedInventory(),
       buildSeedClients(),
     ),
-    dayPasses: new InMemoryDayPassRepository(DEFAULT_MEMBERSHIP_TYPES),
+    dayPasses: new InMemoryDayPassRepository(),
     savings: new InMemorySavingsRepository(),
   };
 }

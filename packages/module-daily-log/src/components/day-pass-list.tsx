@@ -11,21 +11,36 @@ export interface DayPassListProps {
   receiptUrl: (id: DayPassId) => string;
 }
 
-function Row({ pass, onViewReceipt }: { pass: DayPass; onViewReceipt: () => void }) {
+function Row({
+  pass,
+  onViewReceipt,
+}: {
+  pass: DayPass;
+  onViewReceipt: () => void;
+}) {
   return (
     <li className="flex items-center gap-3 px-2 py-3">
-      <span className="w-12 shrink-0 text-sm text-body-soft">{pass.soldAt}</span>
+      <span className="w-12 shrink-0 text-sm text-body-soft">
+        {pass.soldAt}
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-medium text-body">{pass.visitorName}</span>
+        <span className="block truncate font-medium text-body">
+          {pass.visitorName}
+        </span>
         {/* Quién lo vendió va en la misma línea, igual que en los ingresos:
             con varias recepcionistas es lo que se pregunta al cuadrar caja. */}
         <span className="block truncate text-sm text-body-soft">
-          {[pass.visitorContact, PAYMENT_METHOD_LABELS[pass.paymentMethod], `vendió ${pass.recordedBy}`]
+          {[
+            PAYMENT_METHOD_LABELS[pass.paymentMethod],
+            `vendió ${pass.recordedBy}`,
+          ]
             .filter(Boolean)
             .join(" · ")}
         </span>
       </span>
-      <span className="shrink-0 font-semibold text-body">{formatCOP(pass.amount)}</span>
+      <span className="shrink-0 font-semibold text-body">
+        {formatCOP(pass.amount)}
+      </span>
       {pass.receiptPath ? (
         <button
           type="button"
@@ -58,7 +73,11 @@ export default function DayPassList({ passes, receiptUrl }: DayPassListProps) {
         <CardBody padding="sm">
           <ul className="divide-y divide-line-soft">
             {passes.map((pass) => (
-              <Row key={pass.id} pass={pass} onViewReceipt={() => setOpen(pass)} />
+              <Row
+                key={pass.id}
+                pass={pass}
+                onViewReceipt={() => setOpen(pass)}
+              />
             ))}
           </ul>
         </CardBody>

@@ -1,16 +1,14 @@
-import type { DayPass, DayPassId, MembershipType } from "@apexg/core";
-import { dayPassPlan, toDayPassId, today } from "@apexg/core";
+import type { DayPass, DayPassId } from "@apexg/core";
+import { toDayPassId, today } from "@apexg/core";
 import type { DayPassRepository, DayPassSale } from "../repositories";
 import { InMemoryStore, newId } from "./in-memory-store";
 
-/** Append-only, and priced from the catalogue like the real API. */
+/** Append-only, charged at the amount typed at the counter like the real API. */
 export class InMemoryDayPassRepository implements DayPassRepository {
   readonly #store: InMemoryStore<DayPassId, DayPass>;
-  readonly #plans: readonly MembershipType[];
 
-  constructor(plans: readonly MembershipType[], initial: readonly DayPass[] = []) {
+  constructor(initial: readonly DayPass[] = []) {
     this.#store = new InMemoryStore(initial);
-    this.#plans = plans;
   }
 
   list(): Promise<readonly DayPass[]> {
@@ -18,15 +16,11 @@ export class InMemoryDayPassRepository implements DayPassRepository {
   }
 
   async sell(sale: DayPassSale, receipt?: Blob): Promise<DayPass> {
-    const plan = dayPassPlan(this.#plans);
-    if (!plan) throw new Error("No hay un plan de un día en el catálogo.");
     const now = new Date();
     return this.#store.save({
       id: toDayPassId(newId()),
-      membershipTypeId: plan.id,
       visitorName: sale.visitorName.trim(),
-      visitorContact: sale.visitorContact.trim(),
-      amount: plan.price,
+      amount: sale.amount,
       paymentMethod: sale.paymentMethod,
       soldOn: today(),
       soldAt: now.toTimeString().slice(0, 5),

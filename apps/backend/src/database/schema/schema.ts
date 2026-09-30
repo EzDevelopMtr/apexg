@@ -797,7 +797,8 @@ export const savingsContributions = pgTable("savings_contributions", {
 export const dayPasses = pgTable("day_passes", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
 	companyId: uuid("company_id").notNull(),
-	membershipTypeId: uuid("membership_type_id").notNull(),
+	// Nulo desde la migración 020: el pase ya no sale de un plan.
+	membershipTypeId: uuid("membership_type_id"),
 	visitorName: varchar("visitor_name", { length: 150 }).notNull(),
 	visitorContact: varchar("visitor_contact", { length: 50 }),
 	amount: numeric({ precision: 12, scale:  2 }).notNull(),

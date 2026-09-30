@@ -205,10 +205,10 @@ export interface ProductSaleRepository {
   ): Promise<ProductSale>;
 }
 
-/** What selling a day pass needs; price and plan are the server's to set. */
+/** What selling a day pass needs. The amount is typed at the counter; no plan prices it. */
 export interface DayPassSale {
   readonly visitorName: string;
-  readonly visitorContact: string;
+  readonly amount: Money;
   readonly paymentMethod: DayPass["paymentMethod"];
 }
 

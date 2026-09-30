@@ -3,7 +3,7 @@ import {
   fromApiString,
   toDayPassId,
   toIsoDate,
-  toMembershipTypeId,
+  toApiString,
 } from "@apexg/core";
 import type { DayPassRepository, DayPassSale } from "../repositories";
 import { API_BASE, apiFetch } from "./http-client";
@@ -12,9 +12,7 @@ import { toFormData } from "./multipart";
 
 interface ApiDayPassResult {
   id: string;
-  membershipTypeId: string;
   visitorName: string;
-  visitorContact: string | null;
   amount: string;
   paymentMethod: string;
   soldAt: string;
@@ -25,13 +23,13 @@ interface ApiDayPassResult {
 function fromResult(row: ApiDayPassResult): DayPass {
   return {
     id: toDayPassId(row.id),
-    membershipTypeId: toMembershipTypeId(row.membershipTypeId),
     visitorName: row.visitorName,
-    visitorContact: row.visitorContact ?? "",
     amount: fromApiString(row.amount),
     // Same reading as payments: anything that is not cash arrived outside
     // the drawer.
-    paymentMethod: (row.paymentMethod === "cash" ? "cash" : "transfer") as PaymentMethod,
+    paymentMethod: (row.paymentMethod === "cash"
+      ? "cash"
+      : "transfer") as PaymentMethod,
     // `sold_at` is a TIMESTAMPTZ instant; the local calendar day and clock
     // come from a real `Date`, never from slicing the ISO string.
     soldOn: toIsoDate(new Date(row.soldAt)),
@@ -50,7 +48,7 @@ export class HttpDayPassRepository implements DayPassRepository {
   async sell(sale: DayPassSale, receipt?: Blob): Promise<DayPass> {
     const fields = {
       visitorName: sale.visitorName.trim(),
-      visitorContact: sale.visitorContact.trim() || undefined,
+      amount: toApiString(sale.amount),
       paymentMethod: sale.paymentMethod,
     };
     const row = receipt

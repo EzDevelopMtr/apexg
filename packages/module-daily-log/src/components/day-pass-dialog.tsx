@@ -1,7 +1,12 @@
 "use client";
 
 import type { DayPassProblem, PaymentMethod } from "@apexg/core";
-import { PAYMENT_METHOD_LABELS, formatCOP, requiresReceipt } from "@apexg/core";
+import {
+  PAYMENT_METHOD_LABELS,
+  formatCOP,
+  fromPesos,
+  requiresReceipt,
+} from "@apexg/core";
 import { Button, FileInput, Input, Modal, Select } from "@apexg/ui";
 import type { SelectOption } from "@apexg/ui";
 import type { UseDayPassesResult } from "../hooks/use-day-passes";
@@ -12,6 +17,7 @@ const METHOD_OPTIONS: readonly SelectOption[] = (
 
 const PROBLEM_TEXT: Record<DayPassProblem, string> = {
   nameRequired: "Escribe el nombre del visitante.",
+  amountNotPositive: "El valor debe ser mayor que cero.",
   receiptRequired: "Adjunta la foto del comprobante de la transferencia.",
 };
 
@@ -20,9 +26,9 @@ const problemText = (
   problem: DayPassProblem,
 ) => (problems.includes(problem) ? PROBLEM_TEXT[problem] : undefined);
 
-/** Quién es el visitante y cómo pagó. */
+/** Quién es el visitante, cuánto pagó y cómo. */
 function DayPassFields({ pass }: { pass: UseDayPassesResult }) {
-  const { values, setValue, problems, frequent } = pass;
+  const { values, setValue, problems } = pass;
   return (
     <>
       <Input
@@ -34,17 +40,15 @@ function DayPassFields({ pass }: { pass: UseDayPassesResult }) {
         autoFocus
       />
       <Input
-        id="visitorContact"
-        label="Documento o teléfono (opcional)"
-        value={values.visitorContact}
-        onChange={(event) => setValue("visitorContact", event.target.value)}
+        id="dayPassAmount"
+        label="Valor (COP)"
+        type="number"
+        min={0}
+        step={1000}
+        value={values.amountPesos}
+        onChange={(event) => setValue("amountPesos", event.target.value)}
+        error={problemText(problems, "amountNotPositive")}
       />
-      {frequent && (
-        <p className="rounded-xl border border-line bg-canvas p-3 text-sm text-body">
-          Ya compró {frequent.earlierPasses} pases este mes. {frequent.plan.name} (
-          {formatCOP(frequent.plan.price)}) puede salirle mejor.
-        </p>
-      )}
       <Select
         id="dayPassMethod"
         label="Método de pago"
@@ -69,16 +73,24 @@ function DayPassFields({ pass }: { pass: UseDayPassesResult }) {
   );
 }
 
+/** "Cobrar $6.000" cuando ya hay un valor válido; si no, solo "Cobrar". */
+function submitLabel(amountPesos: string): string {
+  const pesos = Number(amountPesos);
+  return pesos > 0 ? `Cobrar ${formatCOP(fromPesos(pesos))}` : "Cobrar";
+}
+
 export interface DayPassDialogProps {
   open: boolean;
   onClose: () => void;
   pass: UseDayPassesResult;
 }
 
-/** Vender un día a quien no es cliente: nombre, cómo pagó y su comprobante. */
-export default function DayPassDialog({ open, onClose, pass }: DayPassDialogProps) {
-  const { plan } = pass;
-
+/** Vender un día a quien no es cliente: nombre, valor, cómo pagó y su comprobante. */
+export default function DayPassDialog({
+  open,
+  onClose,
+  pass,
+}: DayPassDialogProps) {
   const close = () => {
     pass.reset();
     onClose();
@@ -88,44 +100,32 @@ export default function DayPassDialog({ open, onClose, pass }: DayPassDialogProp
     <Modal
       open={open}
       title="Pase de día"
-      description={
-        plan
-          ? `${plan.name} · ${formatCOP(plan.price)}. Sin registrar al visitante como cliente.`
-          : undefined
-      }
+      description="Para visitantes: no se registran como clientes."
       onClose={close}
     >
-      {!plan ? (
-        <p role="alert" className="text-sm text-danger-ink">
-          {pass.plansLoaded
-            ? "No hay un plan de un día en el catálogo. Créalo en Membresías para vender pases."
-            : "Cargando el precio del día..."}
-        </p>
-      ) : (
-        <form
-          noValidate
-          className="space-y-4"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            if (await pass.sell()) onClose();
-          }}
-        >
-          <DayPassFields pass={pass} />
-          {pass.failure && (
-            <p role="alert" className="text-sm text-danger-ink">
-              {pass.failure}
-            </p>
-          )}
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="ghost" onClick={close}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={pass.saving}>
-              {pass.saving ? "Cobrando..." : `Cobrar ${formatCOP(plan.price)}`}
-            </Button>
-          </div>
-        </form>
-      )}
+      <form
+        noValidate
+        className="space-y-4"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (await pass.sell()) onClose();
+        }}
+      >
+        <DayPassFields pass={pass} />
+        {pass.failure && (
+          <p role="alert" className="text-sm text-danger-ink">
+            {pass.failure}
+          </p>
+        )}
+        <div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" onClick={close}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={pass.saving}>
+            {pass.saving ? "Cobrando..." : submitLabel(pass.values.amountPesos)}
+          </Button>
+        </div>
+      </form>
     </Modal>
   );
 }

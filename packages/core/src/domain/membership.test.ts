@@ -6,6 +6,8 @@ import {
 } from "./membership-catalog";
 import {
   allowsInstallments,
+  assignablePlans,
+  isDayPlan,
   checkInstallment,
   requiresTrainer,
 } from "./membership";
@@ -119,5 +121,30 @@ describe("installments (SRS §4.3, RF-19)", () => {
       accepted: false,
       reason: "exceedsPrice",
     });
+  });
+});
+
+describe("day plan is not assignable", () => {
+  const day = DEFAULT_MEMBERSHIP_TYPES.find((type) => type.name === "Día");
+
+  it("the regular one-day plan is the day plan, by term", () => {
+    expect(day && isDayPlan(day)).toBe(true);
+    expect(DEFAULT_MEMBERSHIP_TYPES.filter(isDayPlan)).toHaveLength(1);
+  });
+
+  it("a one-day promotion is not the day plan", () => {
+    if (!day) throw new Error("missing day plan");
+    expect(isDayPlan({ ...day, isPromotional: true })).toBe(false);
+  });
+
+  it("assignablePlans leaves the day plan out", () => {
+    const plans = assignablePlans(DEFAULT_MEMBERSHIP_TYPES);
+    expect(plans).toHaveLength(DEFAULT_MEMBERSHIP_TYPES.length - 1);
+    expect(plans.some(isDayPlan)).toBe(false);
+  });
+
+  it("keeps an already assigned day plan so the record still reads", () => {
+    if (!day) throw new Error("missing day plan");
+    expect(assignablePlans(DEFAULT_MEMBERSHIP_TYPES, day.id)).toContain(day);
   });
 });

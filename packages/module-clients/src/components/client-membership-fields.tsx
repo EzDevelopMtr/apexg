@@ -1,7 +1,11 @@
 "use client";
 
-import type { ClientStatus, MembershipTypeId } from "@apexg/core";
-import { formatCOP, requiresTrainer } from "@apexg/core";
+import type {
+  ClientStatus,
+  MembershipType,
+  MembershipTypeId,
+} from "@apexg/core";
+import { assignablePlans, formatCOP, requiresTrainer } from "@apexg/core";
 import { Input, Select, type SelectOption } from "@apexg/ui";
 import type { UseClientFormResult } from "../hooks/use-client-form";
 import ClientTrainerField from "./client-trainer-field";
@@ -21,6 +25,18 @@ type Props = Pick<
   | "trainers"
 >;
 
+// Plans come from the real catalogue (RF-13), never hardcoded `<option>`
+// markup — the administrator can add or retire one at any time (RF-12).
+// The day plan is left out (day passes); a plan already assigned stays.
+const planOptions = (
+  types: readonly MembershipType[],
+  assigned: MembershipTypeId,
+): readonly SelectOption[] =>
+  assignablePlans(types, assigned || undefined).map((type) => ({
+    value: type.id,
+    label: `${type.name} — ${formatCOP(type.price)}`,
+  }));
+
 /** Plan, status, trainer and the dates derived from them (RF-06, RF-07). */
 export default function ClientMembershipFields({
   values,
@@ -30,13 +46,9 @@ export default function ClientMembershipFields({
   membershipTypes,
   trainers,
 }: Props) {
-  // Plans come from the real catalogue (RF-13), never hardcoded `<option>`
-  // markup — the administrator can add or retire one at any time (RF-12).
-  const membershipOptions: readonly SelectOption[] = membershipTypes.items.map(
-    (type) => ({
-      value: type.id,
-      label: `${type.name} — ${formatCOP(type.price)}`,
-    }),
+  const membershipOptions = planOptions(
+    membershipTypes.items,
+    values.membershipTypeId,
   );
 
   const selectedType = membershipTypes.items.find(

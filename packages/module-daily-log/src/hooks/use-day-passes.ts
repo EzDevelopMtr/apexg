@@ -1,56 +1,33 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import type {
-  DayPass,
-  DayPassProblem,
-  MembershipType,
-  PaymentMethod,
-} from "@apexg/core";
-import {
-  FREQUENT_VISITOR_PASSES,
-  dayPassPlan,
-  dayPassProblems,
-  passesThisMonth,
-  today,
-  upgradePlan,
-} from "@apexg/core";
-import {
-  useCollection,
-  useMembershipTypeCatalog,
-  useRepositories,
-} from "@apexg/module-kit";
+import { useCallback, useState } from "react";
+import type { DayPass, DayPassProblem, PaymentMethod } from "@apexg/core";
+import { dayPassProblems, fromPesos, today } from "@apexg/core";
+import { useCollection, useRepositories } from "@apexg/module-kit";
 
 export interface DayPassValues {
   visitorName: string;
-  visitorContact: string;
+  /** Pesos as typed, like an expense; converted to cents on sale. */
+  amountPesos: string;
   paymentMethod: PaymentMethod;
   receipt: File | null;
 }
 
 const EMPTY: DayPassValues = {
   visitorName: "",
-  visitorContact: "",
+  amountPesos: "",
   paymentMethod: "cash",
   receipt: null,
 };
 
-/** Returning visitor, and the plan worth offering them. */
-export interface FrequentVisitor {
-  readonly earlierPasses: number;
-  readonly plan: MembershipType;
-}
-
 /**
  * Selling day passes from the check-in screen, and the day's list of them.
  *
- * The price is never typed: it comes from the one-day plan in the catalogue
- * (the API sets it too, and would ignore anything sent). What the form owns
- * is who the visitor is and how they paid.
+ * The visitor is never registered as a client, and the day is not a plan:
+ * the receptionist types what was charged.
  */
 export function useDayPasses() {
   const { dayPasses } = useRepositories();
-  const plans = useMembershipTypeCatalog();
 
   const load = useCallback(() => dayPasses.list(), [dayPasses]);
   const passes = useCollection<DayPass>(load);
@@ -62,19 +39,10 @@ export function useDayPasses() {
   const [failure, setFailure] = useState<string | null>(null);
 
   const on = today();
-  const plan = dayPassPlan(plans.items);
   const problems: readonly DayPassProblem[] = dayPassProblems({
     ...values,
     hasReceipt: values.receipt !== null,
   });
-
-  const frequent = useMemo((): FrequentVisitor | null => {
-    const earlierPasses = passesThisMonth(passes.items, values.visitorContact, on);
-    const offer = upgradePlan(plans.items);
-    return earlierPasses >= FREQUENT_VISITOR_PASSES && offer
-      ? { earlierPasses, plan: offer }
-      : null;
-  }, [passes.items, values.visitorContact, on, plans.items]);
 
   const setValue = <K extends keyof DayPassValues>(
     field: K,
@@ -90,16 +58,25 @@ export function useDayPasses() {
   /** `true` once sold; the dialog closes only then. */
   const sell = async (): Promise<boolean> => {
     setSubmitted(true);
-    if (problems.length > 0 || !plan) return false;
+    if (problems.length > 0) return false;
     setSaving(true);
     setFailure(null);
     try {
-      const saved = await dayPasses.sell(values, values.receipt ?? undefined);
+      const saved = await dayPasses.sell(
+        {
+          visitorName: values.visitorName,
+          amount: fromPesos(Number(values.amountPesos)),
+          paymentMethod: values.paymentMethod,
+        },
+        values.receipt ?? undefined,
+      );
       apply((current) => [...current, saved]);
       reset();
       return true;
     } catch (cause) {
-      setFailure(cause instanceof Error ? cause.message : "No pudimos vender el pase.");
+      setFailure(
+        cause instanceof Error ? cause.message : "No pudimos vender el pase.",
+      );
       return false;
     } finally {
       setSaving(false);
@@ -108,13 +85,10 @@ export function useDayPasses() {
 
   return {
     today: passes.items.filter((pass) => pass.soldOn === on).reverse(),
-    plan,
-    plansLoaded: plans.state === "ready",
     values,
     setValue,
     // Shown only after the first attempt: an empty form is not an error yet.
     problems: submitted ? problems : [],
-    frequent,
     saving,
     failure,
     sell,

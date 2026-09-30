@@ -118,9 +118,7 @@ const REGISTROS: FinancialRecords = {
   dayPasses: [
     {
       id: toDayPassId("d1"),
-      membershipTypeId: toMembershipTypeId("day"),
       visitorName: "Visitante",
-      visitorContact: "",
       amount: fromPesos(6_000),
       paymentMethod: "cash",
       soldOn: date("2026-09-20"),
