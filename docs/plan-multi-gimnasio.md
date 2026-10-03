@@ -89,7 +89,9 @@ Frontend:
   a `/login`.
 - `/login`, el link viejo, redirige a la cookie o, si no existe, a
   `DEFAULT_GYM_SLUG=apex-gym`, que se mantiene mientras dure la transición.
-- `/auth/me` también devuelve `company: { slug, name, brandColor, hasLogo }`.
+- `/auth/me` con los datos del gimnasio pasa a la fase 3: solo la marca los necesita.
+- Al publicar: en el `.env.local` de producción, `APEXG_COMPANY_ID` se reemplaza
+  por `DEFAULT_GYM_SLUG=apex-gym`, y se aplica la migración 021.
 - E2E: ajustar el login del proyecto `setup`.
 
 Resultado: APEX entra por `/apex-gym`, y el link viejo sigue funcionando.

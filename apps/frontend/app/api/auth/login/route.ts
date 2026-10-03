@@ -1,17 +1,15 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { backendErrorMessage, callBackend } from "../../../../lib/backend-client";
 import { setSessionCookie } from "../../../../lib/auth-cookie";
+import { findCompanyProfile } from "../../../../lib/company-profile";
+import { GYM_COOKIE_NAME } from "../../../../lib/session-cookie-name";
 
-/** The one company this deployment serves (see .env.local). */
-function companyId(): string {
-  const value = process.env.APEXG_COMPANY_ID;
-  if (!value) {
-    throw new Error("APEXG_COMPANY_ID is not set (see apps/frontend/.env.local).");
-  }
-  return value;
-}
+/** A year: it only remembers which gym's door to show. */
+const GYM_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 interface LoginRequestBody {
+  readonly gym?: unknown;
   readonly username?: unknown;
   readonly password?: unknown;
 }
@@ -29,7 +27,11 @@ interface LoginResponseBody {
   };
 }
 
-/** Signs in against the real backend and starts the httpOnly session cookie. */
+/**
+ * Signs in against the real backend and starts the httpOnly session cookie.
+ * The gym comes as its slug (the page the form sits on); its id is resolved
+ * here, server-side.
+ */
 export async function POST(request: Request): Promise<NextResponse> {
   let credentials: LoginRequestBody;
   try {
@@ -39,6 +41,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   if (
+    typeof credentials.gym !== "string" ||
     typeof credentials.username !== "string" ||
     typeof credentials.password !== "string"
   ) {
@@ -48,10 +51,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
+  const company = await findCompanyProfile(credentials.gym);
+  if (!company) {
+    return NextResponse.json({ message: "Gimnasio no encontrado." }, { status: 404 });
+  }
+
   const result = await callBackend<LoginResponseBody>("/auth/login", {
     method: "POST",
     body: {
-      companyId: companyId(),
+      companyId: company.id,
       username: credentials.username,
       password: credentials.password,
     },
@@ -65,6 +73,13 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   await setSessionCookie(result.body.accessToken, result.body.expiresIn);
+  (await cookies()).set(GYM_COOKIE_NAME, company.slug, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: GYM_COOKIE_MAX_AGE,
+  });
 
   return NextResponse.json({ user: result.body.user });
 }

@@ -13,7 +13,8 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
   caso("CP-54", "Cerrar sesión borra la cookie y bloquea el acceso a la API", async ({ page }) => {
     await irA(page, RUTAS.modulos);
     await page.getByRole("button", { name: /cerrar sesión/i }).click();
-    await page.waitForURL("**/login");
+    // /login ya no es el formulario: redirige a la entrada del gimnasio.
+    await page.waitForURL("**/apex-gym");
 
     const cookies = await page.context().cookies();
     expect(cookies.find((c) => c.name === "apexg_session")).toBeUndefined();

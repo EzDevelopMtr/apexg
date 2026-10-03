@@ -21,6 +21,20 @@ import { SESSION_COOKIE_NAME } from "./lib/session-cookie-name";
 
 const PUBLIC_PATHS = new Set(["/login"]);
 
+/**
+ * `/<slug>`: a gym's own entrance. Any single segment that is not one of the
+ * private roots — the backend keeps slugs off those (company-slug.ts).
+ */
+const PRIVATE_ROOTS = new Set(["/dashboard", "/modules"]);
+const GYM_ENTRANCE = /^\/[a-z0-9-]+$/;
+
+function isPublicPath(pathname: string): boolean {
+  return (
+    PUBLIC_PATHS.has(pathname) ||
+    (GYM_ENTRANCE.test(pathname) && !PRIVATE_ROOTS.has(pathname))
+  );
+}
+
 function decodeJwtPayload(token: string): { exp?: number } | undefined {
   const segments = token.split(".");
   const payloadSegment = segments[1];
@@ -48,15 +62,15 @@ function hasValidSession(request: NextRequest): boolean {
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
   const authenticated = hasValidSession(request);
-  const isPublicPath = PUBLIC_PATHS.has(pathname);
+  const publicPath = isPublicPath(pathname);
 
-  if (!authenticated && !isPublicPath) {
+  if (!authenticated && !publicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (authenticated && isPublicPath) {
+  if (authenticated && publicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/modules";
     return NextResponse.redirect(url);

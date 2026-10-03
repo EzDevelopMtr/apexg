@@ -19,7 +19,7 @@ caso("CP-49", "Contraseña incorrecta rechaza el login sin decir cuál campo fal
   // Genérico: no debe distinguir "usuario no existe" de "clave incorrecta",
   // porque eso le regalaría a un atacante cuáles usuarios sí existen.
   await expect(alerta).not.toContainText(/usuario/i);
-  expect(page.url()).toContain("/login");
+  expect(page.url()).toContain("/apex-gym");
 
   await info.attach("login-rechazado", {
     body: await page.screenshot(),

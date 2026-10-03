@@ -48,7 +48,14 @@ function BrandPanel() {
   );
 }
 
-export default function LoginForm() {
+interface LoginFormProps {
+  /** Slug of the gym whose entrance this is. */
+  readonly gym: string;
+  /** A suspended gym cannot sign in: say so instead of failing on submit. */
+  readonly suspended?: boolean;
+}
+
+export default function LoginForm({ gym, suspended = false }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -68,7 +75,7 @@ export default function LoginForm() {
     if (!password.trim()) return setError("Ingresa tu contraseña.");
 
     setSubmitting(true);
-    const result = await signIn(username, password);
+    const result = await signIn(gym, username, password);
     setSubmitting(false);
 
     if (!result.ok) {
@@ -91,6 +98,12 @@ export default function LoginForm() {
             Accede a tu cuenta y sigue con tu entrenamiento.
           </p>
 
+          {suspended && (
+            <p role="alert" className="mt-6 rounded-lg border border-warn-line bg-warn-soft p-3 text-sm text-warn-ink">
+              Este gimnasio está suspendido. Comunícate con el administrador de la plataforma.
+            </p>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <Input
               id="username"
@@ -110,7 +123,7 @@ export default function LoginForm() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting || suspended}>
               {submitting ? "Ingresando…" : "Ingresar"}
               {!submitting && <ArrowRight size={18} />}
             </Button>

@@ -21,7 +21,7 @@ export interface SessionContextValue {
    * bounce a signed-in user to the login page.
    */
   readonly loading: boolean;
-  readonly signIn: (username: string, password: string) => Promise<SignInResult>;
+  readonly signIn: (gym: string, username: string, password: string) => Promise<SignInResult>;
   readonly signOut: () => Promise<void>;
 }
 

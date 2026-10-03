@@ -119,11 +119,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("apexg:session-expired", onExpired);
   }, [router]);
 
-  const signIn = useCallback(async (username: string, password: string): Promise<SignInResult> => {
+  const signIn = useCallback(async (gym: string, username: string, password: string): Promise<SignInResult> => {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ gym, username, password }),
     });
 
     const payload = (await response.json().catch(() => null)) as
