@@ -9,6 +9,7 @@ import { HttpMembershipTypeRepository } from "./http-membership-type-repository"
 import { HttpPaymentRepository } from "./http-payment-repository";
 import { HttpProductSaleRepository } from "./http-product-sale-repository";
 import { HttpSavingsRepository } from "./http-savings-repository";
+import { HttpSettingsRepository } from "./http-settings-repository";
 import { HttpTrainerRepository } from "./http-trainer-repository";
 
 export { HttpPlatformRepository } from "./http-platform-repository";
@@ -27,6 +28,7 @@ export function createHttpRepositories(): Repositories {
     productSales: new HttpProductSaleRepository(),
     dayPasses: new HttpDayPassRepository(),
     savings: new HttpSavingsRepository(),
+    settings: new HttpSettingsRepository(),
   };
 }
 

@@ -3,6 +3,8 @@ import { sql } from "drizzle-orm";
 
 import { DATABASE } from "../database/database.constants.js";
 import type { Database } from "../database/database.types.js";
+// Value import: constructor-injected (see the note in access-token.guard.ts).
+import { SettingsService } from "../settings/settings.service.js";
 
 /**
  * RF-21: pasa a "en mora" (state = 3) a los clientes activos cuya
@@ -24,9 +26,14 @@ import type { Database } from "../database/database.types.js";
  */
 @Injectable()
 export class ClientOverdueSyncService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly settings: SettingsService,
+  ) {}
 
   async run(companyId: string): Promise<void> {
+    // Ajuste `clients.graceDays` (0 = en mora al día siguiente del vencimiento).
+    const { "clients.graceDays": graceDays } = await this.settings.forCompany(companyId);
     await this.db.execute(sql`
       UPDATE clients c
       SET state = 3, updated_at = NOW()
@@ -41,7 +48,7 @@ export class ClientOverdueSyncService {
           SELECT 1 FROM client_memberships cm
           WHERE cm.client_id = c.id
             AND cm.state = 1
-            AND cm.end_date < CURRENT_DATE
+            AND cm.end_date + ${graceDays}::int < CURRENT_DATE
         )
     `);
   }

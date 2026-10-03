@@ -23,7 +23,7 @@ import {
   toCycleId,
   today,
 } from "@apexg/core";
-import { useMembershipTypeCatalog } from "@apexg/module-kit";
+import { useGymSettings, useMembershipTypeCatalog } from "@apexg/module-kit";
 
 export interface RecordPaymentValues {
   clientId: string;
@@ -88,8 +88,9 @@ function cycleFor(
   client: Client,
   type: MembershipType,
   payments: readonly Payment[],
+  graceDays: number,
 ): CycleSummary {
-  const renews = resolveStatus(client, today()) === "overdue";
+  const renews = resolveStatus(client, today(), graceDays) === "overdue";
   const startsOn = renews ? today() : client.startDate;
   const cycleId = toCycleId(client.id, startsOn);
 
@@ -152,6 +153,7 @@ export function useRecordPayment(
   });
   const [error, setError] = useState<string | null>(null);
   const membershipTypes = useMembershipTypeCatalog();
+  const settings = useGymSettings();
 
   const setValue = useCallback(
     <K extends keyof RecordPaymentValues>(
@@ -173,8 +175,8 @@ export function useRecordPayment(
     );
     if (!type) return null;
 
-    return cycleFor(client, type, payments);
-  }, [clients, payments, values.clientId, membershipTypes.items]);
+    return cycleFor(client, type, payments, settings.graceDays);
+  }, [clients, payments, values.clientId, membershipTypes.items, settings.graceDays]);
 
   const build = useCallback((): Omit<Payment, "id"> | null => {
     if (!cycle) {

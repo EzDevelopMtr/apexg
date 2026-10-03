@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LogOut } from "lucide-react";
 import type { Module } from "@apexg/core";
-import { MODULES, ROLE_LABELS, canAccessModule } from "@apexg/core";
+import { MODULES, ROLE_LABELS, canAccessModule, isModuleEnabled } from "@apexg/core";
+import { useGymSettings } from "@apexg/module-kit";
 import { ACCENT_GLOW, ACCENT_TILE, Button, Icon, Logo } from "@apexg/ui";
 import type { Session } from "../lib/session-context";
 import { useSession } from "../lib/use-session";
@@ -109,8 +110,12 @@ export default function ModuleGrid() {
 
   // RF-02: the matrix decides what this role even sees. Hiding a card is not
   // security — RequireModule guards the route, and the API must too (RNF-03).
+  const settings = useGymSettings();
   const visibleModules = session
-    ? MODULES.filter((module) => canAccessModule(session.role, module.id))
+    ? MODULES.filter(
+        (module) =>
+          canAccessModule(session.role, module.id) && isModuleEnabled(settings, module.id),
+      )
     : [];
 
   const handleSignOut = async () => {

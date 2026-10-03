@@ -1,3 +1,4 @@
+import type { SettingsRepository } from "./settings";
 import type {
   Attendance,
   Client,
@@ -260,6 +261,7 @@ export interface Repositories {
   readonly productSales: ProductSaleRepository;
   readonly dayPasses: DayPassRepository;
   readonly savings: SavingsRepository;
+  readonly settings: SettingsRepository;
 }
 
 /** Raised when a write targets a record that no longer exists. */

@@ -7,10 +7,18 @@ export interface CredentialNoticeProps {
 }
 
 /** Shown once: the server keeps only the hash. */
-export default function CredentialNotice({ credential, entrance }: CredentialNoticeProps) {
+export default function CredentialNotice({
+  credential,
+  entrance,
+}: CredentialNoticeProps) {
   return (
-    <div role="status" className="rounded-lg border border-brand/40 bg-brand-soft p-4 text-sm text-body">
-      <p className="font-semibold">Entrégale estos datos al administrador del gimnasio.</p>
+    <div
+      role="status"
+      className="rounded-lg border border-brand/40 bg-brand-soft p-4 text-sm text-body"
+    >
+      <p className="font-semibold">
+        Entrégale estos datos al administrador del gimnasio.
+      </p>
       <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
         <dt className="text-body-soft">Entrada</dt>
         <dd className="font-mono">{entrance}</dd>
@@ -20,7 +28,8 @@ export default function CredentialNotice({ credential, entrance }: CredentialNot
         <dd className="select-all font-mono">{credential.password}</dd>
       </dl>
       <p className="mt-3 text-body-soft">
-        La contraseña no se vuelve a mostrar. Si se pierde, restablécela desde el gimnasio.
+        La contraseña no se vuelve a mostrar. Si se pierde, restablécela desde
+        el gimnasio.
       </p>
     </div>
   );

@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 
 import { DatabaseModule } from '../database/database.module.js';
+import { SettingsStoreModule } from '../settings/settings-store.module.js';
 import { PlatformAuthService } from '../platform/platform-auth.service.js';
 import { PlatformModule } from '../platform/platform.module.js';
 import { pgErrorCode, PG_UNIQUE_VIOLATION } from '../shared/pg-error.util.js';
@@ -22,7 +23,7 @@ import { pgErrorCode, PG_UNIQUE_VIOLATION } from '../shared/pg-error.util.js';
  * La contraseña se genera aquí y se imprime UNA vez.
  */
 
-@Module({ imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, PlatformModule] })
+@Module({ imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, SettingsStoreModule, PlatformModule] })
 class CreatePlatformAdminCliModule {}
 
 async function main(): Promise<void> {

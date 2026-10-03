@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 
 import { isCompanySlug } from '../companies/company-slug.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { SettingsStoreModule } from '../settings/settings-store.module.js';
 import { CompanyOnboardingService } from '../provisioning/company-onboarding.service.js';
 import type { OnboardCompanyInput } from '../provisioning/company-onboarding.service.js';
 import { ProvisioningModule } from '../provisioning/provisioning.module.js';
@@ -27,7 +28,7 @@ import { ProvisioningModule } from '../provisioning/provisioning.module.js';
  */
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, ProvisioningModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, SettingsStoreModule, ProvisioningModule],
 })
 class CreateCompanyCliModule {}
 

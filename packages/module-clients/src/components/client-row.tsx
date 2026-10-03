@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import type { Client, IsoDate, MembershipType } from "@apexg/core";
+import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
 import { expiryNotice, resolveStanding } from "@apexg/core";
 import { Avatar, Badge, Button, TableCell, TableRow } from "@apexg/ui";
 import { STANDING_LABELS, STANDING_TONES } from "./client-status";
@@ -15,6 +15,8 @@ export interface ClientRowProps {
   photoUrl: string | undefined;
   onEdit: (client: Client) => void;
   onOpenPhoto: () => void;
+  /** The gym's grace and "por vencer" window. */
+  settings: GymSettings;
 }
 
 export default function ClientRow({
@@ -24,10 +26,16 @@ export default function ClientRow({
   photoUrl,
   onEdit,
   onOpenPhoto,
+  settings,
 }: ClientRowProps) {
   // Derived rather than read from the record, so the row cannot show "active"
   // for a membership that lapsed overnight (RF-21).
-  const standing = resolveStanding(client, referenceDate);
+  const standing = resolveStanding(
+    client,
+    referenceDate,
+    settings.expiringSoonDays,
+    settings.graceDays,
+  );
   const soon = standing === "expiringSoon";
 
   return (

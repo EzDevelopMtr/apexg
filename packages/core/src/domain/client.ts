@@ -172,8 +172,9 @@ export function resolveStanding(
   client: Client,
   referenceDate: IsoDate,
   withinDays: number = EXPIRING_SOON_DAYS,
+  graceDays: number = DEFAULT_GRACE_DAYS,
 ): ClientStanding {
-  const status = resolveStatus(client, referenceDate);
+  const status = resolveStatus(client, referenceDate, graceDays);
   if (status !== "active") return status;
   return isExpiringSoon(client, referenceDate, withinDays)
     ? "expiringSoon"

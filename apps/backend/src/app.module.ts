@@ -9,6 +9,8 @@ import { DayPassesModule } from "./day-passes/day-passes.module.js";
 import { DatabaseModule } from "./database/database.module.js";
 import { ExpensesModule } from "./expenses/expenses.module.js";
 import { SavingsModule } from "./savings/savings.module.js";
+import { SettingsModule } from "./settings/settings.module.js";
+import { SettingsStoreModule } from "./settings/settings-store.module.js";
 import { SharedModule } from "./shared/shared.module.js";
 import { FinanceModule } from "./finance/finance.module.js";
 import { InventoryModule } from "./inventory/inventory.module.js";
@@ -24,6 +26,8 @@ import { TrainersModule } from "./trainers/trainers.module.js";
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    SettingsStoreModule,
+    SettingsModule,
     ProvisioningModule,
     CompaniesModule,
     PlatformModule,

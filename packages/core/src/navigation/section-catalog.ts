@@ -1,4 +1,5 @@
 import type { IsoDate } from "../domain/calendar";
+import type { GymSettings } from "../domain/gym-settings";
 import type { IconName } from "./icons";
 
 /**
@@ -10,7 +11,8 @@ import type { IconName } from "./icons";
 export type SectionView<T> =
   | {
       readonly kind: "list";
-      readonly includes: (item: T, on: IsoDate) => boolean;
+      /** `settings` only matters to sections whose rule depends on one. */
+      readonly includes: (item: T, on: IsoDate, settings?: GymSettings) => boolean;
     }
   | { readonly kind: "form" }
   /** A bespoke screen — a dashboard or a report — with no list behind it. */

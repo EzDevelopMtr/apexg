@@ -1,5 +1,6 @@
 import type { Client } from "../domain/client";
 import { isExpiringSoon, resolveStatus } from "../domain/client";
+import { DEFAULT_GYM_SETTINGS } from "../domain/gym-settings";
 import { createSectionCatalog } from "./section-catalog";
 import type { ModuleSection } from "./section-catalog";
 
@@ -35,7 +36,8 @@ export const clientSections = createSectionCatalog<ClientSectionId, Client>([
     icon: "userCheck",
     view: {
       kind: "list",
-      includes: (client, on) => resolveStatus(client, on) === "active",
+      includes: (client, on, settings = DEFAULT_GYM_SETTINGS) =>
+        resolveStatus(client, on, settings.graceDays) === "active",
     },
   },
   {
@@ -43,7 +45,11 @@ export const clientSections = createSectionCatalog<ClientSectionId, Client>([
     label: "Por vencer",
     title: "Clientes por vencer",
     icon: "clock",
-    view: { kind: "list", includes: isExpiringSoon },
+    view: {
+      kind: "list",
+      includes: (client, on, settings = DEFAULT_GYM_SETTINGS) =>
+        isExpiringSoon(client, on, settings.expiringSoonDays),
+    },
   },
   {
     id: "overdue",
@@ -52,7 +58,8 @@ export const clientSections = createSectionCatalog<ClientSectionId, Client>([
     icon: "userX",
     view: {
       kind: "list",
-      includes: (client, on) => resolveStatus(client, on) === "overdue",
+      includes: (client, on, settings = DEFAULT_GYM_SETTINGS) =>
+        resolveStatus(client, on, settings.graceDays) === "overdue",
     },
   },
 ]);

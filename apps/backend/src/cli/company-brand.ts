@@ -12,6 +12,7 @@ import { CompaniesModule } from '../companies/companies.module.js';
 import { CompanyBrandingService } from '../companies/company-branding.service.js';
 import type { BrandChange } from '../companies/company-branding.service.js';
 import { DatabaseModule } from '../database/database.module.js';
+import { SettingsStoreModule } from '../settings/settings-store.module.js';
 import type { UploadedFile } from '../shared/local-file-store.js';
 
 /**
@@ -24,7 +25,7 @@ import type { UploadedFile } from '../shared/local-file-store.js';
  * `--color none` vuelve a los colores por defecto.
  */
 
-@Module({ imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, CompaniesModule] })
+@Module({ imports: [ConfigModule.forRoot({ isGlobal: true }), DatabaseModule, SettingsStoreModule, CompaniesModule] })
 class CompanyBrandCliModule {}
 
 const MIME_BY_EXTENSION: Record<string, string> = {

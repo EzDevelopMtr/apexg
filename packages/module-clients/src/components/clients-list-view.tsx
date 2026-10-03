@@ -8,7 +8,7 @@ import type {
   ClientSection,
   IsoDate,
 } from "@apexg/core";
-import { useMembershipTypeCatalog } from "@apexg/module-kit";
+import { useGymSettings, useMembershipTypeCatalog } from "@apexg/module-kit";
 import { Modal } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
 import ClientForm from "./client-form";
@@ -36,7 +36,8 @@ export default function ClientsListView({
 }: ClientsListViewProps) {
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Client | null>(null);
-  const visible = useVisibleClients(clients, section, query, referenceDate);
+  const settings = useGymSettings();
+  const visible = useVisibleClients(clients, section, { query, referenceDate, settings });
   const membershipTypes = useMembershipTypeCatalog();
 
   return (
@@ -49,6 +50,7 @@ export default function ClientsListView({
         membershipTypes={membershipTypes.items}
         photoUrl={photoUrl}
         onEdit={setEditing}
+        settings={settings}
       />
 
       <Modal

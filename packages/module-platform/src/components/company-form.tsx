@@ -12,13 +12,21 @@ export interface CompanyFormProps {
 
 /** New gym: its identity, its colour and its first administrator. */
 export default function CompanyForm({ create }: CompanyFormProps) {
-  const [issued, setIssued] = useState<{ credential: IssuedCredential; slug: string } | null>(null);
-  const form = useCompanyForm(create, (credential, slug) => setIssued({ credential, slug }));
+  const [issued, setIssued] = useState<{
+    credential: IssuedCredential;
+    slug: string;
+  } | null>(null);
+  const form = useCompanyForm(create, (credential, slug) =>
+    setIssued({ credential, slug }),
+  );
 
   if (issued) {
     return (
       <div className="space-y-4">
-        <CredentialNotice credential={issued.credential} entrance={`/${issued.slug}`} />
+        <CredentialNotice
+          credential={issued.credential}
+          entrance={`/${issued.slug}`}
+        />
         <Button variant="secondary" onClick={() => setIssued(null)}>
           Crear otro gimnasio
         </Button>
@@ -29,7 +37,12 @@ export default function CompanyForm({ create }: CompanyFormProps) {
   const { values, set, setSlug, error, submitting, submit } = form;
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Input id="company-name" label="Nombre del gimnasio" value={values.name} onChange={(e) => set("name", e.target.value)} />
+      <Input
+        id="company-name"
+        label="Nombre del gimnasio"
+        value={values.name}
+        onChange={(e) => set("name", e.target.value)}
+      />
       <Input
         id="company-slug"
         label="Identificador en el link"

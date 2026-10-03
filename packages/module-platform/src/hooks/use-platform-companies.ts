@@ -4,7 +4,12 @@
 // oxlint-disable react/set-state-in-effect
 
 import { useCallback, useEffect, useState } from "react";
-import type { CompanyChange, IssuedCredential, NewCompany, PlatformCompany } from "@apexg/core";
+import type {
+  CompanyChange,
+  IssuedCredential,
+  NewCompany,
+  PlatformCompany,
+} from "@apexg/core";
 import { usePlatformRepository } from "../platform-context";
 
 export interface UsePlatformCompaniesResult {
@@ -29,7 +34,11 @@ export function usePlatformCompanies(): UsePlatformCompaniesResult {
       setCompanies(await repository.list());
       setError(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No pudimos cargar los gimnasios.");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "No pudimos cargar los gimnasios.",
+      );
     } finally {
       setLoading(false);
     }
@@ -54,8 +63,14 @@ export function usePlatformCompanies(): UsePlatformCompaniesResult {
     loading,
     error,
     create: after((company: NewCompany) => repository.create(company)),
-    update: after((id: string, change: CompanyChange) => repository.update(id, change)),
-    uploadLogo: after((id: string, logo: Blob) => repository.uploadLogo(id, logo)),
-    resetPassword: after((id: string) => repository.resetAdministratorPassword(id)),
+    update: after((id: string, change: CompanyChange) =>
+      repository.update(id, change),
+    ),
+    uploadLogo: after((id: string, logo: Blob) =>
+      repository.uploadLogo(id, logo),
+    ),
+    resetPassword: after((id: string) =>
+      repository.resetAdministratorPassword(id),
+    ),
   };
 }

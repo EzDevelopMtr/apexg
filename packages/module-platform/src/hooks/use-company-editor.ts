@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { CompanyChange, IssuedCredential, PlatformCompany } from "@apexg/core";
+import type {
+  CompanyChange,
+  IssuedCredential,
+  PlatformCompany,
+} from "@apexg/core";
 
 export interface CompanyActions {
   update: (id: string, change: CompanyChange) => Promise<void>;
@@ -10,7 +14,10 @@ export interface CompanyActions {
 }
 
 /** Edits one gym. Every action reports back through `error` or `notice`. */
-export function useCompanyEditor(company: PlatformCompany, actions: CompanyActions) {
+export function useCompanyEditor(
+  company: PlatformCompany,
+  actions: CompanyActions,
+) {
   const [name, setName] = useState(company.name);
   const [slug, setSlug] = useState(company.slug);
   const [color, setColor] = useState(company.brandColor ?? "#306e9d");
@@ -49,15 +56,25 @@ export function useCompanyEditor(company: PlatformCompany, actions: CompanyActio
         actions.update(company.id, {
           status: company.status === "active" ? "suspended" : "active",
         }),
-      company.status === "active" ? "Gimnasio suspendido." : "Gimnasio reactivado.",
+      company.status === "active"
+        ? "Gimnasio suspendido."
+        : "Gimnasio reactivado.",
     );
 
-  const resetColor = () => run(() => actions.update(company.id, { brandColor: null }), "Colores por defecto.");
+  const resetColor = () =>
+    run(
+      () => actions.update(company.id, { brandColor: null }),
+      "Colores por defecto.",
+    );
 
-  const uploadLogo = (file: Blob) => run(() => actions.uploadLogo(company.id, file), "Logo actualizado.");
+  const uploadLogo = (file: Blob) =>
+    run(() => actions.uploadLogo(company.id, file), "Logo actualizado.");
 
   const resetPassword = () =>
-    run(async () => setCredential(await actions.resetPassword(company.id)), "Contraseña restablecida.");
+    run(
+      async () => setCredential(await actions.resetPassword(company.id)),
+      "Contraseña restablecida.",
+    );
 
   return {
     fields: { name, setName, slug, setSlug, color, setColor },

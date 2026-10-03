@@ -13,6 +13,7 @@ export { useRepositories } from "./hooks/use-repositories";
 export { useCollection, upsertById } from "./hooks/use-collection";
 export type { Collection, LoadState } from "./hooks/use-collection";
 export { useMembershipTypeCatalog } from "./hooks/use-membership-type-catalog";
+export { useGymSettings } from "./hooks/use-gym-settings";
 
 export {
   CollectionGate,

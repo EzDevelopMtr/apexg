@@ -1,4 +1,11 @@
-import type { CompanyChange, IssuedCredential, NewCompany, PlatformCompany } from "@apexg/core";
+import type {
+  CompanyChange,
+  IssuedCredential,
+  NewCompany,
+  PlatformCompany,
+  PlatformSetting,
+  PlatformSettingKey,
+} from "@apexg/core";
 import type { PlatformRepository } from "../platform";
 import { ApiError } from "./http-client";
 
@@ -57,5 +64,25 @@ export class HttpPlatformRepository implements PlatformRepository {
 
   resetAdministratorPassword(id: string): Promise<IssuedCredential> {
     return platformFetch(`/companies/${id}/admin-password`, { method: "POST" });
+  }
+
+  listSettings(): Promise<readonly PlatformSetting[]> {
+    return platformFetch("/settings");
+  }
+
+  setGeneral(key: PlatformSettingKey, value: unknown, enforced: boolean): Promise<void> {
+    return platformFetch(`/settings/${key}`, json("PUT", { value, enforced }));
+  }
+
+  clearGeneral(key: PlatformSettingKey): Promise<void> {
+    return platformFetch(`/settings/${key}`, { method: "DELETE" });
+  }
+
+  setOverride(key: PlatformSettingKey, companyId: string, value: unknown): Promise<void> {
+    return platformFetch(`/settings/${key}/companies/${companyId}`, json("PUT", { value }));
+  }
+
+  clearOverride(key: PlatformSettingKey, companyId: string): Promise<void> {
+    return platformFetch(`/settings/${key}/companies/${companyId}`, { method: "DELETE" });
   }
 }

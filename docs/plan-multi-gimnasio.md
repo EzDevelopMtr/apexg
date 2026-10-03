@@ -232,6 +232,7 @@ aplica a todos, incluido Y.
 Las funciones nuevas se encienden y apagan con el mismo mecanismo
 (`features.<x>`, booleano).
 
+**Hecho así:** el catálogo vive en `apps/backend/src/settings/setting-definitions.ts`y su resolución es pura (`resolve-setting.ts`, con tests). El frontend recibelos valores ya resueltos como `GymSettings` (`useGymSettings()`) y se los pasa alas reglas de `core`. Pendientes conocidos: subir los días de gracia no saca demora a quien ya quedó marcado (la sincronización solo marca, no desmarca), y losconteos de Finanzas siguen con la gracia por defecto. Al publicar: aplicar 023.
 ## Fase 6 — Operación (3–4 d)
 
 - **Docker Compose para la instalación única:**

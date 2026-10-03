@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, IsoDate, MembershipType } from "@apexg/core";
+import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
 import { useState } from "react";
 import type { ClientId } from "@apexg/core";
 import { Card, PhotoViewer, Table, TableEmpty } from "@apexg/ui";
@@ -23,6 +23,7 @@ export interface ClientListProps {
   /** Dónde abrir la foto de un cliente. La arma la capa de datos. */
   photoUrl: (clientId: ClientId) => string;
   onEdit: (client: Client) => void;
+  settings: GymSettings;
 }
 
 export default function ClientList({
@@ -31,6 +32,7 @@ export default function ClientList({
   membershipTypes,
   photoUrl,
   onEdit,
+  settings,
 }: ClientListProps) {
   // Una sola foto abierta a la vez, y por eso vive aquí: si cada fila tuviera
   // la suya, dos se podrían apilar una encima de otra.
@@ -56,6 +58,7 @@ export default function ClientList({
               )}
               photoUrl={client.hasPhoto ? photoUrl(client.id) : undefined}
               onEdit={onEdit}
+              settings={settings}
               onOpenPhoto={() => setViewing(client)}
             />
           ))

@@ -11,7 +11,7 @@
 //     (PostgreSQL: UNIQUE (company_id, id)).
 // Cualquier otro cambio de tablas/columnas/tipos: regenerar con
 // `pnpm exec drizzle-kit pull` y volver a auditar esas dos restricciones.
-import { pgTable, unique, uuid, varchar, timestamp, integer, foreignKey, text, index, date, numeric, boolean, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, unique, uuid, varchar, timestamp, integer, foreignKey, text, index, date, numeric, boolean, primaryKey, jsonb } from "drizzle-orm/pg-core"
 
 
 
@@ -832,5 +832,40 @@ export const dayPasses = pgTable("day_passes", {
 			columns: [table.createdBy],
 			foreignColumns: [users.id],
 			name: "day_passes_created_by_fkey"
+		}),
+]);
+
+// 023: ajustes. Agregadas a mano (mismo criterio que 018/day_passes).
+export const platformSettings = pgTable("platform_settings", {
+	key: varchar({ length: 100 }).primaryKey().notNull(),
+	value: jsonb().notNull(),
+	enforced: boolean().default(false).notNull(),
+	updatedBy: uuid("updated_by"),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.updatedBy],
+			foreignColumns: [platformAdmins.id],
+			name: "platform_settings_updated_by_fkey"
+		}),
+]);
+
+export const companySettings = pgTable("company_settings", {
+	companyId: uuid("company_id").notNull(),
+	key: varchar({ length: 100 }).notNull(),
+	value: jsonb().notNull(),
+	updatedBy: uuid("updated_by"),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	primaryKey({ columns: [table.companyId, table.key], name: "company_settings_pkey" }),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "company_settings_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.updatedBy],
+			foreignColumns: [platformAdmins.id],
+			name: "company_settings_updated_by_fkey"
 		}),
 ]);

@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { canAccessModule } from "@apexg/core";
+import { canAccessModule, isModuleEnabled } from "@apexg/core";
+import { useGymSettings } from "@apexg/module-kit";
 import { useSession } from "../lib/use-session";
 
 /**
@@ -23,7 +24,12 @@ export default function RequireModule({
   const { session, loading } = useSession();
   const router = useRouter();
 
-  const allowed = session ? canAccessModule(session.role, moduleId) : false;
+  const settings = useGymSettings();
+  // The role matrix, and the gym's own switch (`modules.enabled`). The API
+  // refuses a switched-off module too; this only spares the empty screen.
+  const allowed = session
+    ? canAccessModule(session.role, moduleId) && isModuleEnabled(settings, moduleId)
+    : false;
 
   useEffect(() => {
     if (!loading && session && !allowed) router.replace("/modules");

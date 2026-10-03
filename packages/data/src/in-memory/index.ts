@@ -1,3 +1,4 @@
+import { InMemorySettingsRepository } from "./in-memory-settings-repository";
 import type { Repositories } from "../repositories";
 import { InMemoryAttendanceRepository } from "./attendance-repository";
 import { InMemoryClientRepository } from "./client-repository";
@@ -45,6 +46,7 @@ export function createInMemoryRepositories(): Repositories {
     ),
     dayPasses: new InMemoryDayPassRepository(),
     savings: new InMemorySavingsRepository(),
+    settings: new InMemorySettingsRepository(),
   };
 }
 

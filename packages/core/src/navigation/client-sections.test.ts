@@ -10,6 +10,7 @@ import {
   isClientSectionId,
 } from "./client-sections";
 import type { ClientSectionId } from "./client-sections";
+import { DEFAULT_GYM_SETTINGS } from "../domain/gym-settings";
 
 const date = (value: string): IsoDate => {
   if (!isIsoDate(value)) throw new Error(`bad test date: ${value}`);
@@ -100,5 +101,30 @@ describe("client sections", () => {
         expect(typeof section.view.includes(client, TODAY)).toBe("boolean");
       }
     }
+  });
+});
+
+describe("client sections under a gym's settings", () => {
+  // Expired two days ago: overdue by default, still active with 5 days of grace.
+  const lapsed = {
+    id: "c-grace",
+    expirationDate: "2026-03-08",
+    status: "active",
+  } as unknown as Client;
+  const on = "2026-03-10" as IsoDate;
+
+  it("grace days keep a lapsed client out of En mora", () => {
+    const overdue = getClientSection("overdue").view;
+    if (overdue.kind !== "list") throw new Error("overdue is a list");
+    expect(overdue.includes(lapsed, on)).toBe(true);
+    expect(overdue.includes(lapsed, on, { ...DEFAULT_GYM_SETTINGS, graceDays: 5 })).toBe(false);
+  });
+
+  it("the expiring window follows the setting", () => {
+    const expiring = getClientSection("expiring").view;
+    if (expiring.kind !== "list") throw new Error("expiring is a list");
+    const soon = { ...lapsed, expirationDate: "2026-03-20" } as typeof lapsed;
+    expect(expiring.includes(soon, on)).toBe(false);
+    expect(expiring.includes(soon, on, { ...DEFAULT_GYM_SETTINGS, expiringSoonDays: 14 })).toBe(true);
   });
 });

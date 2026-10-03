@@ -9,6 +9,10 @@ import {
   roles,
 } from '../database/schema/schema.js';
 
+import { blockedModule } from '../settings/module-permissions.js';
+// Value import: constructor-injected (see the note in access-token.guard.ts).
+import { SettingsService } from '../settings/settings.service.js';
+
 import type { PermissionCode } from './auth.types.js';
 
 /**
@@ -17,7 +21,10 @@ import type { PermissionCode } from './auth.types.js';
  */
 @Injectable()
 export class AuthorizationService {
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly settings: SettingsService,
+  ) {}
 
   /**
    * Comprueba que un rol activo de la empresa tenga TODOS los códigos pedidos.
@@ -31,6 +38,13 @@ export class AuthorizationService {
     const required = [...new Set(requiredPermissions)];
     if (required.length === 0) {
       return true;
+    }
+
+    // Un módulo apagado para este gimnasio (ajuste `modules.enabled`) se
+    // cierra aquí, en un solo punto, y no solo se esconde en la grilla.
+    const { 'modules.enabled': enabled } = await this.settings.forCompany(companyId);
+    if (required.some((code) => blockedModule(code, enabled))) {
+      return false;
     }
 
     const granted = await this.db

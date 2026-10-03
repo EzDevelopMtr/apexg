@@ -10,4 +10,4 @@ async function handle(request: Request, context: RouteContext): Promise<Response
   return forwardToBackend(request, `/platform/${path.join("/")}`, await readPlatformCookie());
 }
 
-export { handle as GET, handle as POST, handle as PATCH, handle as DELETE };
+export { handle as GET, handle as POST, handle as PUT, handle as PATCH, handle as DELETE };

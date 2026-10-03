@@ -7,5 +7,6 @@
 
 export * from "./repositories";
 export * from "./platform";
+export * from "./settings";
 export * from "./in-memory";
 export * from "./http";
