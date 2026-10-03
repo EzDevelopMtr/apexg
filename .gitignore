@@ -43,3 +43,6 @@ next-env.d.ts
 apps/backend/data/
 
 reports/
+
+# Entornos de docker compose (ops/*.env.example sí se versiona)
+ops/*.env

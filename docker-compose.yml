@@ -1,0 +1,74 @@
+# =====================================================
+# APEX GYM — UNA instalación para todos los gimnasios.
+# Los gimnasios se separan por company_id en la base, no por contenedor
+# (docs/plan-multi-gimnasio.md, decisión 3).
+#
+#   docker compose --env-file ops/<entorno>.env -p <proyecto> up -d --build
+#
+# Solo `web` publica un puerto: el backend y Postgres quedan en la red
+# interna de compose, igual que hoy el backend solo escucha en localhost.
+# =====================================================
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-apexg}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Solo para respaldos y diagnóstico desde este equipo.
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-apexg}"]
+      interval: 5s
+      retries: 20
+
+  migrate:
+    image: postgres:16
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-apexg}
+    volumes:
+      - ./apps/backend/database/migrations:/migrations:ro
+      - ./ops/migrate.sh:/migrate.sh:ro
+    entrypoint: ["sh", "/migrate.sh"]
+    restart: "no"
+
+  backend:
+    build: { context: ., target: backend }
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-apexg}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Falta JWT_ACCESS_SECRET}
+      PORT: "3001"
+      RECEIPTS_DIR: /data/receipts
+      CLIENT_PHOTOS_DIR: /data/client-photos
+      COMPANY_LOGOS_DIR: /data/company-logos
+    volumes:
+      - files:/data
+
+  web:
+    build: { context: ., target: web }
+    restart: unless-stopped
+    depends_on: [backend]
+    environment:
+      BACKEND_URL: http://backend:3001
+      DEFAULT_GYM_SLUG: ${DEFAULT_GYM_SLUG:-apex-gym}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
+
+volumes:
+  pgdata:
+  files:

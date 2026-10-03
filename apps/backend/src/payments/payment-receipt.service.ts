@@ -49,6 +49,7 @@ export class PaymentReceiptService extends LocalFileStore {
    */
   async storeFor(
     method: string,
+    companyId: string,
     file?: UploadedFile,
   ): Promise<string | null> {
     if (!file) {
@@ -61,7 +62,7 @@ export class PaymentReceiptService extends LocalFileStore {
     }
     // Un pago en efectivo con soporte adjunto se acepta: sobra evidencia, no
     // falta.
-    return this.store(file);
+    return this.store(file, companyId);
   }
 
   /** Abre un comprobante ya guardado. */

@@ -65,7 +65,12 @@ export abstract class LocalFileStore {
   }
 
   /** Guarda el archivo y devuelve el nombre a persistir. */
-  async store(file: UploadedFile): Promise<string> {
+  async store(file: UploadedFile, companyId: string): Promise<string> {
+    // Una carpeta por gimnasio: sus archivos se exportan o se borran sin
+    // tocar los de otro (docs/plan-multi-gimnasio.md, fase 6).
+    if (!COMPANY_FOLDER.test(companyId)) {
+      throw new Error('La carpeta de un archivo debe ser el id del gimnasio.');
+    }
     const extension = this.#allowed.get(file.mimetype);
     if (!extension) {
       throw new BadRequestException(this.#rejection);
@@ -75,8 +80,8 @@ export abstract class LocalFileStore {
       throw new BadRequestException(`El archivo no puede superar ${mb} MB.`);
     }
 
-    await mkdir(this.#directory, { recursive: true });
-    const name = `${randomUUID()}${extension}`;
+    await mkdir(join(this.#directory, companyId), { recursive: true });
+    const name = `${companyId}/${randomUUID()}${extension}`;
     await writeFile(join(this.#directory, name), file.buffer);
     return name;
   }
@@ -94,7 +99,7 @@ export abstract class LocalFileStore {
     const contentType = [...this.#allowed].find(
       ([, ext]) => ext === extension,
     )?.[0];
-    if (!contentType || !/^[0-9a-f-]{36}\./i.test(name)) {
+    if (!contentType || !STORED_NAME.test(name)) {
       throw new NotFoundException(missing);
     }
 
@@ -109,4 +114,13 @@ export abstract class LocalFileStore {
   async discard(name: string): Promise<void> {
     await unlink(join(this.#directory, name)).catch(() => undefined);
   }
-}
+}/** Un id de gimnasio: la única forma de carpeta aceptada. */
+const COMPANY_FOLDER = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * `uuid.ext` (archivos anteriores a la carpeta por gimnasio) o
+ * `uuid/uuid.ext`. Cualquier otra cosa nunca llega al disco.
+ */
+const STORED_NAME = /^(?:[0-9a-f-]{36}\/)?[0-9a-f-]{36}\.[a-z0-9]+$/i;
+
+

@@ -80,7 +80,7 @@ export class ClientsController {
     @Body() dto: CreateClientDto,
     @UploadedFile() photo?: UploadedPhoto,
   ): Promise<ClientResult> {
-    const photoPath = photo ? await this.photos.store(photo) : null;
+    const photoPath = photo ? await this.photos.store(photo, user.companyId) : null;
     try {
       return await this.clients.create(user.companyId, user.id, dto, photoPath);
     } catch (error) {
@@ -129,7 +129,7 @@ export class ClientsController {
     }
 
     const previous = await this.clients.photoPathOf(user.companyId, id);
-    const photoPath = await this.photos.store(photo);
+    const photoPath = await this.photos.store(photo, user.companyId);
     let updated: ClientResult;
     try {
       updated = await this.clients.update(user.companyId, id, dto, photoPath);

@@ -97,7 +97,7 @@ export class ExpensesController {
     @Body() dto: CreateExpenseDto,
     @UploadedFile() receipt?: Upload,
   ): Promise<ExpenseResult> {
-    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, receipt);
+    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, user.companyId, receipt);
     try {
       return await this.expenses.create(user.companyId, user.id, dto, receiptPath);
     } catch (error) {

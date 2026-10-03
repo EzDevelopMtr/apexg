@@ -36,7 +36,7 @@ export class CompanyBrandingService {
     }
 
     const company = await this.load(slug);
-    const logoPath = change.logo ? await this.logos.store(change.logo) : undefined;
+    const logoPath = change.logo ? await this.logos.store(change.logo, company.id) : undefined;
 
     await this.db
       .update(companies)

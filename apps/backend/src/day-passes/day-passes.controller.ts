@@ -55,7 +55,7 @@ export class DayPassesController {
     @Body() dto: CreateDayPassDto,
     @UploadedFile() receipt?: Upload,
   ): Promise<DayPassResult> {
-    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, receipt);
+    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, user.companyId, receipt);
     try {
       return await this.passes.create(user.companyId, user.id, dto, receiptPath);
     } catch (error) {

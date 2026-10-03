@@ -252,6 +252,7 @@ Las funciones nuevas se encienden y apagan con el mismo mecanismo
   - Restaurar un solo gimnasio dentro de la base compartida no es sencillo: la
     red de seguridad es el respaldo completo.
 
+**Hecho así:** ver [operacion-docker.md](operacion-docker.md). Ensayado completoen `apexg-ensayo` (web 3200) con una copia de `apexg_work`: migraciones,login, panel, subida de logo a la carpeta del gimnasio, respaldo, restauracióndel respaldo en una base aparte y exportación de un gimnasio. El paso real deproducción lo ejecuta el dueño siguiendo esa guía.
 ## Resumen
 
 | Fase | Días | Qué habilita |

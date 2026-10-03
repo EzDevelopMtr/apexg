@@ -105,7 +105,7 @@ export class TrainersController {
     @Body() dto: SettleCommissionsDto,
     @UploadedFile() receipt?: Upload,
   ): Promise<void> {
-    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, receipt);
+    const receiptPath = await this.receipts.storeFor(dto.paymentMethod, user.companyId, receipt);
     try {
       await this.settlements.settle(user.companyId, id, dto, receiptPath);
     } catch (error) {

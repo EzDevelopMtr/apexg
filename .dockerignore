@@ -1,0 +1,11 @@
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.env
+**/.env*.local
+apps/backend/data
+apps/e2e
+.git
+.claude
+docs

@@ -74,6 +74,7 @@ export class PaymentsController {
   ): Promise<PaymentResult> {
     const receiptPath = await this.receipts.storeFor(
       dto.paymentMethod,
+      user.companyId,
       receipt,
     );
     try {
