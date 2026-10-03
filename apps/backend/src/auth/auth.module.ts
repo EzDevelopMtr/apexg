@@ -53,6 +53,8 @@ import { TokenRenewalService } from './token-renewal.service.js';
     PermissionGuard,
   ],
   exports: [
+    // El login del super admin comparte el bloqueo por intentos fallidos.
+    LoginRateLimiterService,
     PasswordHasherService,
     InitialAdministratorService,
     LoginService,

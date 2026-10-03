@@ -15,6 +15,7 @@ import { InventoryModule } from "./inventory/inventory.module.js";
 import { MembershipTypesModule } from "./membership-types/membership-types.module.js";
 import { AttendancesModule } from "./attendances/attendances.module.js";
 import { PaymentsModule } from "./payments/payments.module.js";
+import { PlatformModule } from "./platform/platform.module.js";
 import { ProductSalesModule } from "./product-sales/product-sales.module.js";
 import { ProvisioningModule } from "./provisioning/provisioning.module.js";
 import { TrainersModule } from "./trainers/trainers.module.js";
@@ -25,6 +26,7 @@ import { TrainersModule } from "./trainers/trainers.module.js";
     DatabaseModule,
     ProvisioningModule,
     CompaniesModule,
+    PlatformModule,
     AuthModule,
     ClientsModule,
     MembershipTypesModule,

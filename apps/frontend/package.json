@@ -20,6 +20,7 @@
     "@apexg/module-kit": "workspace:*",
     "@apexg/module-memberships": "workspace:*",
     "@apexg/module-payments": "workspace:*",
+    "@apexg/module-platform": "workspace:*",
     "@apexg/module-trainers": "workspace:*",
     "@apexg/ui": "workspace:*",
     "lucide-react": "^1.32.0",

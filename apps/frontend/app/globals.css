@@ -21,6 +21,7 @@
 @source "../../../packages/module-inventory/src";
 @source "../../../packages/module-finances/src";
 @source "../../../packages/module-daily-log/src";
+@source "../../../packages/module-platform/src";
 
 * {
   box-sizing: border-box;

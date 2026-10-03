@@ -11,6 +11,8 @@ import { HttpProductSaleRepository } from "./http-product-sale-repository";
 import { HttpSavingsRepository } from "./http-savings-repository";
 import { HttpTrainerRepository } from "./http-trainer-repository";
 
+export { HttpPlatformRepository } from "./http-platform-repository";
+
 /** Builds the full repository set backed by the real backend. */
 export function createHttpRepositories(): Repositories {
   return {

@@ -12,6 +12,7 @@
     "start:prod": "node dist/main.js",
     "company:create": "node dist/cli/create-company.js",
     "company:brand": "node dist/cli/company-brand.js",
+    "platform:create-admin": "node dist/cli/create-platform-admin.js",
     "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

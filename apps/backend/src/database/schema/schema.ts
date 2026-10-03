@@ -17,11 +17,11 @@ import { pgTable, unique, uuid, varchar, timestamp, integer, foreignKey, text, i
 
 export const platformAdmins = pgTable("platform_admins", {
 	id: uuid().defaultRandom().primaryKey().notNull(),
-	email: varchar(),
-	password: varchar({ length: 255 }),
-	fullName: varchar("full_name"),
+	email: varchar().notNull(),
+	password: varchar({ length: 255 }).notNull(),
+	fullName: varchar("full_name").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
-	state: integer(),
+	state: integer().default(1).notNull(),
 }, (table) => [
 	unique("platform_admins_email_key").on(table.email),
 ]);
@@ -666,7 +666,13 @@ export const auditLogs = pgTable("audit_logs", {
 	entityId: varchar("entity_id", { length: 64 }),
 	detail: text(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	platformAdminId: uuid("platform_admin_id"),
 }, (table) => [
+	foreignKey({
+			columns: [table.platformAdminId],
+			foreignColumns: [platformAdmins.id],
+			name: "audit_logs_platform_admin_id_fkey"
+		}),
 	index("idx_audit_logs_company_created").using("btree", table.companyId.asc().nullsLast().op("timestamptz_ops"), table.createdAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_audit_logs_entity").using("btree", table.entity.asc().nullsLast().op("text_ops"), table.entityId.asc().nullsLast().op("text_ops")),
 	index("idx_audit_logs_user_created").using("btree", table.userId.asc().nullsLast().op("uuid_ops"), table.createdAt.asc().nullsLast().op("timestamptz_ops")),

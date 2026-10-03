@@ -61,6 +61,12 @@ function hasValidSession(request: NextRequest): boolean {
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+
+  // The super admin's panel has its own session; app/admin/page.tsx checks it.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return NextResponse.next();
+  }
+
   const authenticated = hasValidSession(request);
   const publicPath = isPublicPath(pathname);
 

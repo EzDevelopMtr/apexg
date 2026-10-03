@@ -164,6 +164,14 @@ Frontend:
 - Paquete `packages/module-platform` con las pantallas: lista de gimnasios,
   crear, editar marca, suspender/reactivar y restablecer contraseña.
 
+**Hecho así:** el token de plataforma lleva `aud: platform` y dura 8 h; el de
+gimnasio no cambió (lo separa que no trae `companyId`), así que publicar no
+cierra las sesiones abiertas de APEX. El panel vive en `/admin` con su cookie
+`apexg_platform_session`. Al publicar: aplicar 022 y crear el super admin con
+`pnpm --filter @apexg/backend platform:create-admin --email ... --name "..."`.
+El panel queda alcanzable por el link público (como el login de cada gimnasio):
+lo protegen la contraseña generada de 24 caracteres y el bloqueo por intentos.
+
 ## Fase 5 — Ajustes generales y por gimnasio (3–5 d)
 
 Migración `023`:

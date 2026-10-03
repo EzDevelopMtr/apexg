@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
     "@apexg/module-inventory",
     "@apexg/module-finances",
     "@apexg/module-daily-log",
+    "@apexg/module-platform",
   ],
 };
 

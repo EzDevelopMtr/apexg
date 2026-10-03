@@ -1,0 +1,29 @@
+{
+  "name": "@apexg/module-platform",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Super admin panel: the gyms of the platform",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@apexg/core": "workspace:*",
+    "@apexg/data": "workspace:*",
+    "@apexg/ui": "workspace:*",
+    "lucide-react": "^1.32.0"
+  },
+  "devDependencies": {
+    "@apexg/typescript-config": "workspace:*",
+    "@types/react": "^19.2.17",
+    "typescript": "~6.0.3"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0"
+  }
+}

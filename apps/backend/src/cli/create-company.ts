@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { randomBytes } from 'node:crypto';
+import { temporaryPassword } from '../shared/temporary-password.js';
 import { parseArgs } from 'node:util';
 
 import { Module } from '@nestjs/common';
@@ -59,7 +59,7 @@ function readInput(): OnboardCompanyInput {
     administrator: {
       username: value('admin-username'),
       fullName: value('admin-name'),
-      password: randomBytes(18).toString('base64url'),
+      password: temporaryPassword(),
     },
   };
 }
