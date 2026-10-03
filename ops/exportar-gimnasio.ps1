@@ -1,4 +1,4 @@
-# =====================================================
+﻿# =====================================================
 # APEX GYM — exportar los datos de UN gimnasio.
 #
 #   powershell -ExecutionPolicy Bypass -File ops\exportar-gimnasio.ps1 -Slug gimnasio-x -EnvFile ops\produccion.env -Proyecto apexg

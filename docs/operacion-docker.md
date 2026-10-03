@@ -15,19 +15,27 @@ Tailscale Funnel sigue apuntando ahí.
 Publicar una versión es reconstruir y levantar: `migrate` corre solo antes
 del backend, y si una migración falla el backend no arranca.
 
-## Ensayo (no toca producción)
+## Entorno de pruebas (no toca producción)
 
-Puertos y volúmenes propios (`apexg-ensayo`, web en 3200, base en 5434):
+La misma app con base, archivos y puerto propios (proyecto `apexg-pruebas`,
+web en 3200), sembrada con una copia de `apexg_work`, nunca con datos del
+piloto:
 
-```bash
-cp ops/ensayo.env.example ops/ensayo.env   # y poner secretos reales
-docker compose --env-file ops/ensayo.env -p apexg-ensayo up -d --build
+```powershell
+powershell -ExecutionPolicy Bypass -File opspruebas.ps1             # levantar o actualizar
+powershell -ExecutionPolicy Bypass -File opspruebas.ps1 -Reiniciar  # borrar todo y volver a sembrar
 ```
 
-Para ensayar con datos, restaurar antes una copia de `apexg_work` en su
-Postgres (ver "Paso a producción", punto 3, cambiando proyecto y archivo).
+Link público propio, en el mismo equipo y otro puerto de Tailscale Funnel
+(Funnel admite 443, 8443 y 10000):
 
-Bajarlo y borrar sus datos: `docker compose -p apexg-ensayo down -v`.
+```powershell
+tailscale funnel --bg --https=8443 http://127.0.0.1:3200
+```
+
+Queda en `https://pcandres.taildb102a.ts.net:8443`. Apagarlo:
+`tailscale funnel --https=8443 off`. Necesita `ops/pruebas.env` (gitignored,
+a partir de `ops/ensayo.env.example` con `WEB_PORT=3200` y `DB_PORT=5434`).
 
 ## Respaldos
 
@@ -51,6 +59,20 @@ subidos antes de la fase 6 están en la raíz de cada carpeta, sin gimnasio, y
 no entran en la exportación (hoy todos son de APEX).
 
 ## Paso a producción (lo ejecuta el dueño)
+
+Todo automatizado en `ops/pasar-a-docker.ps1`, con `ops/produccion.env` ya
+generado (gitignored; mismo `JWT_ACCESS_SECRET` que `apexg-prod`, así las
+sesiones abiertas siguen valiendo). Las migraciones 021–023 se ensayaron
+sobre una copia de `apexg_dev` el 2026-10-03: aplican limpias.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File opspasar-a-docker.ps1
+```
+
+Respalda, copia base y archivos al stack nuevo, apaga el anterior, levanta
+el nuevo y comprueba `/apex-gym`. Si la comprobación falla, vuelve solo a la
+producción anterior. Los pasos a mano equivalentes, por si hiciera falta:
+
 
 Hoy producción corre fuera de Docker: `apexg-prod` + `produccion.ps1`, base
 `apexg_dev` en el contenedor `apexg-postgres`, archivos en

@@ -1,4 +1,4 @@
-# =====================================================
+﻿# =====================================================
 # APEX GYM — respaldo completo de la instalación en Docker.
 #
 #   powershell -ExecutionPolicy Bypass -File ops\respaldar.ps1 -EnvFile ops\produccion.env -Proyecto apexg
