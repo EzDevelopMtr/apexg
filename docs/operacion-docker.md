@@ -22,8 +22,8 @@ web en 3200), sembrada con una copia de `apexg_work`, nunca con datos del
 piloto:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File opspruebas.ps1             # levantar o actualizar
-powershell -ExecutionPolicy Bypass -File opspruebas.ps1 -Reiniciar  # borrar todo y volver a sembrar
+powershell -ExecutionPolicy Bypass -File ops\pruebas.ps1             # levantar o actualizar
+powershell -ExecutionPolicy Bypass -File ops\pruebas.ps1 -Reiniciar  # borrar todo y volver a sembrar
 ```
 
 Link público propio, en el mismo equipo y otro puerto de Tailscale Funnel
@@ -66,7 +66,7 @@ sesiones abiertas siguen valiendo). Las migraciones 021–023 se ensayaron
 sobre una copia de `apexg_dev` el 2026-10-03: aplican limpias.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File opspasar-a-docker.ps1
+powershell -ExecutionPolicy Bypass -File ops\pasar-a-docker.ps1
 ```
 
 Respalda, copia base y archivos al stack nuevo, apaga el anterior, levanta
