@@ -48,6 +48,9 @@ export type { CardPadding } from "./components/card";
 export type { CardProps } from "./components/card";
 
 export { default as Logo } from "./components/logo";
+export { default as BrandScope } from "./components/brand-scope";
+export { useBrand } from "./components/brand-context";
+export type { Brand } from "./components/brand-context";
 export type { LogoProps, LogoSize } from "./components/logo";
 
 export { default as CategoryPanel } from "./components/category-panel";

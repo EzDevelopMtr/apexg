@@ -10,7 +10,9 @@ interface GymPageProps {
 /** Each gym's own entrance: `<link>/apex-gym`. */
 export async function generateMetadata({ params }: GymPageProps): Promise<Metadata> {
   const profile = await findCompanyProfile((await params).gym);
-  return { title: profile ? `Iniciar sesión | ${profile.name}` : "Gimnasio no encontrado" };
+  return {
+    title: { absolute: profile ? `Iniciar sesión | ${profile.name}` : "Gimnasio no encontrado" },
+  };
 }
 
 export default async function GymLoginPage({ params }: GymPageProps) {

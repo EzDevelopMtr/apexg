@@ -28,7 +28,7 @@ export function createSectionRoute<Id extends string>(
         ? catalog.getSection(section).title
         : fallbackTitle;
 
-      return { title: `${title} | APEX GYM` };
+      return { title };
     },
 
     /** Narrows the segment, or renders a 404. */

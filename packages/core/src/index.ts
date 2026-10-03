@@ -28,6 +28,9 @@ export * from "./domain/finance";
 export * from "./domain/finance-insights";
 export * from "./domain/finance-period";
 
+/* Identity */
+export * from "./domain/brand";
+
 /* Access control */
 export * from "./domain/permissions";
 

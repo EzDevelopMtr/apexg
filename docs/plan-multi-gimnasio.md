@@ -114,12 +114,17 @@ Resultado: APEX entra por `/apex-gym`, y el link viejo sigue funcionando.
   `COMPANY_LOGOS_DIR`), servido por `GET /public/companies/:slug/logo`.
   - `Logo` en `ui` recibe `{ name, src? }`. Sin logo, muestra el nombre como
     wordmark.
-  - El SVG actual de APEX se sube como su logo.
+  - Sin logo subido, el pico dibujado lleva el nombre del gimnasio ("APEX" /
+    "GYM"): APEX se ve igual que hoy sin subir nada.
 - **Textos:** los `metadata` fijos pasan a `generateMetadata` con el nombre del
   gimnasio: `layout.tsx`, login, dashboard, modules y
   [module-route.ts:31](../apps/frontend/lib/module-route.ts). El favicon es el
   logo.
 - `login-hero.jpg` sigue siendo la misma imagen para todos.
+- Hecho así: la marca de las páginas privadas sale de la cookie `apexg_gym`
+  (no de `/auth/me`), y color/logo se cambian con
+  `pnpm --filter @apexg/backend company:brand --slug x --color "#hex" --logo archivo`
+  hasta que exista el panel.
 
 **Al cerrar esta fase ya se puede operar el gimnasio #2**, dado de alta con el
 comando de la fase 1.

@@ -11,6 +11,7 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "company:create": "node dist/cli/create-company.js",
+    "company:brand": "node dist/cli/company-brand.js",
     "lint": "oxlint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
