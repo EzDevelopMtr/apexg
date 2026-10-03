@@ -1,0 +1,2 @@
+# Scripts que corren dentro de contenedores Linux: un CRLF los rompe.
+*.sh text eol=lf

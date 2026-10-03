@@ -19,7 +19,7 @@ describe('LocalFileStore', () => {
   it('stores each file under its gym folder', async () => {
     const store = new TestStore(mkdtempSync(join(tmpdir(), 'apexg-store-')));
     const name = await store.store(png, COMPANY);
-    expect(name).toMatch(new RegExp(`^${COMPANY}/[0-9a-f-]{36}\.png$`));
+    expect(name).toMatch(new RegExp(`^${COMPANY}/[0-9a-f-]{36}[.]png$`));
     expect(existsSync(join(store.root, name))).toBe(true);
     expect(store.open(name, 'falta').contentType).toBe('image/png');
   });
