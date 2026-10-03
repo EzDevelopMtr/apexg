@@ -7,9 +7,9 @@ Tailscale Funnel sigue apuntando ahí.
 
 | Servicio | Qué hace |
 |---|---|
-| `postgres` | La base de todos los gimnasios (volumen `pgdata`) |
+| `postgres` | La base de todos los gimnasios (volumen `stack_db`) |
 | `migrate` | Aplica las migraciones pendientes y termina (`ops/migrate.sh`) |
-| `backend` | API; archivos en el volumen `files` (`/data/<tipo>/<id-gimnasio>/`) |
+| `backend` | API; archivos en el volumen `stack_files` (`/data/<tipo>/<id-gimnasio>/`) |
 | `web` | Next.js en el puerto `WEB_PORT` |
 
 Publicar una versión es reconstruir y levantar: `migrate` corre solo antes

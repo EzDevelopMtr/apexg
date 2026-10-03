@@ -18,7 +18,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-apexg}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - stack_db:/var/lib/postgresql/data
     ports:
       # Solo para respaldos y diagnóstico desde este equipo.
       - "127.0.0.1:${DB_PORT:-5433}:5432"
@@ -57,7 +57,7 @@ services:
       CLIENT_PHOTOS_DIR: /data/client-photos
       COMPANY_LOGOS_DIR: /data/company-logos
     volumes:
-      - files:/data
+      - stack_files:/data
 
   web:
     build: { context: ., target: web }
@@ -70,5 +70,9 @@ services:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"
 
 volumes:
-  pgdata:
-  files:
+  # Nombres que NO pueden chocar con lo que ya existía fuera de compose: con
+  # "pgdata" y el proyecto "apexg", Docker lo llamaba apexg_pgdata, que es el
+  # volumen del contenedor apexg-postgres (la base del piloto). Pasó el
+  # 2026-10-03: el contenedor nuevo arrancó sobre los datos del piloto.
+  stack_db:
+  stack_files:

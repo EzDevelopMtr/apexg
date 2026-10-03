@@ -22,6 +22,14 @@ function Step([string]$texto) { Write-Output "`n== $texto" }
 if (-not (Test-Path (Join-Path $repo $EnvFile))) { throw "Falta $EnvFile (ver ops/ensayo.env.example)." }
 Wait-Docker
 
+# Primera vez: los volúmenes del stack NO pueden existir todavía. Si existen,
+# o son de un intento anterior o (peor) de otra cosa con el mismo nombre: el
+# 2026-10-03 un nombre repetido montó la base del piloto en el contenedor nuevo.
+foreach ($volumen in "${Proyecto}_stack_db", "${Proyecto}_stack_files") {
+  docker volume inspect $volumen *> $null
+  if ($LASTEXITCODE -eq 0) { throw "El volumen $volumen ya existe: revisar antes de seguir. No se tocó nada." }
+}
+
 Step "1. Respaldo de la producción actual"
 $respaldo = "C:\Users\evila\Downloads\apexg-respaldos\pre-docker-" + (Get-Date -Format "yyyy-MM-dd_HHmm")
 New-Item -ItemType Directory -Force $respaldo | Out-Null
@@ -45,7 +53,7 @@ if ($LASTEXITCODE -ne 0) { throw "pg_restore falló. Producción sigue intacta; 
 
 Step "3. Archivos al volumen"
 # Mismos subdirectorios que usan RECEIPTS_DIR / CLIENT_PHOTOS_DIR dentro del contenedor.
-docker run --rm -v "${Proyecto}_files:/data" -v "${ProdData}:/src:ro" postgres:16 sh -c "cp -a /src/. /data/ && ls /data"
+docker run --rm -v "${Proyecto}_stack_files:/data" -v "${ProdData}:/src:ro" postgres:16 sh -c "cp -a /src/. /data/ && ls /data"
 
 Step "4. Corte: se apaga la producción anterior y se levanta la nueva"
 & docker @compose build
