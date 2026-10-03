@@ -1,3 +1,4 @@
+import type { CompanySlug } from '../companies/company-slug.js';
 import type { companies } from '../database/schema/schema.js';
 
 type CompanyInsert = typeof companies.$inferInsert;
@@ -15,6 +16,8 @@ type CompanyInsert = typeof companies.$inferInsert;
  */
 export interface ProvisionCompanyInput {
   name: NonNullable<CompanyInsert['name']>;
+  /** Validado con `isCompanySlug`: el tipo de marca impide pasar uno crudo. */
+  slug: CompanySlug;
   legalName?: CompanyInsert['legalName'];
   currency?: CompanyInsert['currency'];
   timezone?: CompanyInsert['timezone'];

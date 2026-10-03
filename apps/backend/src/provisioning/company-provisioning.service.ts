@@ -43,26 +43,32 @@ export class CompanyProvisioningService {
   async provisionCompany(
     input: ProvisionCompanyInput,
   ): Promise<ProvisionCompanyResult> {
-    return this.db.transaction(async (tx) => {
-      const { allPermissions, receptionistPermissions } = await this.resolvePermissions(tx);
-      const companyId = await this.insertCompany(tx, input);
-      const { administratorRoleId, receptionistRoleId } = await this.insertRoles(tx, companyId);
+    return this.db.transaction((tx) => this.provisionIn(tx, input));
+  }
 
-      await this.grantRolePermissions(tx, administratorRoleId, allPermissions);
-      await this.grantRolePermissions(tx, receptionistRoleId, receptionistPermissions);
-      await this.seedMembershipTypes(tx, companyId);
-      await this.seedExpenseCategories(tx, companyId);
+  /** Igual que `provisionCompany`, dentro de una transacción del caller. */
+  async provisionIn(
+    tx: DatabaseTransaction,
+    input: ProvisionCompanyInput,
+  ): Promise<ProvisionCompanyResult> {
+    const { allPermissions, receptionistPermissions } = await this.resolvePermissions(tx);
+    const companyId = await this.insertCompany(tx, input);
+    const { administratorRoleId, receptionistRoleId } = await this.insertRoles(tx, companyId);
 
-      return {
-        companyId,
-        administratorRoleId,
-        receptionistRoleId,
-        administratorPermissions: allPermissions.length,
-        receptionistPermissions: receptionistPermissions.length,
-        membershipTypes: MEMBERSHIP_TYPE_SEED.length,
-        expenseCategories: EXPENSE_CATEGORY_SEED.length,
-      };
-    });
+    await this.grantRolePermissions(tx, administratorRoleId, allPermissions);
+    await this.grantRolePermissions(tx, receptionistRoleId, receptionistPermissions);
+    await this.seedMembershipTypes(tx, companyId);
+    await this.seedExpenseCategories(tx, companyId);
+
+    return {
+      companyId,
+      administratorRoleId,
+      receptionistRoleId,
+      administratorPermissions: allPermissions.length,
+      receptionistPermissions: receptionistPermissions.length,
+      membershipTypes: MEMBERSHIP_TYPE_SEED.length,
+      expenseCategories: EXPENSE_CATEGORY_SEED.length,
+    };
   }
 
   /** 1. Valida el catálogo global de permisos y resuelve los 12 de Recepcionista por code. */
@@ -108,6 +114,7 @@ export class CompanyProvisioningService {
       .insert(companies)
       .values({
         name: input.name,
+        slug: input.slug,
         legalName: input.legalName ?? null,
         currency: input.currency ?? null,
         timezone: input.timezone ?? null,
@@ -172,6 +179,7 @@ export class CompanyProvisioningService {
         durationValue: m.durationValue,
         durationUnit: m.durationUnit,
         minimumPayment: m.minimumPayment,
+        weeklyVisits: m.weeklyVisits,
         trainerShare: m.trainerShare,
         businessShare: m.businessShare,
         allowsPartialPayment: m.allowsPartialPayment,

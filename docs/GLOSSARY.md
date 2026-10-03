@@ -120,3 +120,18 @@ Note: "Por vencer" is **not** a state. It is a derived filter
 | Usuario que registró | `recordedBy`     |
 | Apartado diario      | `DailyLog`       |
 | Novedad              | `DailyLogNote`   |
+
+## Platform (several gyms on one installation)
+
+| Spanish                  | English                | Notes                                                              |
+| ------------------------ | ---------------------- | ------------------------------------------------------------------ |
+| Gimnasio (como cliente)  | `Company`              | The tenant. Matches the `companies` table; never `Gym` or `Tenant` |
+| Identificador en la URL  | `slug`                 | `apex-gym` in `<link>/apex-gym`                                    |
+| Activo / Suspendido      | `active` / `suspended` | State of a company, not of a client                                |
+| Super admin              | `PlatformAdmin`        | Manages companies; is never a `User` of any company                |
+| Ajuste                   | `Setting`              |                                                                    |
+| Valor general            | `platformDefault`      | Applies to every company without an override                       |
+| Excepción de un gimnasio | `companyOverride`      |                                                                    |
+| Obligatorio para todos   | `enforced`             | A platform default that ignores company overrides                  |
+| Interruptor de función   | `featureFlag`          | A boolean setting                                                  |
+| Color de marca           | `brandColor`           | Stored in `companies.primary_color`                                |

@@ -66,12 +66,14 @@ Backend:
   columna no existía ([login.service.ts:82](../apps/backend/src/auth/login.service.ts)).
 - `AccessTokenGuard` revalida también el estado del gimnasio: suspender uno
   corta sus sesiones abiertas.
-- Endpoints públicos (sin sesión):
-  - `GET /public/companies/:slug` → `{ id, slug, name, brandColor, hasLogo, state }`.
-  - `GET /public/companies/:slug/logo`.
+- Endpoint público (sin sesión): `GET /public/companies/:slug` →
+  `{ id, slug, name, brandColor, hasLogo, status }`. El del logo llega en la
+  fase 3, junto con la carga de archivos.
 - Comando `pnpm --filter @apexg/backend company:create`: une
   `CompanyProvisioningService` e `InitialAdministratorService` con el slug.
   Con él se puede dar de alta el gimnasio #2 antes de que exista el panel.
+- Seed de planes: "Mes 3 veces por semana" nace con 3 ingresos semanales. El
+  seed era anterior a las migraciones 010–013 y lo dejaba en 6.
 
 ## Fase 2 — Entrada por gimnasio (2 d)
 
@@ -107,7 +109,7 @@ Resultado: APEX entra por `/apex-gym`, y el link viejo sigue funcionando.
     (regla de color de `CLAUDE.md`). El backend repite esa validación, igual
     que ya hace con `isDayPlan`.
 - **Logo:** `CompanyLogoStore extends LocalFileStore` (SVG/PNG ≤ 512 KB,
-  `COMPANY_LOGOS_DIR`).
+  `COMPANY_LOGOS_DIR`), servido por `GET /public/companies/:slug/logo`.
   - `Logo` en `ui` recibe `{ name, src? }`. Sin logo, muestra el nombre como
     wordmark.
   - El SVG actual de APEX se sube como su logo.

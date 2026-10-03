@@ -5,4 +5,4 @@ import { defineWorkspace } from "vitest/config";
  * UI packages are intentionally absent: they are presentational and are
  * covered through the modules that consume them.
  */
-export default defineWorkspace(["packages/core"]);
+export default defineWorkspace(["packages/core", "apps/backend"]);

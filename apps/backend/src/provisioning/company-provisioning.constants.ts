@@ -55,6 +55,8 @@ export interface MembershipTypeSeed {
   durationValue: number;
   durationUnit: 'day' | 'month';
   minimumPayment: string | null;
+  /** Días de ingreso por semana. Sin valor: 6, el default de la columna (013). */
+  weeklyVisits?: number;
   trainerShare: string | null;
   businessShare: string | null;
   allowsPartialPayment: boolean;
@@ -85,6 +87,7 @@ export const MEMBERSHIP_TYPE_SEED: readonly MembershipTypeSeed[] = [
     name: 'Mes 3 veces por semana',
     price: '50000',
     description: 'Acceso tres días por semana durante un mes',
+    weeklyVisits: 3,
     durationValue: 1,
     durationUnit: 'month',
     minimumPayment: '30000',

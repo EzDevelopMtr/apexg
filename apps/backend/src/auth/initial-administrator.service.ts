@@ -42,18 +42,34 @@ export class InitialAdministratorService {
   async createInitialAdministrator(
     input: CreateInitialAdministratorInput,
   ): Promise<CreateInitialAdministratorResult> {
-    // 1. Validar y normalizar valores puros (sin tocar la BD).
+    // Hash FUERA de la transacción.
+    const prepared = await this.prepare(input);
+
+    // Transacción única: comprobaciones + INSERT.
+    return this.db.transaction((tx) =>
+      this.insertAdministrator(tx, input.companyId, prepared),
+    );
+  }
+
+  /**
+   * Igual, dentro de una transacción del caller: el alta de un gimnasio crea
+   * empresa y administrador juntos o ninguno de los dos.
+   */
+  async createIn(
+    tx: DatabaseTransaction,
+    input: CreateInitialAdministratorInput,
+  ): Promise<CreateInitialAdministratorResult> {
+    return this.insertAdministrator(tx, input.companyId, await this.prepare(input));
+  }
+
+  /** Valida y normaliza sin tocar la BD, y calcula el hash. */
+  private async prepare(
+    input: CreateInitialAdministratorInput,
+  ): Promise<{ username: string; fullName: string; passwordHash: string }> {
     const username = this.normalizeUsername(input.username);
     const fullName = this.normalizeFullName(input.fullName);
     this.assertValidPassword(input.password);
-
-    // 2. Hash FUERA de la transacción.
-    const passwordHash = await this.hasher.hash(input.password);
-
-    // 3. Transacción única: comprobaciones + INSERT.
-    return this.db.transaction((tx) =>
-      this.insertAdministrator(tx, input.companyId, { username, fullName, passwordHash }),
-    );
+    return { username, fullName, passwordHash: await this.hasher.hash(input.password) };
   }
 
   private async insertAdministrator(

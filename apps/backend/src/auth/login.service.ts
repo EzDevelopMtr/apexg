@@ -3,9 +3,10 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { and, eq } from 'drizzle-orm';
 
+import { COMPANY_STATE } from '../companies/companies.types.js';
 import { DATABASE } from '../database/database.constants.js';
 import type { Database } from '../database/database.types.js';
-import { roles, users } from '../database/schema/schema.js';
+import { companies, roles, users } from '../database/schema/schema.js';
 
 import {
   ACCESS_TOKEN_EXPIRES_IN,
@@ -61,7 +62,7 @@ export class LoginService {
     username: string,
     password: string,
   ): Promise<LoginResult> {
-    // 1. Usuario por (company_id, username).
+    // 1. Usuario por (company_id, username), con el estado de su gimnasio.
     const [user] = await this.db
       .select({
         id: users.id,
@@ -71,16 +72,19 @@ export class LoginService {
         fullName: users.fullName,
         password: users.password,
         state: users.state,
+        companyState: companies.state,
       })
       .from(users)
+      .innerJoin(companies, eq(companies.id, users.companyId))
       .where(and(eq(users.companyId, companyId), eq(users.username, username)));
 
     if (!user) {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
-    // 2. Usuario activo. (companies no tiene columna `state`: no se comprueba.)
-    if (user.state !== 1) {
+    // 2. Usuario y gimnasio activos. La página de login ya avisa que un
+    // gimnasio está suspendido; aquí basta el mensaje genérico.
+    if (user.state !== 1 || user.companyState !== COMPANY_STATE.active) {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 

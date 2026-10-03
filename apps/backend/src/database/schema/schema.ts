@@ -39,12 +39,15 @@ export const companies = pgTable("companies", {
 	primaryColor: text("primary_color"),
 	secondaryColor: text("secondary_color"),
 	accentColor: text("accent_color"),
+	slug: varchar({ length: 40 }).notNull(),
+	state: integer().default(1).notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.createdBy],
 			foreignColumns: [platformAdmins.id],
 			name: "companies_created_by_fkey"
 		}),
+	unique("uq_companies_slug").on(table.slug),
 ]);
 
 export const roles = pgTable("roles", {

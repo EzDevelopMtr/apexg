@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 
 import { AuthModule } from "./auth/auth.module.js";
 import { ClientsModule } from "./clients/clients.module.js";
+import { CompaniesModule } from "./companies/companies.module.js";
 import { DailyLogModule } from "./daily-log/daily-log.module.js";
 import { DayPassesModule } from "./day-passes/day-passes.module.js";
 import { DatabaseModule } from "./database/database.module.js";
@@ -23,6 +24,7 @@ import { TrainersModule } from "./trainers/trainers.module.js";
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     ProvisioningModule,
+    CompaniesModule,
     AuthModule,
     ClientsModule,
     MembershipTypesModule,

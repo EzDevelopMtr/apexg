@@ -115,6 +115,10 @@ ON CONFLICT (company_id, name) DO UPDATE SET
     state                  = EXCLUDED.state,
     updated_at             = NOW();
 
+-- weekly_visits llegó en 010–013 con default 6; solo este plan es distinto.
+UPDATE membership_types SET weekly_visits = 3
+WHERE company_id = :'company_id'::uuid AND name = 'Mes 3 veces por semana';
+
 
 COMMIT;
 

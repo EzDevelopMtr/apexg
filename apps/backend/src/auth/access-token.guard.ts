@@ -13,9 +13,10 @@ import { JwtService } from '@nestjs/jwt';
 import { and, eq } from 'drizzle-orm';
 import { isUUID } from 'class-validator';
 
+import { COMPANY_STATE } from '../companies/companies.types.js';
 import { DATABASE } from '../database/database.constants.js';
 import type { Database } from '../database/database.types.js';
-import { roles, users } from '../database/schema/schema.js';
+import { companies, roles, users } from '../database/schema/schema.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
 
 import type {
@@ -65,13 +66,17 @@ export class AccessTokenGuard implements CanActivate {
         username: users.username,
         fullName: users.fullName,
         state: users.state,
+        companyState: companies.state,
       })
       .from(users)
+      .innerJoin(companies, eq(companies.id, users.companyId))
       .where(and(eq(users.id, payload.sub), eq(users.companyId, payload.companyId)));
 
+    // Suspender un gimnasio corta también las sesiones que ya estaban abiertas.
     if (
       !user ||
       user.state !== 1 ||
+      user.companyState !== COMPANY_STATE.active ||
       user.username !== payload.username ||
       user.roleId !== payload.roleId
     ) {
