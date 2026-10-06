@@ -8,7 +8,7 @@
 # base, volumen ni puerto con producción (`apexg`, 3000): lo que se rompa
 # aquí no llega al gimnasio.
 #
-# Se siembra con una copia de apexg_work (base de desarrollo, gimnasios de
+# Se siembra con una copia de apexg_work (contenedor apexg-dev-postgres, gimnasios de
 # prueba), NO con los datos del piloto.
 #
 # Link público: Tailscale Funnel en el puerto 8443 del mismo equipo
@@ -31,8 +31,9 @@ do { Start-Sleep 2; & docker @compose exec -T postgres pg_isready -q } while ($L
 $hay = "SELECT count(*) FROM information_schema.tables WHERE table_name = 'companies'" | & docker @compose exec -T postgres sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB -tA'
 if ("$hay".Trim() -eq "0") {
   Write-Output "Base vacía: sembrando con una copia de apexg_work."
-  docker exec apexg-postgres pg_dump -U postgres -Fc -d apexg_work -f /tmp/pruebas.dump
-  docker cp apexg-postgres:/tmp/pruebas.dump "$env:TEMP\pruebas.dump"
+  # Desde la base de desarrollo, en su propio contenedor: pruebas nunca toca el del piloto.
+  docker exec apexg-dev-postgres pg_dump -U postgres -Fc -d apexg_work -f /tmp/pruebas.dump
+  docker cp apexg-dev-postgres:/tmp/pruebas.dump "$env:TEMP\pruebas.dump"
   $pg = (& docker @compose ps -q postgres).Trim()
   docker cp "$env:TEMP\pruebas.dump" "${pg}:/tmp/pruebas.dump"
   Remove-Item "$env:TEMP\pruebas.dump"
