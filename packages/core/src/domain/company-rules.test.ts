@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PlatformUser } from "./company";
 import {
   isLastAdministrator,
+  logoProblem,
   slugProblem,
   suggestSlug,
   suggestUsername,
@@ -83,5 +84,24 @@ describe("isLastAdministrator", () => {
 
   it("never applies to someone who is not an active administrator", () => {
     expect(isLastAdministrator(reception, [admin, reception])).toBe(false);
+  });
+});
+
+describe("logoProblem", () => {
+  const KB = 1024;
+
+  it("accepts SVG, PNG and WEBP up to 512 KB", () => {
+    expect(logoProblem({ type: "image/svg+xml", size: 4 * KB })).toBeNull();
+    expect(logoProblem({ type: "image/png", size: 512 * KB })).toBeNull();
+    expect(logoProblem({ type: "image/webp", size: 80 * KB })).toBeNull();
+  });
+
+  it("rejects any other kind of file", () => {
+    expect(logoProblem({ type: "image/jpeg", size: 4 * KB })).toBe("type");
+    expect(logoProblem({ type: "", size: 4 * KB })).toBe("type");
+  });
+
+  it("rejects a logo over 512 KB", () => {
+    expect(logoProblem({ type: "image/png", size: 512 * KB + 1 })).toBe("too-large");
   });
 });

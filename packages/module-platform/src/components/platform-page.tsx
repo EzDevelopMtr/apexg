@@ -71,7 +71,7 @@ export default function PlatformPage({ adminName, adminEmail, onSignOut }: Platf
       </Sheet>
       <Sheet open={view.sheet === "creator"} title="Nuevo gimnasio" onClose={view.closeSheet}>
         {view.mounted === "creator" && (
-          <GymCreator key={view.creation} create={platform.create} takenSlugs={slugsBut()} onClose={view.closeSheet} onAnother={view.openCreator} />
+          <GymCreator key={view.creation} actions={platform} takenSlugs={slugsBut()} onClose={view.closeSheet} onAnother={view.openCreator} />
         )}
       </Sheet>
       <Toast visible={toast.visible} message={toast.message} onUndo={toast.onUndo} />

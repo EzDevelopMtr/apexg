@@ -1,5 +1,6 @@
 import type {
   CompanyChange,
+  CreatedCompany,
   IssuedCredential,
   NewCompany,
   NewPlatformUser,
@@ -48,12 +49,12 @@ export class HttpPlatformRepository implements PlatformRepository {
     return platformFetch("/companies");
   }
 
-  async create(company: NewCompany): Promise<IssuedCredential> {
-    const result = await platformFetch<{ administrator: IssuedCredential }>(
+  async create(company: NewCompany): Promise<CreatedCompany> {
+    const result = await platformFetch<{ companyId: string; administrator: IssuedCredential }>(
       "/companies",
       json("POST", company),
     );
-    return result.administrator;
+    return { id: result.companyId, credential: result.administrator };
   }
 
   update(id: string, change: CompanyChange): Promise<void> {

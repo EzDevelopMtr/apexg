@@ -25,6 +25,12 @@ export interface IssuedCredential {
   readonly password: string;
 }
 
+/** A gym just created: its id, and its first administrator's credential. */
+export interface CreatedCompany {
+  readonly id: string;
+  readonly credential: IssuedCredential;
+}
+
 export interface NewCompany {
   readonly name: string;
   readonly slug: string;

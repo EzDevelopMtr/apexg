@@ -1,11 +1,10 @@
 "use client";
 
-import { Check, KeyRound } from "lucide-react";
-import type { IssuedCredential, NewCompany } from "@apexg/core";
+import { Check, Info, KeyRound } from "lucide-react";
 import { materialButton } from "@apexg/ui";
 import { addressPrefix } from "../gym-rules";
 import { useCompanyForm } from "../hooks/use-company-form";
-import type { CreatedGym } from "../hooks/use-company-form";
+import type { CreatedGym, CreatorActions } from "../hooks/use-company-form";
 import { usePlatformLinks } from "../platform-context";
 import BrandFields from "./brand-fields";
 import CredentialCard from "./credential-card";
@@ -14,7 +13,7 @@ import Section from "./section";
 import TextField from "./text-field";
 
 export interface GymCreatorProps {
-  readonly create: (company: NewCompany) => Promise<IssuedCredential>;
+  readonly actions: CreatorActions;
   readonly takenSlugs: readonly string[];
   readonly onClose: () => void;
   readonly onAnother: () => void;
@@ -28,12 +27,17 @@ function Created({ gym, onClose, onAnother }: { gym: CreatedGym; onClose: () => 
         <Check size={26} />
       </div>
       <div className="flex items-center gap-4">
-        <GymAvatar name={gym.name} color={gym.color} size="lg" />
+        <GymAvatar name={gym.name} color={gym.color} logoSrc={gym.logoSrc} size="lg" />
         <div className="min-w-0">
           <div className="truncate text-[22px] font-bold leading-tight tracking-[-0.015em]">{gym.name} ya existe</div>
           <span className="font-mono text-xs text-body-faint">/{gym.slug}</span>
         </div>
       </div>
+      {gym.logoFailed && (
+        <p role="alert" className="mt-3 flex items-start gap-1.5 text-xs text-danger-ink">
+          <Info size={13} className="mt-px shrink-0" /> El gimnasio quedó creado, pero el logo no se subió: {gym.logoFailed} Súbelo desde Editar → Marca.
+        </p>
+      )}
       <CredentialCard credential={gym.credential} link={link} recipient="al administrador" />
       <div className="mt-6 flex justify-end gap-2.5">
         <button type="button" onClick={onAnother} className={materialButton("tinted")}>Crear otro</button>
@@ -43,9 +47,9 @@ function Created({ gym, onClose, onAnother }: { gym: CreatedGym; onClose: () => 
   );
 }
 
-/** New gym: name and address, colour, and its first administrator. */
-export default function GymCreator({ create, takenSlugs, onClose, onAnother }: GymCreatorProps) {
-  const form = useCompanyForm(create, takenSlugs);
+/** New gym: name and address, colour and logo, and its first administrator. */
+export default function GymCreator({ actions, takenSlugs, onClose, onAnother }: GymCreatorProps) {
+  const form = useCompanyForm(actions, takenSlugs);
   const { gymLink } = usePlatformLinks();
   if (form.created) return <Created gym={form.created} onClose={onClose} onAnother={onAnother} />;
 
@@ -56,7 +60,7 @@ export default function GymCreator({ create, takenSlugs, onClose, onAnother }: G
         <TextField id="new-gym-slug" label="Dirección de entrada" value={form.values.slug} onChange={form.setSlug} prefix={addressPrefix(gymLink(""))} mono placeholder="nandu-fit-centro" error={form.slugProblem} hint={form.values.slug ? gymLink(form.values.slug) : undefined} confirmed />
       </Section>
       <Section title="Marca">
-        <BrandFields name={form.values.name} color={form.color} onPick={form.pickColor} problem={form.colorProblem} />
+        <BrandFields name={form.values.name} color={form.color} onPick={form.pickColor} problem={form.colorProblem} logoSrc={form.logo.preview} onLogo={form.logo.pick} logoProblem={form.logo.problem} />
       </Section>
       <Section title="Primer administrador" help="Después puedes agregar más usuarios desde Editar → Usuarios.">
         <TextField id="new-gym-admin" label="Usuario" value={form.values.adminUsername} onChange={(v) => form.set("adminUsername", v)} prefix="@" mono placeholder="admin" />

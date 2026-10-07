@@ -1,5 +1,6 @@
 import type {
   CompanyChange,
+  CreatedCompany,
   IssuedCredential,
   NewCompany,
   NewPlatformUser,
@@ -15,7 +16,7 @@ import type {
 export interface PlatformRepository {
   list(): Promise<readonly PlatformCompany[]>;
   /** Returns the new gym's first administrator, password included. */
-  create(company: NewCompany): Promise<IssuedCredential>;
+  create(company: NewCompany): Promise<CreatedCompany>;
   update(id: string, change: CompanyChange): Promise<void>;
   uploadLogo(id: string, logo: Blob): Promise<void>;
   listUsers(companyId: string): Promise<readonly PlatformUser[]>;

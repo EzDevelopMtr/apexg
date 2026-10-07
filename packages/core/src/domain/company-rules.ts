@@ -10,6 +10,18 @@ import type { PlatformUser } from "./company";
 
 export type SlugProblem = "too-short" | "too-long" | "format" | "reserved" | "taken";
 export type UsernameProblem = "too-short" | "too-long" | "format" | "taken";
+export type LogoProblem = "type" | "too-large";
+
+/** Mirrors CompanyLogoStore in the backend. */
+const LOGO_TYPES: ReadonlySet<string> = new Set(["image/svg+xml", "image/png", "image/webp"]);
+const LOGO_MAX_BYTES = 512 * 1024;
+
+/** Why `file` cannot be a gym's logo, or `null` if it can. */
+export function logoProblem(file: { readonly type: string; readonly size: number }): LogoProblem | null {
+  if (!LOGO_TYPES.has(file.type)) return "type";
+  if (file.size > LOGO_MAX_BYTES) return "too-large";
+  return null;
+}
 
 /** Mirrors RESERVED_COMPANY_SLUGS in the backend: top-level routes of the web app. */
 const RESERVED_SLUGS: ReadonlySet<string> = new Set(["admin", "api", "dashboard", "login", "logout", "modules"]);

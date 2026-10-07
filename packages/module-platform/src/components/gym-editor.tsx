@@ -56,6 +56,7 @@ export default function GymEditor({ company, takenSlugs, logoSrc, actions, notif
           problem={editor.colorProblem}
           logoSrc={logoSrc}
           onLogo={(file) => void editor.uploadLogo(file)}
+          logoProblem={editor.logoProblem}
         />
       </Section>
 

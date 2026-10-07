@@ -1,4 +1,4 @@
-import type { SlugProblem, UsernameProblem } from "@apexg/core";
+import type { LogoProblem, SlugProblem, UsernameProblem } from "@apexg/core";
 
 /** The rules live in core (company-rules.ts); the words for them live here. */
 export const SLUG_PROBLEM_TEXT: Record<SlugProblem, string> = {
@@ -14,6 +14,11 @@ export const USERNAME_PROBLEM_TEXT: Record<UsernameProblem, string> = {
   "too-long": "Máximo 50 caracteres.",
   format: "Solo minúsculas, números, punto, guion y guion bajo.",
   taken: "Ya existe en este gimnasio.",
+};
+
+export const LOGO_PROBLEM_TEXT: Record<LogoProblem, string> = {
+  type: "El logo debe ser SVG, PNG o WEBP.",
+  "too-large": "El logo pesa más de 512 KB.",
 };
 
 /** Up to two initials, for an avatar with no picture. */

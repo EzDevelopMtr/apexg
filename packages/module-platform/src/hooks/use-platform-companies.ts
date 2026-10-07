@@ -6,7 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type {
   CompanyChange,
-  IssuedCredential,
+  CreatedCompany,
   NewCompany,
   PlatformCompany,
 } from "@apexg/core";
@@ -16,7 +16,7 @@ export interface UsePlatformCompaniesResult {
   readonly companies: readonly PlatformCompany[];
   readonly loading: boolean;
   readonly error: string | null;
-  readonly create: (company: NewCompany) => Promise<IssuedCredential>;
+  readonly create: (company: NewCompany) => Promise<CreatedCompany>;
   readonly update: (id: string, change: CompanyChange) => Promise<void>;
   readonly uploadLogo: (id: string, logo: Blob) => Promise<void>;
   readonly reload: () => void;
