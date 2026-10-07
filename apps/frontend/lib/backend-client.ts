@@ -14,6 +14,21 @@ function backendUrl(): string {
   return value;
 }
 
+/**
+ * Resolves `path` against the backend and refuses anything that lands on
+ * another origin. A proxied path like "//host/x" or "/\host/x" (an encoded
+ * slash in a route parameter) would otherwise send the caller's token to
+ * that host.
+ */
+function backendRequestUrl(path: string): URL {
+  const base = new URL(backendUrl());
+  const url = new URL(path, base);
+  if (url.origin !== base.origin || !path.startsWith("/") || /^\/[/\\]/.test(path)) {
+    throw new Error(`Ruta de backend no permitida: ${path}`);
+  }
+  return url;
+}
+
 export interface BackendResponse<T = unknown> {
   readonly status: number;
   readonly body: T;
@@ -29,7 +44,7 @@ export async function callBackend<T = unknown>(
     searchParams?: URLSearchParams;
   },
 ): Promise<BackendResponse<T>> {
-  const url = new URL(path, backendUrl());
+  const url = backendRequestUrl(path);
   if (options.searchParams) {
     url.search = options.searchParams.toString();
   }
@@ -82,7 +97,7 @@ export async function callBackendRaw(
     searchParams?: URLSearchParams;
   },
 ): Promise<Response> {
-  const url = new URL(path, backendUrl());
+  const url = backendRequestUrl(path);
   if (options.searchParams) {
     url.search = options.searchParams.toString();
   }

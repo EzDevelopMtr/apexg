@@ -2,6 +2,9 @@ import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
 import { RUTAS, baseUrl, irA } from "../support/app";
 
+/** Same name the web app uses: `COOKIE_PREFIX` when set (see lib/session-cookie-name.ts). */
+const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_session`;
+
 test.describe.configure({ mode: "serial" });
 
 test.describe("F14 · Usuarios, sesión y permisos", () => {
@@ -17,7 +20,7 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
     await page.waitForURL("**/apex-gym");
 
     const cookies = await page.context().cookies();
-    expect(cookies.find((c) => c.name === "apexg_session")).toBeUndefined();
+    expect(cookies.find((c) => c.name === SESSION_COOKIE)).toBeUndefined();
 
     const sinSesion = await page.request.get("/api/backend/clients", {
       failOnStatusCode: false,
@@ -37,7 +40,7 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
     await irA(page, RUTAS.modulos);
 
     const cookies = await page.context().cookies();
-    const sesion = cookies.find((c) => c.name === "apexg_session");
+    const sesion = cookies.find((c) => c.name === SESSION_COOKIE);
     expect(sesion, "No hay cookie de sesión").toBeTruthy();
 
     // Se cambia un carácter del final: rompe la firma sin tocar el formato.

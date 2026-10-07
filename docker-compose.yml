@@ -66,6 +66,8 @@ services:
     environment:
       BACKEND_URL: http://backend:3001
       DEFAULT_GYM_SLUG: ${DEFAULT_GYM_SLUG:-apex-gym}
+      # Otro entorno en el mismo host (pruebas) necesita cookies propias.
+      COOKIE_PREFIX: ${COOKIE_PREFIX:-apexg}
     ports:
       - "127.0.0.1:${WEB_PORT:-3000}:3000"
 

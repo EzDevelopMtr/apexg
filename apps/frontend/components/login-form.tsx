@@ -51,11 +51,13 @@ function BrandPanel() {
 interface LoginFormProps {
   /** Slug of the gym whose entrance this is. */
   readonly gym: string;
+  /** Its id: a session open for another gym must not walk through this door. */
+  readonly companyId: string;
   /** A suspended gym cannot sign in: say so instead of failing on submit. */
   readonly suspended?: boolean;
 }
 
-export default function LoginForm({ gym, suspended = false }: LoginFormProps) {
+export default function LoginForm({ gym, companyId, suspended = false }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -64,9 +66,12 @@ export default function LoginForm({ gym, suspended = false }: LoginFormProps) {
   const router = useRouter();
   const { signIn, session } = useSession();
 
+  // Only this gym's own session goes straight in. One from another gym stays
+  // out: signing in here replaces it.
+  const otherGym = session !== null && session.companyId !== companyId;
   useEffect(() => {
-    if (session) router.replace("/modules");
-  }, [session, router]);
+    if (session?.companyId === companyId) router.replace("/modules");
+  }, [session, companyId, router]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -97,6 +102,12 @@ export default function LoginForm({ gym, suspended = false }: LoginFormProps) {
           <p className="mt-1 text-body-soft">
             Accede a tu cuenta y sigue con tu entrenamiento.
           </p>
+
+          {otherGym && (
+            <p role="status" className="mt-6 rounded-lg border border-line bg-canvas p-3 text-sm text-body-soft">
+              Este navegador tiene abierta la sesión de otro gimnasio. Si ingresas aquí, esa sesión se cierra.
+            </p>
+          )}
 
           {suspended && (
             <p role="alert" className="mt-6 rounded-lg border border-warn-line bg-warn-soft p-3 text-sm text-warn-ink">

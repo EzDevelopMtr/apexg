@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE_NAME } from "./lib/session-cookie-name";
+import { GYM_COOKIE_NAME, SESSION_COOKIE_NAME } from "./lib/session-cookie-name";
 
 /**
  * RF-02/RNF-03: keeps signed-out visitors off private pages, server-side —
@@ -76,7 +76,13 @@ export function proxy(request: NextRequest): NextResponse {
     return NextResponse.redirect(url);
   }
 
-  if (authenticated && publicPath) {
+  // A gym's entrance sends a signed-in visitor on only if it is their own
+  // gym's. Another gym's session must not open this door: the page shows
+  // the form, which checks the verified session against its own gym.
+  const otherGymsEntrance =
+    pathname !== "/login" && request.cookies.get(GYM_COOKIE_NAME)?.value !== pathname.slice(1);
+
+  if (authenticated && publicPath && !otherGymsEntrance) {
     const url = request.nextUrl.clone();
     url.pathname = "/modules";
     return NextResponse.redirect(url);

@@ -2,6 +2,9 @@ import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
 import { RUTAS, irA } from "../support/app";
 
+/** Same name the web app uses: `COOKIE_PREFIX` when set (see lib/session-cookie-name.ts). */
+const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_session`;
+
 test.describe.configure({ mode: "serial" });
 
 test.describe("F9 · La sesión aguanta la jornada", () => {
@@ -9,7 +12,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
     await irA(page, RUTAS.modulos);
 
     const antes = (await page.context().cookies()).find(
-      (galleta) => galleta.name === "apexg_session",
+      (galleta) => galleta.name === SESSION_COOKIE,
     );
     expect(antes, "No hay cookie de sesión").toBeTruthy();
 
@@ -17,7 +20,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
     expect(renovada.status()).toBe(200);
 
     const despues = (await page.context().cookies()).find(
-      (galleta) => galleta.name === "apexg_session",
+      (galleta) => galleta.name === SESSION_COOKIE,
     );
     // Token distinto, no el mismo con otra fecha: el backend firma uno nuevo.
     expect(despues?.value).not.toBe(antes?.value);
