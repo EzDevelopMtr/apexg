@@ -53,6 +53,21 @@ function toSession(user: MeUser): Session | null {
   };
 }
 
+/** The gym session behind the cookie, or `null`. */
+async function loadSession(): Promise<Session | null> {
+  // The platform panel (/admin) has its own session and belongs to no gym:
+  // asking for a gym session there only produces a 401.
+  if (window.location.pathname.startsWith("/admin")) return null;
+  try {
+    const response = await fetch("/api/auth/me");
+    if (!response.ok) return null;
+    const { user } = (await response.json()) as { user: MeUser };
+    return toSession(user);
+  } catch {
+    return null;
+  }
+}
+
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,19 +76,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    fetch("/api/auth/me")
-      .then(async (response) => {
-        if (!response.ok) return null;
-        const { user } = (await response.json()) as { user: MeUser };
-        return toSession(user);
-      })
-      .catch(() => null)
-      .then((next) => {
-        if (!cancelled) {
-          setSession(next);
-          setLoading(false);
-        }
-      });
+    void loadSession().then((next) => {
+      if (!cancelled) {
+        setSession(next);
+        setLoading(false);
+      }
+    });
 
     return () => {
       cancelled = true;

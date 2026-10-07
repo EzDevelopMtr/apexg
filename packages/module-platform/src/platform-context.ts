@@ -19,3 +19,23 @@ export function usePlatformRepository(): PlatformRepository {
   }
   return repository;
 }
+
+export interface PlatformLinks {
+  /** Where a gym's people sign in: `<public base>/<slug>`. */
+  readonly gymLink: (slug: string) => string;
+  /** The gym's uploaded logo, served by the web app. */
+  readonly gymLogo: (slug: string) => string;
+}
+
+/**
+ * Addresses only the web app knows: its public base (an env var, or the
+ * address the panel was opened on) and the route that relays a logo.
+ */
+export const PlatformLinksContext = createContext<PlatformLinks>({
+  gymLink: (slug) => `/${slug}`,
+  gymLogo: (slug) => `/api/brand/${encodeURIComponent(slug)}/logo`,
+});
+
+export function usePlatformLinks(): PlatformLinks {
+  return useContext(PlatformLinksContext);
+}

@@ -1,3 +1,4 @@
-export { default as CompaniesPage } from "./components/companies-page";
-export type { CompaniesPageProps } from "./components/companies-page";
-export { PlatformRepositoryContext } from "./platform-context";
+export { default as PlatformPage } from "./components/platform-page";
+export type { PlatformPageProps } from "./components/platform-page";
+export { PlatformLinksContext, PlatformRepositoryContext } from "./platform-context";
+export type { PlatformLinks } from "./platform-context";

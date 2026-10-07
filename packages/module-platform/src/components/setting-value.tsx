@@ -1,0 +1,28 @@
+import type { PlatformSettingKey } from "@apexg/core";
+import { Stepper } from "@apexg/ui";
+import ModuleSwitches from "./module-switches";
+import { days, SETTING_COPY } from "./setting-copy";
+
+export interface SettingValueProps {
+  readonly settingKey: PlatformSettingKey;
+  readonly value: unknown;
+  readonly onChange: (value: unknown) => void;
+}
+
+/** Edits a value the way its kind asks: a stepper for days, switches for modules. */
+export default function SettingValue({ settingKey, value, onChange }: SettingValueProps) {
+  const copy = SETTING_COPY[settingKey];
+  if (copy.kind === "modules") {
+    return <ModuleSwitches value={Array.isArray(value) ? (value as string[]) : []} onChange={onChange} />;
+  }
+  return (
+    <Stepper
+      value={typeof value === "number" ? value : (copy.min ?? 0)}
+      min={copy.min ?? 0}
+      max={copy.max ?? 365}
+      onChange={onChange}
+      format={days}
+      label={copy.title}
+    />
+  );
+}

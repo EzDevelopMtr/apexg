@@ -59,3 +59,32 @@ export interface PlatformSetting {
     readonly value: unknown;
   }[];
 }
+
+/** Someone who signs in at a gym's own page. Never carries a password. */
+export interface PlatformUser {
+  readonly id: string;
+  readonly username: string;
+  readonly fullName: string;
+  readonly roleId: number;
+  /** "Administrador", "Recepcionista"… a row of that gym's roles. */
+  readonly roleName: string;
+  readonly active: boolean;
+  readonly createdAt: string;
+}
+
+/** A profile a gym's user can have. A new profile is a new row, not new code. */
+export interface PlatformRole {
+  readonly id: number;
+  readonly name: string;
+}
+
+export interface NewPlatformUser {
+  readonly username: string;
+  readonly fullName: string;
+  readonly roleId: number;
+}
+
+export interface PlatformUserChange {
+  readonly roleId?: number;
+  readonly active?: boolean;
+}

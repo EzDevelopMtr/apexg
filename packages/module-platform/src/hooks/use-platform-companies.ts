@@ -19,7 +19,9 @@ export interface UsePlatformCompaniesResult {
   readonly create: (company: NewCompany) => Promise<IssuedCredential>;
   readonly update: (id: string, change: CompanyChange) => Promise<void>;
   readonly uploadLogo: (id: string, logo: Blob) => Promise<void>;
-  readonly resetPassword: (id: string) => Promise<IssuedCredential>;
+  readonly reload: () => void;
+  /** Bumps on every logo upload: appended to logo URLs so the new one shows at once. */
+  readonly logoVersion: number;
 }
 
 /** Every write reloads the list: counts and status come from the server. */
@@ -28,6 +30,7 @@ export function usePlatformCompanies(): UsePlatformCompaniesResult {
   const [companies, setCompanies] = useState<readonly PlatformCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [logoVersion, setLogoVersion] = useState(0);
 
   const reload = useCallback(async () => {
     try {
@@ -66,11 +69,11 @@ export function usePlatformCompanies(): UsePlatformCompaniesResult {
     update: after((id: string, change: CompanyChange) =>
       repository.update(id, change),
     ),
-    uploadLogo: after((id: string, logo: Blob) =>
-      repository.uploadLogo(id, logo),
-    ),
-    resetPassword: after((id: string) =>
-      repository.resetAdministratorPassword(id),
-    ),
+    uploadLogo: after(async (id: string, logo: Blob) => {
+      await repository.uploadLogo(id, logo);
+      setLogoVersion((version) => version + 1);
+    }),
+    reload: () => void reload(),
+    logoVersion,
   };
 }

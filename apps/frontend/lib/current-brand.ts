@@ -2,16 +2,15 @@ import "server-only";
 import { cookies } from "next/headers";
 import { deriveBrandPalette, isAllowedBrandColor, isHexColor } from "@apexg/core";
 import type { Brand } from "@apexg/ui";
+import { logoUrl } from "./brand-urls";
 import { findCompanyProfile } from "./company-profile";
 import type { CompanyProfile } from "./company-profile";
 import { GYM_COOKIE_NAME } from "./session-cookie-name";
 
+export { logoUrl };
+
 /** Until a gym is known (the old `/login`, a 404): the product's own name. */
 export const FALLBACK_BRAND: Brand = { name: "APEX GYM" };
-
-export function logoUrl(slug: string): string {
-  return `/api/brand/${encodeURIComponent(slug)}/logo`;
-}
 
 export function brandOf(profile: CompanyProfile): Brand {
   const color = profile.brandColor;

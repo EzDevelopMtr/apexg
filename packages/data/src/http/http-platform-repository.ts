@@ -2,9 +2,13 @@ import type {
   CompanyChange,
   IssuedCredential,
   NewCompany,
+  NewPlatformUser,
   PlatformCompany,
+  PlatformRole,
   PlatformSetting,
   PlatformSettingKey,
+  PlatformUser,
+  PlatformUserChange,
 } from "@apexg/core";
 import type { PlatformRepository } from "../platform";
 import { ApiError } from "./http-client";
@@ -62,8 +66,27 @@ export class HttpPlatformRepository implements PlatformRepository {
     return platformFetch(`/companies/${id}/logo`, { method: "POST", body: form });
   }
 
-  resetAdministratorPassword(id: string): Promise<IssuedCredential> {
-    return platformFetch(`/companies/${id}/admin-password`, { method: "POST" });
+  listUsers(companyId: string): Promise<readonly PlatformUser[]> {
+    return platformFetch(`/companies/${companyId}/users`);
+  }
+
+  listRoles(companyId: string): Promise<readonly PlatformRole[]> {
+    return platformFetch(`/companies/${companyId}/roles`);
+  }
+
+  createUser(
+    companyId: string,
+    user: NewPlatformUser,
+  ): Promise<{ user: PlatformUser; credential: IssuedCredential }> {
+    return platformFetch(`/companies/${companyId}/users`, json("POST", user));
+  }
+
+  updateUser(companyId: string, userId: string, change: PlatformUserChange): Promise<void> {
+    return platformFetch(`/companies/${companyId}/users/${userId}`, json("PATCH", change));
+  }
+
+  resetUserPassword(companyId: string, userId: string): Promise<IssuedCredential> {
+    return platformFetch(`/companies/${companyId}/users/${userId}/password`, { method: "POST" });
   }
 
   listSettings(): Promise<readonly PlatformSetting[]> {

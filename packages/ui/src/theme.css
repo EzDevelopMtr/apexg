@@ -102,6 +102,64 @@
   --color-danger-strong: #fca5a5;
   --color-idle-soft: #23272d;
   --color-idle-ink: #a8b0b8;
+
+  /*
+    Neutral overlays — white at low alpha, so a fill or a hairline reads the
+    same over any surface. No hue: they carry neither brand nor status.
+  */
+  --color-fill-1: rgb(255 255 255 / 0.04);
+  --color-fill-2: rgb(255 255 255 / 0.07);
+  --color-fill-3: rgb(255 255 255 / 0.11);
+  --color-hairline: rgb(255 255 255 / 0.06);
+  --color-scrim: rgb(0 0 0 / 0.45);
+
+  /*
+    Motion. Critically damped springs (damping 1.0, no bounce) written as
+    linear() curves, so nothing needs an animation library: nothing here is
+    thrown by a gesture, things only open and close. Pair each curve with its
+    duration: spring → 600ms (response 0.4 s), spring-fast → 450ms (0.3 s).
+  */
+  --ease-spring: linear(0, 0.0596, 0.186, 0.3294, 0.4656, 0.584, 0.6819, 0.7601, 0.821, 0.8677, 0.9029, 0.9292, 0.9487, 0.963, 0.9734, 0.9809, 0.9864, 0.9903, 0.9931, 0.9951, 0.9966, 0.9976, 0.9983, 0.9988, 1);
+  --ease-spring-fast: linear(0, 0.0816, 0.2431, 0.4129, 0.562, 0.6819, 0.7736, 0.8412, 0.89, 0.9246, 0.9487, 0.9653, 0.9767, 0.9844, 0.9896, 0.9931, 0.9955, 0.997, 0.998, 0.9987, 1);
+
+  /* Depth of floating material: bigger surfaces cast a deeper shadow. */
+  --shadow-sheet: 0 30px 80px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 0 1px rgb(255 255 255 / 0.05);
+  --shadow-float: 0 16px 40px rgb(0 0 0 / 0.5), inset 0 1px 0 rgb(255 255 255 / 0.08);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --shadow-tile: inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  /* Spatial consistency: a view enters from the side its tab sits on. */
+  --animate-enter-right: enter-right 600ms var(--ease-spring) backwards;
+  --animate-enter-left: enter-left 600ms var(--ease-spring) backwards;
+  @keyframes enter-right {
+    from {
+      opacity: 0;
+      transform: translateX(28px);
+    }
+  }
+  @keyframes enter-left {
+    from {
+      opacity: 0;
+      transform: translateX(-28px);
+    }
+  }
+
+  /* Materialize rather than fade: blur and scale settle together. */
+  /* `backwards`, not `both`: once settled nothing animated stays on the element.
+     A leftover `filter: blur(0px)` renders blurred inside a backdrop-filter sheet. */
+  --animate-materialize: materialize 520ms var(--ease-spring) backwards;
+  @keyframes materialize {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
 }
 
 /*

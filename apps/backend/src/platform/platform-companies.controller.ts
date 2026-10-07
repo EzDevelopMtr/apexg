@@ -102,14 +102,4 @@ export class PlatformCompaniesController {
     await this.branding.change(await this.companies.slugOf(id), { logo });
     await this.audit.record(admin.id, 'company.brand', id, { logo: true });
   }
-
-  @Post(':id/admin-password')
-  async resetAdminPassword(
-    @CurrentPlatformAdmin() admin: AuthenticatedPlatformAdmin,
-    @Param('id', ParseUUIDPipe) id: string,
-  ): Promise<IssuedCredential> {
-    const credential = await this.companies.resetAdministratorPassword(id);
-    await this.audit.record(admin.id, 'company.admin-password', id, { username: credential.username });
-    return credential;
-  }
 }

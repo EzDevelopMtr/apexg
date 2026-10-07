@@ -11,12 +11,25 @@ import { PlatformCompaniesController } from './platform-companies.controller.js'
 import { PlatformCompaniesService } from './platform-companies.service.js';
 import { PlatformSettingsController } from './platform-settings.controller.js';
 import { PlatformTokenGuard } from './platform-token.guard.js';
+import { PlatformUsersController } from './platform-users.controller.js';
+import { PlatformUsersService } from './platform-users.service.js';
 
 /** El super admin: administra gimnasios, nunca entra a los datos de uno. */
 @Module({
   imports: [AuthModule, CompaniesModule, ProvisioningModule],
-  controllers: [PlatformAuthController, PlatformCompaniesController, PlatformSettingsController],
-  providers: [PlatformAuthService, PlatformCompaniesService, PlatformAuditService, PlatformTokenGuard],
+  controllers: [
+    PlatformAuthController,
+    PlatformCompaniesController,
+    PlatformSettingsController,
+    PlatformUsersController,
+  ],
+  providers: [
+    PlatformAuthService,
+    PlatformCompaniesService,
+    PlatformAuditService,
+    PlatformTokenGuard,
+    PlatformUsersService,
+  ],
   exports: [PlatformAuthService],
 })
 export class PlatformModule {}

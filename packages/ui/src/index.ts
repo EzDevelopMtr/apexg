@@ -63,6 +63,22 @@ export { default as PageHeader } from "./components/page-header";
 export type { PageHeaderProps } from "./components/page-header";
 
 export { default as Modal } from "./components/modal";
+
+/* Translucent "material" screens (platform panel) */
+export { default as Sheet } from "./components/sheet";
+export type { SheetProps } from "./components/sheet";
+export { default as SegmentedControl } from "./components/segmented-control";
+export type { SegmentedControlProps, SegmentedOption } from "./components/segmented-control";
+export { default as Switch } from "./components/switch";
+export type { SwitchProps } from "./components/switch";
+export { default as Stepper } from "./components/stepper";
+export type { StepperProps } from "./components/stepper";
+export { default as Toast } from "./components/toast";
+export type { ToastProps } from "./components/toast";
+export { default as CopyButton } from "./components/copy-button";
+export type { CopyButtonProps } from "./components/copy-button";
+export { materialButton, pushedBack } from "./components/material-button-classes";
+export type { MaterialButtonSize, MaterialButtonVariant } from "./components/material-button-classes";
 export type { ModalProps } from "./components/modal";
 
 export {

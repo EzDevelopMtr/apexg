@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel de plataforma — vista previa</title>
+<style>
+/* =====================================================================
+   Vista previa del rediseño del panel de plataforma (/admin).
+   Tokens copiados de packages/ui/src/theme.css: ningún color nuevo de marca
+   ni de estado. Movimiento y materiales según la guía apple-design:
+   resortes críticamente amortiguados, material translúcido en el cromo,
+   respuesta al presionar, transiciones interrumpibles.
+   ===================================================================== */
+:root {
+  --color-shell: #0a0c0e; --color-shell-soft: #14171b; --color-shell-line: #23272d;
+  --color-canvas: #0f1215; --color-panel: #171a1f; --color-surface: #1c2026;
+  --color-line: #262a30; --color-line-soft: #1e2228;
+  --color-brand: #306e9d; --color-brand-strong: #3880b7; --color-brand-ink: #75acd7;
+  --color-brand-soft: #17354d; --color-brand-contrast: #ffffff;
+  --color-body: #f2f5f7; --color-body-muted: #c4cbd2; --color-body-soft: #9ba3ab; --color-body-faint: #6e767e;
+  --color-ok-soft: #12331f; --color-ok-ink: #6ee7a0;
+  --color-warn-soft: #3a2e12; --color-warn-ink: #fbd24e;
+  --color-danger-soft: #3a1a1c; --color-danger-ink: #f98a8a;
+  --color-idle-soft: #23272d; --color-idle-ink: #a8b0b8;
+
+  /* Resorte críticamente amortiguado (damping 1.0). Sin rebote: nada de esto
+     se lanza con un gesto, solo se abre y se cierra. */
+  --spring: linear(0, 0.0596, 0.186, 0.3294, 0.4656, 0.584, 0.6819, 0.7601, 0.821, 0.8677, 0.9029, 0.9292, 0.9487, 0.963, 0.9734, 0.9809, 0.9864, 0.9903, 0.9931, 0.9951, 0.9966, 0.9976, 0.9983, 0.9988, 1); /* response 0.4 s */
+  --spring-fast: linear(0, 0.0816, 0.2431, 0.4129, 0.562, 0.6819, 0.7736, 0.8412, 0.89, 0.9246, 0.9487, 0.9653, 0.9767, 0.9844, 0.9896, 0.9931, 0.9955, 0.997, 0.998, 0.9987, 1); /* response 0.3 s */
+  --t-spring: 600ms; --t-spring-fast: 450ms;
+
+  --hairline: rgba(255, 255, 255, 0.06);
+  --fill-1: rgba(255, 255, 255, 0.04);
+  --fill-2: rgba(255, 255, 255, 0.07);
+  --fill-3: rgba(255, 255, 255, 0.11);
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0; min-height: 100vh;
+  font: 100%/1.5 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--color-body);
+  background-color: var(--color-canvas);
+  /* .ground-grain de theme.css */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; -webkit-tap-highlight-color: transparent; }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* La app entera retrocede un poco cuando una hoja modal toma el foco. */
+.app { transform-origin: 50% 0; transition: transform var(--t-spring) var(--spring), filter 300ms ease; }
+.app.pushed { transform: scale(0.985); filter: brightness(0.8); }
+
+/* ---------- Cromo: material translúcido, el contenido pasa por debajo ---------- */
+.chrome {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--color-shell) 62%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+/* Borde de desplazamiento en vez de una línea de 1px: solo aparece cuando hay contenido debajo. */
+.chrome::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 18px;
+  background: linear-gradient(to bottom, rgba(10, 12, 14, 0.55), transparent);
+  opacity: 0; transition: opacity 200ms ease; pointer-events: none;
+}
+.chrome.scrolled::after { opacity: 1; }
+.chrome-inner {
+  max-width: 1120px; margin: 0 auto; padding: 0 24px; height: 64px;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+}
+.wordmark { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.01em; }
+.wordmark .peak { width: 26px; height: 22px; }
+.wordmark small { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-body-faint); }
+.preview-tag { margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--color-brand-ink); background: var(--color-brand-soft); padding: 2px 8px; border-radius: 999px; letter-spacing: 0.02em; }
+
+/* Control segmentado: el pulgar se desliza con resorte. */
+.segmented { position: relative; display: inline-flex; padding: 3px; border-radius: 11px; background: var(--fill-2); }
+.segmented button { position: relative; z-index: 1; padding: 6px 18px; font-size: 13px; font-weight: 600; color: var(--color-body-soft); border-radius: 8px; transition: color 200ms ease; }
+.segmented button[aria-selected="true"] { color: var(--color-body); }
+.segmented .thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 8px;
+  background: var(--fill-3); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: transform var(--t-spring-fast) var(--spring-fast), width var(--t-spring-fast) var(--spring-fast);
+}
+.account { justify-self: end; display: flex; align-items: center; gap: 10px; }
+.account .who { text-align: right; line-height: 1.2; }
+.account .who b { display: block; font-size: 13px; font-weight: 600; }
+.account .who span { font-size: 12px; color: var(--color-body-faint); }
+.avatar-me { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--color-brand-soft); color: var(--color-brand-ink); }
+
+/* ---------- Botones: respuesta al presionar, no al soltar ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 600; letter-spacing: -0.005em;
+  transition: transform 100ms ease-out, background-color 150ms ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--color-brand); color: var(--color-brand-contrast); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
+.btn-primary:hover { background: var(--color-brand-strong); }
+.btn-secondary { background: var(--fill-2); color: var(--color-body); }
+.btn-secondary:hover { background: var(--fill-3); }
+.btn-plain { color: var(--color-brand-ink); padding: 0 10px; }
+.btn-plain:hover { background: var(--fill-1); }
+.btn-danger { background: var(--color-danger-soft); color: var(--color-danger-ink); }
+.btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--fill-2); color: var(--color-body-soft); }
+.btn-icon:hover { color: var(--color-body); background: var(--fill-3); }
+.btn:focus-visible, .row:focus-visible, .segmented button:focus-visible { outline: 2px solid var(--color-brand-ink); outline-offset: 2px; }
+
+/* ---------- Página ---------- */
+main { max-width: 1120px; margin: 0 auto; padding: 36px 24px 96px; }
+.view { transition: opacity 220ms ease, transform var(--t-spring) var(--spring); }
+.view[hidden] { display: none; }
+.view.from-right { opacity: 0; transform: translateX(28px); }
+.view.from-left { opacity: 0; transform: translateX(-28px); }
+
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+.display { margin: 0; font-size: clamp(2rem, 4vw, 2.75rem); line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; }
+.lede { margin: 8px 0 0; color: var(--color-body-soft); font-size: 15px; }
+
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+.stat { background: var(--color-panel); border-radius: 16px; padding: 16px 18px; box-shadow: inset 0 1px 0 var(--hairline); }
+.stat .label { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-body-faint); }
+.stat .value { font-size: 28px; font-weight: 650; letter-spacing: -0.015em; line-height: 1.15; margin-top: 6px; }
+.stat .hint { font-size: 12px; color: var(--color-body-soft); }
+
+.toolbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; }
+.search { position: relative; flex: 1; max-width: 360px; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-body-faint); width: 16px; height: 16px; }
+.search input { width: 100%; height: 38px; border-radius: 11px; border: 1px solid transparent; background: var(--fill-2); padding: 0 12px 0 36px; font-size: 14px; outline: none; transition: border-color 150ms ease, background-color 150ms ease; }
+.search input:focus { border-color: var(--color-brand); background: var(--fill-1); }
+.segmented.small button { padding: 5px 12px; font-size: 12px; }
+
+/* Lista agrupada, al estilo de las listas de Ajustes de iOS. */
+.list { background: var(--color-panel); border-radius: 16px; overflow: hidden; box-shadow: inset 0 1px 0 var(--hairline); }
+.list-head, .row { display: grid; grid-template-columns: 44px minmax(0, 1.6fr) 120px 110px 90px 24px; align-items: center; gap: 16px; padding: 0 18px; }
+.list-head { height: 40px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-body-faint); }
+.list-head span:nth-child(4), .list-head span:nth-child(5) { text-align: right; }
+.row { position: relative; min-height: 68px; width: 100%; text-align: left; transition: background-color 150ms ease, transform 100ms ease-out; }
+.row::before { content: ""; position: absolute; top: 0; left: 78px; right: 0; height: 1px; background: var(--hairline); }
+.row:first-of-type::before { display: none; }
+.row:hover { background: var(--fill-1); }
+.row:active { background: var(--fill-2); transform: scale(0.995); }
+.row.dimmed .name, .row.dimmed .gym-avatar { opacity: 0.55; }
+.name { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+a.slug { text-decoration: none; }
+.slug { display: inline-flex; align-items: center; gap: 4px; font: 12px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--color-body-faint); }
+.slug svg { width: 12px; height: 12px; }
+.num { text-align: right; font-size: 15px; font-weight: 600; }
+.num small { display: block; font-size: 11px; font-weight: 500; color: var(--color-body-faint); }
+.chev { color: var(--color-body-faint); }
+.empty { padding: 40px; text-align: center; color: var(--color-body-soft); }
+
+.gym-avatar {
+  width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  font-size: 15px; font-weight: 700; letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+.gym-avatar img { width: 78%; height: 78%; object-fit: contain; }
+.gym-avatar.sm { width: 28px; height: 28px; border-radius: 8px; font-size: 11px; }
+.gym-avatar.lg { width: 64px; height: 64px; border-radius: 18px; font-size: 22px; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; width: max-content; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.active { background: var(--color-ok-soft); color: var(--color-ok-ink); }
+.pill.suspended { background: var(--color-warn-soft); color: var(--color-warn-ink); }
+
+/* ---------- Ajustes ---------- */
+.settings { max-width: 760px; }
+.explain { display: flex; gap: 14px; padding: 16px 18px; border-radius: 16px; background: var(--fill-1); margin-bottom: 24px; color: var(--color-body-muted); font-size: 14px; }
+.explain svg { color: var(--color-brand-ink); margin-top: 2px; }
+.explain ol { margin: 6px 0 0; padding-left: 18px; color: var(--color-body-soft); }
+.explain b { color: var(--color-body); font-weight: 600; }
+.group-title { margin: 28px 4px 8px; font-size: 13px; font-weight: 600; color: var(--color-body-soft); display: flex; align-items: center; gap: 8px; }
+.group-title svg { width: 16px; height: 16px; color: var(--color-brand-ink); }
+.group-help { margin: -4px 4px 10px; font-size: 13px; color: var(--color-body-faint); }
+.card { background: var(--color-panel); border-radius: 16px; box-shadow: inset 0 1px 0 var(--hairline); overflow: hidden; }
+.cell { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; padding: 10px 18px; }
+.cell + .cell::before { content: ""; position: absolute; top: 0; left: 18px; right: 0; height: 1px; background: var(--hairline); }
+.cell .title { font-size: 15px; font-weight: 500; }
+.cell .sub { font-size: 12px; color: var(--color-body-faint); }
+.cell.indent { padding-left: 18px; }
+.cell .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cell.muted .who, .cell.muted .stepper { opacity: 0.45; }
+.lock-note { display: flex; gap: 8px; align-items: center; padding: 10px 18px; font-size: 12px; color: var(--color-body-soft); background: var(--fill-1); }
+.lock-note svg { width: 14px; height: 14px; }
+
+.stepper { display: inline-flex; align-items: center; gap: 4px; background: var(--fill-2); border-radius: 10px; padding: 3px; }
+.stepper button { width: 30px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: var(--color-body); transition: transform 100ms ease-out, background-color 150ms ease; }
+.stepper button:hover { background: var(--fill-3); }
+.stepper button:active { transform: scale(0.92); }
+.stepper button:disabled { opacity: 0.3; pointer-events: none; }
+.stepper output { min-width: 64px; text-align: center; font-size: 14px; font-weight: 600; }
+.stepper svg { width: 14px; height: 14px; }
+
+/* Interruptor tipo iOS; el pulgar viaja con resorte. */
+.switch { position: relative; width: 51px; height: 31px; border-radius: 999px; background: var(--fill-3); transition: background-color 250ms ease; flex: none; }
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform var(--t-spring-fast) var(--spring-fast), width 150ms ease;
+}
+.switch:active::after { width: 32px; }
+.switch[aria-checked="true"] { background: var(--color-brand); }
+.switch[aria-checked="true"]::after { transform: translateX(20px); }
+.switch[aria-checked="true"]:active::after { transform: translateX(15px); }
+
+.value-pill { font-size: 13px; font-weight: 600; color: var(--color-body-muted); background: var(--fill-2); padding: 3px 10px; border-radius: 999px; }
+.remove { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--color-body-faint); transition: color 150ms ease, background-color 150ms ease, transform 100ms ease-out; }
+.remove:hover { color: var(--color-danger-ink); background: var(--color-danger-soft); }
+.remove:active { transform: scale(0.9); }
+.add-row { color: var(--color-brand-ink); font-weight: 600; font-size: 14px; gap: 10px; justify-content: flex-start; width: 100%; transition: background-color 150ms ease; }
+.add-row:hover { background: var(--fill-1); }
+.adder { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 18px; background: var(--fill-1); }
+.select { height: 36px; border-radius: 10px; border: 1px solid transparent; background: var(--fill-2); padding: 0 12px; font-size: 14px; outline: none; }
+.select:focus { border-color: var(--color-brand); }
+.modules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.modules-grid .cell:nth-child(2)::before { display: none; }
+.modules-grid .cell:nth-child(odd) { box-shadow: inset -1px 0 0 var(--hairline); }
+
+/* ---------- Hoja lateral (modal) ---------- */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.45); opacity: 0; pointer-events: none; transition: opacity 300ms ease; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; z-index: 50; top: 12px; right: 12px; bottom: 12px;
+  width: min(480px, calc(100vw - 24px)); border-radius: 22px; display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--color-panel) 86%, transparent);
+  backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transform: translateX(calc(100% + 28px));
+  transition: transform var(--t-spring) var(--spring);
+  will-change: transform;
+}
+.sheet.open { transform: translateX(0); }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 18px 10px 22px; }
+.sheet-head h2 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+.sheet-body { flex: 1; overflow: auto; padding: 6px 22px 22px; }
+.sheet-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 22px 18px; background: linear-gradient(to top, color-mix(in srgb, var(--color-panel) 92%, transparent) 60%, transparent); }
+.identity { display: flex; align-items: center; gap: 16px; padding: 10px 0 6px; }
+.identity .name-lg { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+.section { margin-top: 22px; }
+.section > h3 { margin: 0 0 8px 2px; font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-body-faint); }
+.box { background: var(--fill-1); border-radius: 14px; padding: 14px; }
+.field + .field { margin-top: 12px; }
+.field label { display: block; font-size: 13px; color: var(--color-body-soft); margin-bottom: 6px; }
+.input { display: flex; align-items: center; height: 42px; border-radius: 11px; background: var(--fill-2); border: 1px solid transparent; padding: 0 12px; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.input:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-brand-soft); }
+.input.invalid { border-color: var(--color-danger-ink); }
+.input input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font-size: 15px; }
+.input .prefix { color: var(--color-body-faint); font-size: 14px; white-space: nowrap; }
+.input.mono input { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; }
+.hint-line { margin-top: 6px; font-size: 12px; color: var(--color-body-faint); display: flex; gap: 6px; align-items: center; min-height: 18px; }
+.hint-line.error { color: var(--color-danger-ink); }
+.hint-line svg { width: 13px; height: 13px; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12); transition: transform 100ms ease-out, box-shadow 150ms ease; position: relative; }
+.swatch:active { transform: scale(0.9); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--color-panel), 0 0 0 4px var(--color-body); }
+.swatch.custom { background: conic-gradient(#306e9d, #4f46e5, #7c3aed, #c026d3, #0e9aa7, #306e9d); }
+.swatch.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.swatch-default { display: inline-flex; align-items: center; height: 30px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--color-body-soft); background: var(--fill-2); }
+.swatch-default[aria-pressed="true"] { color: var(--color-body); box-shadow: inset 0 0 0 1px var(--color-body); }
+.brand-preview { margin-top: 14px; display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: var(--color-canvas); }
+.brand-preview .fake-btn { flex: 1; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 13px; font-weight: 600; transition: background-color 250ms ease, color 250ms ease; }
+.brand-preview .fake-link { font-size: 13px; font-weight: 600; transition: color 250ms ease; }
+.drop { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; border: 1.5px dashed var(--fill-3); color: var(--color-body-soft); font-size: 13px; transition: border-color 150ms ease, background-color 150ms ease; cursor: pointer; }
+.drop:hover { border-color: var(--color-brand); background: var(--fill-1); }
+.drop svg { color: var(--color-brand-ink); }
+.drop b { display: block; color: var(--color-body); font-weight: 600; }
+
+.action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.box > .action-row:not(:first-child) { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hairline); }
+.action-row .title { font-size: 14px; font-weight: 600; }
+.action-row .sub { font-size: 12px; color: var(--color-body-faint); }
+
+.credential { margin-top: 12px; border-radius: 14px; background: var(--color-brand-soft); padding: 14px; animation: materialize 520ms var(--spring) both; }
+.credential p { margin: 0 0 10px; font-size: 13px; color: var(--color-body-muted); }
+.cred-line { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(0, 0, 0, 0.22); }
+.cred-line + .cred-line { margin-top: 6px; }
+.cred-line span { font-size: 12px; color: var(--color-body-soft); }
+.cred-line code { overflow-wrap: anywhere; font: 14px ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--color-body); user-select: all; }
+.copy { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; color: var(--color-brand-ink); transition: transform 100ms ease-out, background-color 150ms ease; }
+.copy:hover { background: rgba(255, 255, 255, 0.06); }
+.copy:active { transform: scale(0.9); }
+.copy svg { width: 16px; height: 16px; }
+.success-mark { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--color-brand-soft); color: var(--color-brand-ink); margin: 6px 0 12px; animation: materialize 520ms var(--spring) both; }
+.success-mark svg { width: 26px; height: 26px; }
+
+/* ---------- Aviso con deshacer ---------- */
+.toast {
+  position: fixed; z-index: 60; left: 50%; bottom: 24px; display: flex; align-items: center; gap: 14px;
+  padding: 10px 10px 10px 18px; border-radius: 16px; font-size: 14px; font-weight: 500;
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translate(-50%, 16px) scale(0.96); opacity: 0; filter: blur(6px); pointer-events: none;
+  transition: transform var(--t-spring) var(--spring), opacity 220ms ease, filter 260ms ease;
+}
+.toast.show { transform: translate(-50%, 0) scale(1); opacity: 1; filter: blur(0); pointer-events: auto; }
+.toast .btn { height: 32px; }
+
+/* ---------- Usuarios del gimnasio ---------- */
+.btn-sm { height: 34px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+.btn-sm svg.i { width: 15px; height: 15px; }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.section-help { margin: -2px 2px 10px; font-size: 13px; color: var(--color-body-faint); }
+.users-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.users-head .title { font-size: 14px; font-weight: 600; }
+.users-head .sub { font-size: 12px; color: var(--color-body-faint); }
+.user-list { border-radius: 12px; background: var(--fill-1); overflow: hidden; }
+.user { position: relative; }
+.user + .user::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: var(--hairline); z-index: 1; }
+.user-row { width: 100%; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto 16px; align-items: center; gap: 12px; padding: 10px 12px; text-align: left; transition: background-color 150ms ease, transform 100ms ease-out; }
+.user-row:hover { background: var(--fill-1); }
+.user-row:active { transform: scale(0.995); background: var(--fill-2); }
+.user-row:focus-visible { outline: 2px solid var(--color-brand-ink); outline-offset: -2px; }
+.user-avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--fill-3); color: var(--color-body-muted); }
+.user-main { min-width: 0; display: flex; flex-direction: column; }
+.user-main .title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.role-pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--fill-2); color: var(--color-body-muted); white-space: nowrap; transition: background-color 200ms ease, color 200ms ease; }
+.role-pill.admin { background: var(--color-brand-soft); color: var(--color-brand-ink); }
+.user.inactive .user-main, .user.inactive .user-avatar, .user.inactive .role-pill { opacity: 0.5; }
+.user .chev svg { width: 16px; height: 16px; transition: transform var(--t-spring-fast) var(--spring-fast); }
+.user.open .chev svg { transform: rotate(90deg); }
+/* Se despliega en su sitio: la fila crece hacia abajo, desde donde se tocó. */
+.user-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-spring) var(--spring); }
+.user.open .user-detail { grid-template-rows: 1fr; }
+.user-detail > div { overflow: hidden; min-height: 0; }
+.detail-inner { padding: 2px 12px 14px 56px; }
+.role-help { margin: 6px 0 0; font-size: 12px; color: var(--color-body-faint); }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.segmented.roles { display: inline-flex; }
+.new-user { padding: 14px; border-radius: 12px; background: var(--fill-1); margin-bottom: 12px; box-shadow: inset 0 0 0 1px var(--hairline); animation: materialize 420ms var(--spring) both; }
+.created-note { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-brand-ink); }
+.created-note svg { width: 16px; height: 16px; }
+.created-note + .credential { margin-bottom: 12px; }
+@media (max-width: 720px) { .detail-inner { padding-left: 12px; } }
+@media (prefers-reduced-motion: reduce) {
+  .user-detail { transition: none; }
+  .new-user { animation: none; }
+}
+
+@keyframes materialize { from { opacity: 0; transform: scale(0.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* ---------- Pantalla angosta: la hoja sube desde abajo ---------- */
+@media (max-width: 720px) {
+  .chrome-inner { grid-template-columns: 1fr auto; height: auto; padding: 10px 16px; row-gap: 10px; }
+  .chrome-inner .segmented { grid-column: 1 / -1; grid-row: 2; justify-self: start; }
+  .account .who { display: none; }
+  main { padding: 24px 16px 96px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .list-head { display: none; }
+  .row { grid-template-columns: 44px minmax(0, 1fr) auto 20px; }
+  .row .col-users, .row .col-clients { display: none; }
+  .row::before { left: 78px; }
+  .sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: 22px 22px 0 0; transform: translateY(100%); }
+  .sheet.open { transform: translateY(0); }
+  .modules-grid { grid-template-columns: 1fr; }
+  .modules-grid .cell:nth-child(2)::before { display: block; }
+  .modules-grid .cell:nth-child(odd) { box-shadow: none; }
+}
+
+/* ---------- Accesibilidad: tres señales distintas ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .app, .view, .sheet, .toast, .segmented .thumb, .switch::after { transition: opacity 200ms ease !important; }
+  .app.pushed { transform: none; }
+  .view.from-right, .view.from-left { transform: none; }
+  .sheet { transform: none !important; opacity: 0; pointer-events: none; }
+  .sheet.open { opacity: 1; pointer-events: auto; }
+  .toast { transform: translate(-50%, 0) !important; filter: none !important; }
+  .credential, .success-mark { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .chrome { background: var(--color-shell); backdrop-filter: none; }
+  .sheet { background: var(--color-panel); backdrop-filter: none; }
+  .toast { background: var(--color-surface); backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .chrome, .sheet, .toast, .card, .list, .stat { border: 1px solid var(--color-body-faint); }
+  .chrome { background: var(--color-shell); }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <header class="chrome" id="chrome">
+    <div class="chrome-inner">
+      <div class="wordmark">
+        <svg class="peak" viewBox="0 0 120 100" aria-hidden="true"><path d="M60 2 L118 98 L92 98 L60 44 L28 98 L2 98 Z" fill="currentColor"/><path d="M60 54 L80 90 L40 90 Z" fill="var(--color-brand-ink)"/></svg>
+        <div>Plataforma<small>APEX GYM</small></div>
+        <span class="preview-tag">Vista previa</span>
+      </div>
+      <div class="segmented" role="tablist" aria-label="Secciones del panel" id="tabs">
+        <span class="thumb" aria-hidden="true"></span>
+        <button role="tab" aria-selected="true" data-tab="gyms">Gimnasios</button>
+        <button role="tab" aria-selected="false" data-tab="settings">Ajustes</button>
+      </div>
+      <div class="account">
+        <div class="who"><b>Super Admin</b><span>superadmin@dev.local</span></div>
+        <div class="avatar-me">SA</div>
+        <button class="btn-icon btn" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="i"><use href="#i-out"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ================= Gimnasios ================= -->
+    <section class="view" id="view-gyms" role="tabpanel">
+      <div class="hero">
+        <div>
+          <h1 class="display">Gimnasios</h1>
+          <p class="lede" id="lede"></p>
+        </div>
+        <button class="btn btn-primary" id="new-gym"><svg class="i"><use href="#i-plus"/></svg>Nuevo gimnasio</button>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="toolbar">
+        <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Buscar por nombre o enlace" aria-label="Buscar gimnasio" /></label>
+        <div class="segmented small" role="tablist" aria-label="Filtrar por estado" id="filter">
+          <span class="thumb" aria-hidden="true"></span>
+          <button role="tab" aria-selected="true" data-filter="all">Todos</button>
+          <button role="tab" aria-selected="false" data-filter="active">Activos</button>
+          <button role="tab" aria-selected="false" data-filter="suspended">Suspendidos</button>
+        </div>
+      </div>
+
+      <div class="list" role="list" id="list"></div>
+    </section>
+
+    <!-- ================= Ajustes ================= -->
+    <section class="view settings" id="view-settings" role="tabpanel" hidden>
+      <div class="hero"><div>
+        <h1 class="display">Ajustes</h1>
+        <p class="lede">Un valor para todos los gimnasios, y excepciones donde haga falta.</p>
+      </div></div>
+
+      <div class="explain">
+        <svg class="i"><use href="#i-info"/></svg>
+        <div><b>Cómo se decide el valor de cada gimnasio</b>
+          <ol><li>Si el valor general es obligatorio, vale para todos.</li><li>Si el gimnasio tiene una excepción, usa la suya.</li><li>Si no, el valor general.</li><li>Si nadie cambió nada, el de siempre.</li></ol>
+        </div>
+      </div>
+      <div id="settings"></div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" aria-hidden="true">
+  <div class="sheet-head"><h2 id="sheet-title"></h2><button class="btn btn-icon" id="sheet-close" aria-label="Cerrar"><svg class="i"><use href="#i-x"/></svg></button></div>
+  <div class="sheet-body" id="sheet-body"></div>
+  <div class="sheet-foot" id="sheet-foot"></div>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-text"></span><button class="btn btn-plain" id="toast-undo">Deshacer</button></div>
+
+<script>
+/* ---------------- Datos de ejemplo (la vista real los trae del backend) ---------------- */
+const DEMO_LOGO = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><circle cx="100" cy="45" r="38" fill="none" stroke="#c4b5fd" stroke-width="12"/><text x="100" y="114" font-family="Arial" font-weight="700" font-size="26" fill="#fff" text-anchor="middle">DEMO</text></svg>');
+/* Perfiles: vienen de los roles de cada gimnasio (tabla roles), así que un
+   perfil nuevo más adelante es un registro más, no otro botón en esta vista. */
+const ROLES = [
+  { id: "admin", name: "Administrador", help: "Todos los módulos: planes, entrenadores, egresos, inventario y finanzas." },
+  { id: "reception", name: "Recepcionista", help: "Clientes, pagos, apartado diario e ingreso. No ve finanzas, egresos ni inventario." },
+];
+const roleOf = (id) => ROLES.find((r) => r.id === id);
+let nextUserId = 100;
+const user = (name, username, role, active = true) => ({ id: nextUserId++, name, username, role, active });
+const gyms = [
+  { id: 1, name: "APEX GYM", slug: "apex-gym", status: "active", color: null, clients: 214,
+    users: [user("Administración APEX", "apexg", "admin"), user("Recepción mañana", "recepcion.manana", "reception"), user("Recepción tarde", "recepcion.tarde", "reception")] },
+  { id: 2, name: "Gimnasio Demo", slug: "gimnasio-demo", status: "active", color: "#7c3aed", logo: DEMO_LOGO, clients: 38,
+    users: [user("Admin Demo", "admin", "admin"), user("Recepción", "recepcion", "reception", false)] },
+  { id: 3, name: "Prueba B", slug: "prueba-b", status: "active", color: "#0e9aa7", clients: 12, users: [user("Admin B", "admin", "admin")] },
+  { id: 4, name: "Gimnasio Panel 2", slug: "panel2-gym", status: "active", color: "#4f46e5", clients: 5, users: [user("Admin Panel", "admin", "admin")] },
+  { id: 5, name: "Ñandú Fit Centro", slug: "nandu-fit-centro", status: "suspended", color: "#c026d3", clients: 0, users: [user("Admin Ñandú", "admin", "admin")] },
+];
+const activeUsers = (g) => g.users.filter((u) => u.active).length;
+const activeAdmins = (g) => g.users.filter((u) => u.active && u.role === "admin").length;
+const MODULES = ["Clientes", "Membresías", "Pagos", "Entrenadores", "Egresos", "Inventario", "Finanzas", "Apartado diario"];
+const settings = [
+  { key: "grace", icon: "i-hourglass", title: "Días de gracia", help: "Días que un cliente puede seguir sin pagar después del vencimiento antes de quedar en mora.", kind: "days", general: 0, enforced: false, overrides: [{ gym: 2, value: 3 }], min: 0, max: 30 },
+  { key: "soon", icon: "i-bell", title: "Aviso de vencimiento", help: "Con cuántos días de anticipación un cliente aparece como «por vencer».", kind: "days", general: 7, enforced: false, overrides: [], min: 1, max: 60 },
+  { key: "modules", icon: "i-grid", title: "Módulos activos", help: "Un módulo apagado desaparece de la app del gimnasio y el servidor lo rechaza.", kind: "modules", general: MODULES.slice(), enforced: false, overrides: [{ gym: 3, value: MODULES.filter((m) => m !== "Inventario") }] },
+];
+const BRAND_DEFAULT = "#306e9d";
+const SWATCHES = [["#306e9d", "Azul APEX"], ["#3987e5", "Océano"], ["#0e9aa7", "Turquesa"], ["#4f46e5", "Índigo"], ["#7c3aed", "Violeta"], ["#c026d3", "Magenta"], ["#6b7280", "Grafito"]];
+
+/* ---------------- Utilidades ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const icon = (id, cls = "i") => `<svg class="${cls}"><use href="#${id}"/></svg>`;
+const gymById = (id) => gyms.find((g) => g.id === id);
+function luminance(hex) { const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+const inkOn = (hex) => ((1.05) / (luminance(hex) + 0.05) >= 4.5 ? "#ffffff" : "#0f1215");
+function hueSat(hex) { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (!d) return { h: 0, s: 0 }; const s = d / (1 - Math.abs(mx + mn - 1)); const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return { h: (h * 60 + 360) % 360, s }; }
+const allowedColor = (hex) => { const { h, s } = hueSat(hex); return s < 0.12 || (h >= 170 && h <= 330); };
+const monogram = (name) => name.replace(/[^\p{L}\p{N} ]/gu, "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+function avatar(g, size = "") {
+  const color = g.color || BRAND_DEFAULT;
+  const inner = g.logo ? `<img src="${g.logo}" alt="" />` : monogram(g.name);
+  const bg = g.logo ? "var(--color-shell-soft)" : color;
+  return `<span class="gym-avatar ${size}" style="background:${bg};color:${inkOn(color)}" aria-hidden="true">${inner}</span>`;
+}
+const fmt = (n) => n.toLocaleString("es-CO");
+const days = (n) => (n === 1 ? "1 día" : `${n} días`);
+const describe = (s, v) => (s.kind === "days" ? days(v) : v.length === MODULES.length ? "Todos" : `${v.length} de ${MODULES.length}`);
+function slugify(name) { return name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40); }
+function slugProblem(slug) {
+  if (slug.length < 3) return "Mínimo 3 caracteres.";
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return "Solo minúsculas, números y guiones.";
+  if (["admin", "api", "dashboard", "login", "logout", "modules"].includes(slug)) return "Esa dirección es de la app.";
+  if (gyms.some((g) => g.slug === slug && g.id !== editing?.id)) return "Ya la usa otro gimnasio.";
+  return null;
+}
+function password() { const a = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789-_"; return Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => a[b % a.length]).join(""); }
+
+/* ---------------- Segmentados ---------------- */
+function placeThumb(group) {
+  const active = $('[aria-selected="true"]', group);
+  const thumb = $(".thumb", group);
+  thumb.style.width = active.offsetWidth + "px";
+  thumb.style.transform = `translateX(${active.offsetLeft}px)`;
+}
+function segmented(group, onChange) {
+  placeThumb(group);
+  // Responde al presionar (pointerdown), no al soltar; el teclado entra por click con detail 0.
+  const select = (e) => {
+    const b = e.target.closest("button"); if (!b || b.getAttribute("aria-selected") === "true") return;
+    const before = [...group.querySelectorAll("button")].findIndex((x) => x.getAttribute("aria-selected") === "true");
+    group.querySelectorAll("button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    placeThumb(group);
+    onChange(b, [...group.querySelectorAll("button")].indexOf(b) > before ? "from-right" : "from-left");
+  };
+  group.addEventListener("pointerdown", select);
+  group.addEventListener("click", (e) => { if (e.detail === 0) select(e); });
+}
+
+/* ---------------- Vista: Gimnasios ---------------- */
+let filter = "all", query = "";
+function renderGyms() {
+  const active = gyms.filter((g) => g.status === "active");
+  const suspended = gyms.length - active.length;
+  $("#lede").textContent = `${gyms.length} gimnasios en la plataforma${suspended ? ` · ${suspended} suspendido${suspended > 1 ? "s" : ""}` : ""}`;
+  $("#stats").innerHTML = [
+    ["Activos", active.length, "gimnasios operando"],
+    ["Suspendidos", suspended, "sin acceso"],
+    ["Clientes activos", fmt(gyms.reduce((s, g) => s + g.clients, 0)), "en todos los gimnasios"],
+    ["Usuarios", gyms.reduce((s, g) => s + activeUsers(g), 0), "administradores y recepción"],
+  ].map(([l, v, h]) => `<div class="stat"><div class="label">${l}</div><div class="value tabular">${v}</div><div class="hint">${h}</div></div>`).join("");
+
+  const visible = gyms.filter((g) => (filter === "all" || g.status === filter) && (g.name.toLowerCase().includes(query) || g.slug.includes(query)));
+  $("#list").innerHTML = `<div class="list-head" aria-hidden="true"><span></span><span>Gimnasio</span><span>Estado</span><span>Clientes</span><span>Usuarios</span><span></span></div>` +
+    (visible.length ? visible.map((g) => `
+      <button class="row ${g.status === "suspended" ? "dimmed" : ""}" role="listitem" data-id="${g.id}">
+        ${avatar(g)}
+        <span style="min-width:0"><span class="name" style="display:block">${g.name}</span><span class="slug">/${g.slug}</span></span>
+        <span class="pill ${g.status}">${g.status === "active" ? "Activo" : "Suspendido"}</span>
+        <span class="num tabular col-clients">${fmt(g.clients)}<small>clientes</small></span>
+        <span class="num tabular col-users">${activeUsers(g)}<small>usuarios</small></span>
+        <span class="chev">${icon("i-chev")}</span>
+      </button>`).join("") : `<div class="empty">Ningún gimnasio coincide con la búsqueda.</div>`);
+}
+$("#list").addEventListener("click", (e) => { const r = e.target.closest(".row"); if (r) openEditor(gymById(Number(r.dataset.id))); });
+$("#q").addEventListener("input", (e) => { query = e.target.value.trim().toLowerCase(); renderGyms(); });
+segmented($("#filter"), (b) => { filter = b.dataset.filter; renderGyms(); });
+
+/* ---------------- Vista: Ajustes ---------------- */
+let adding = null;
+function stepper(id, value, min, max) {
+  return `<span class="stepper"><button data-step="-1" data-for="${id}" ${value <= min ? "disabled" : ""} aria-label="Menos">${icon("i-minus")}</button><output class="tabular">${days(value)}</output><button data-step="1" data-for="${id}" ${value >= max ? "disabled" : ""} aria-label="Más">${icon("i-plus")}</button></span>`;
+}
+function renderSettings() {
+  $("#settings").innerHTML = settings.map((s) => {
+    const general = s.kind === "days"
+      ? `<div class="cell"><div><div class="title">Para todos los gimnasios</div><div class="sub">Por defecto: ${describe(s, s.kind === "days" ? (s.key === "grace" ? 0 : 7) : MODULES)}</div></div>${stepper(`${s.key}:general`, s.general, s.min, s.max)}</div>`
+      : `<div class="modules-grid">${MODULES.map((m) => `<div class="cell"><div class="title">${m}</div><button class="switch" role="switch" aria-checked="${s.general.includes(m)}" aria-label="${m}" data-module="${m}" data-for="${s.key}"></button></div>`).join("")}</div>`;
+    const lockNote = s.enforced && s.overrides.length ? `<div class="lock-note">${icon("i-lock")}Las excepciones no se aplican mientras el valor general sea obligatorio.</div>` : "";
+    const overrides = s.overrides.map((o) => { const g = gymById(o.gym); return `<div class="cell ${s.enforced ? "muted" : ""}"><span class="who">${avatar(g, "sm")}<span class="title">${g.name}</span></span><span style="display:flex;align-items:center;gap:10px">${s.kind === "days" ? stepper(`${s.key}:o:${o.gym}`, o.value, s.min, s.max) : `<span class="value-pill">${describe(s, o.value)}</span>`}<button class="remove" data-remove="${o.gym}" data-for="${s.key}" aria-label="Quitar excepción de ${g.name}">${icon("i-minus")}</button></span></div>`; }).join("");
+    const candidates = gyms.filter((g) => !s.overrides.some((o) => o.gym === g.id));
+    const adder = adding === s.key
+      ? `<div class="adder"><select class="select" id="add-gym">${candidates.map((g) => `<option value="${g.id}">${g.name}</option>`).join("")}</select>${s.kind === "days" ? stepper("add", s.general, s.min, s.max) : `<span class="value-pill">Sin Inventario</span>`}<button class="btn btn-primary" style="height:36px" data-confirm-add="${s.key}">Agregar</button><button class="btn btn-plain" style="height:36px" data-cancel-add>Cancelar</button></div>`
+      : candidates.length ? `<button class="cell add-row" data-add="${s.key}">${icon("i-plus")}Agregar excepción para un gimnasio</button>` : "";
+    return `
+      <h2 class="group-title">${icon(s.icon)}${s.title}</h2>
+      <p class="group-help">${s.help}</p>
+      <div class="card">
+        ${general}
+        <div class="cell"><div><div class="title">Obligatorio para todos</div><div class="sub">Ignora las excepciones de cada gimnasio</div></div><button class="switch" role="switch" aria-checked="${s.enforced}" aria-label="Obligatorio para todos" data-enforce="${s.key}"></button></div>
+      </div>
+      <h3 class="group-title" style="margin-top:14px;font-weight:500;color:var(--color-body-faint)">Solo para un gimnasio</h3>
+      <div class="card">${lockNote}${overrides}${adder}${!s.overrides.length && adding !== s.key && !candidates.length ? `<div class="cell sub">Ninguno.</div>` : ""}</div>`;
+  }).join("");
+}
+let addValue = 0;
+$("#settings").addEventListener("click", (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  const s = settings.find((x) => x.key === (t.dataset.for || t.dataset.enforce || t.dataset.add || t.dataset.confirmAdd));
+  if (t.dataset.step) {
+    const [key, kind, gymId] = t.dataset.for.split(":");
+    const st = settings.find((x) => x.key === key) || settings.find((x) => x.key === adding);
+    const d = Number(t.dataset.step);
+    if (t.dataset.for === "add") { addValue = Math.min(st.max, Math.max(st.min, addValue + d)); t.parentElement.querySelector("output").textContent = days(addValue); return; }
+    if (kind === "general") st.general = Math.min(st.max, Math.max(st.min, st.general + d));
+    else { const o = st.overrides.find((x) => x.gym === Number(gymId)); o.value = Math.min(st.max, Math.max(st.min, o.value + d)); }
+    renderSettings(); return;
+  }
+  if (t.dataset.module) { const m = t.dataset.module; s.general = s.general.includes(m) ? s.general.filter((x) => x !== m) : MODULES.filter((x) => x === m || s.general.includes(x)); t.setAttribute("aria-checked", String(s.general.includes(m))); return; }
+  if (t.dataset.enforce) { s.enforced = !s.enforced; t.setAttribute("aria-checked", String(s.enforced)); setTimeout(renderSettings, 260); toast(s.enforced ? `${s.title}: obligatorio para todos` : `${s.title}: se respetan las excepciones`, () => { s.enforced = !s.enforced; renderSettings(); }); return; }
+  if (t.dataset.remove) { const before = s.overrides.slice(); s.overrides = s.overrides.filter((o) => o.gym !== Number(t.dataset.remove)); renderSettings(); toast("Excepción quitada", () => { s.overrides = before; renderSettings(); }); return; }
+  if (t.dataset.add) { adding = s.key; addValue = s.kind === "days" ? s.general : 0; renderSettings(); return; }
+  if (t.dataset.cancelAdd !== undefined) { adding = null; renderSettings(); return; }
+  if (t.dataset.confirmAdd) { const gym = Number($("#add-gym").value); s.overrides.push({ gym, value: s.kind === "days" ? addValue : MODULES.filter((m) => m !== "Inventario") }); adding = null; renderSettings(); toast(`Excepción agregada para ${gymById(gym).name}`); }
+});
+
+/* ---------------- Pestañas: entrar y salir por el mismo lado ---------------- */
+segmented($("#tabs"), (b, direction) => {
+  const show = b.dataset.tab === "gyms" ? $("#view-gyms") : $("#view-settings");
+  const hide = show.id === "view-gyms" ? $("#view-settings") : $("#view-gyms");
+  hide.hidden = true;
+  show.hidden = false;
+  show.classList.add(direction);
+  requestAnimationFrame(() => requestAnimationFrame(() => show.classList.remove(direction)));
+});
+
+/* ---------------- Hoja: editar y crear ---------------- */
+let editing = null, draft = null, lastFocus = null;
+function openSheet(title, body, foot) {
+  $("#sheet-title").textContent = title;
+  $("#sheet-body").innerHTML = body;
+  $("#sheet-foot").innerHTML = foot;
+  lastFocus = document.activeElement;
+  $("#sheet").classList.add("open"); $("#sheet").setAttribute("aria-hidden", "false");
+  $("#scrim").classList.add("open"); $("#app").classList.add("pushed");
+  setTimeout(() => ($("#sheet input") || $("#sheet-close")).focus({ preventScroll: true }), 80);
+}
+function closeSheet() {
+  $("#sheet").classList.remove("open"); $("#sheet").setAttribute("aria-hidden", "true");
+  $("#scrim").classList.remove("open"); $("#app").classList.remove("pushed");
+  editing = null; lastFocus?.focus?.({ preventScroll: true });
+}
+$("#scrim").addEventListener("pointerdown", closeSheet);
+$("#sheet-close").addEventListener("click", closeSheet);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("#sheet").classList.contains("open")) closeSheet(); });
+
+function brandBlock(color) {
+  return `
+    <div class="swatches" role="group" aria-label="Color de marca">
+      ${SWATCHES.map(([c, n]) => `<button class="swatch" style="background:${c}" aria-pressed="${color === c}" data-color="${c}" title="${n}" aria-label="${n}"></button>`).join("")}
+      <label class="swatch custom" title="Otro color" aria-label="Otro color"><input type="color" id="custom-color" value="${color || BRAND_DEFAULT}" /></label>
+      <button class="swatch-default" aria-pressed="${!color}" data-color="">Por defecto</button>
+    </div>
+    <div class="hint-line" id="color-hint"></div>
+    <div class="brand-preview" id="brand-preview"></div>`;
+}
+function paintPreview() {
+  const c = draft.color || BRAND_DEFAULT;
+  $("#brand-preview").innerHTML = `${avatar({ ...editing, ...draft, color: c, logo: editing?.logo }, "sm")}<span class="fake-btn" style="background:${c};color:${inkOn(c)}">Ingresar</span><span class="fake-link" style="color:color-mix(in srgb, ${c} 45%, white)">¿Olvidaste tu contraseña?</span>`;
+  document.querySelectorAll("#sheet .swatch, #sheet .swatch-default").forEach((s) => s.setAttribute("aria-pressed", String((s.dataset.color || null) === (draft.color || null) || (!s.dataset.color && !draft.color && s.classList.contains("swatch-default")))));
+}
+$("#sheet-body").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-color]"); if (!b) return;
+  draft.color = b.dataset.color || null; $("#color-hint").textContent = ""; $("#color-hint").className = "hint-line"; paintPreview();
+});
+function bindBrand() {
+  $("#custom-color").addEventListener("input", (e) => {
+    const c = e.target.value.toLowerCase(); const hint = $("#color-hint");
+    if (!allowedColor(c)) { hint.className = "hint-line error"; hint.innerHTML = `${icon("i-info")}Rojo, naranja, ámbar y verde son de los estados del cliente: elige otro tono.`; return; }
+    hint.className = "hint-line"; hint.textContent = ""; draft.color = c; paintPreview();
+  });
+  paintPreview();
+}
+function bindSlug(inputSel, wrapSel, hintSel) {
+  const input = $(inputSel);
+  const check = () => { const p = slugProblem(input.value); $(wrapSel).classList.toggle("invalid", !!p); $(hintSel).className = "hint-line" + (p ? " error" : ""); $(hintSel).innerHTML = p ? icon("i-info") + p : `${icon("i-check")}pcandres.taildb102a.ts.net/${input.value}`; return !p; };
+  input.addEventListener("input", () => { input.value = input.value.toLowerCase(); draft.slug = input.value; check(); });
+  check();
+  return check;
+}
+function credentialCard(username, pass, slug, to = "al administrador") {
+  return `<div class="credential"><p>Entrégale estos datos ${to}. La contraseña <b>no se vuelve a mostrar</b>.</p>
+    ${[["Entrada", "/" + slug], ["Usuario", username], ["Contraseña", pass]].map(([l, v]) => `<div class="cred-line"><span>${l}</span><code>${v}</code><button class="copy" data-copy="${v}" aria-label="Copiar ${l.toLowerCase()}">${icon("i-copy")}</button></div>`).join("")}</div>`;
+}
+document.addEventListener("click", (e) => {
+  const c = e.target.closest("[data-copy]"); if (!c) return;
+  navigator.clipboard?.writeText(c.dataset.copy).catch(() => {});
+  c.innerHTML = icon("i-check"); setTimeout(() => (c.innerHTML = icon("i-copy")), 1400);
+  toast("Copiado");
+});
+
+function openEditor(g) {
+  editing = g; draft = { name: g.name, slug: g.slug, color: g.color };
+  const suspended = g.status === "suspended";
+  openSheet("Editar gimnasio", `
+    <div class="identity">${avatar(g, "lg")}<div><div class="name-lg">${g.name}</div><div style="display:flex;gap:10px;align-items:center;margin-top:6px"><span class="pill ${g.status}">${suspended ? "Suspendido" : "Activo"}</span><a class="slug" href="#" onclick="return false">/${g.slug} ${icon("i-ext")}</a></div></div></div>
+    <div class="section"><h3>Identidad</h3><div class="box">
+      <div class="field"><label for="f-name">Nombre</label><div class="input"><input id="f-name" value="${g.name}" /></div></div>
+      <div class="field"><label for="f-slug">Dirección de entrada</label><div class="input mono" id="w-slug"><span class="prefix">…ts.net/</span><input id="f-slug" value="${g.slug}" spellcheck="false" /></div><div class="hint-line" id="h-slug"></div></div>
+    </div></div>
+    <div class="section"><h3>Marca</h3><div class="box">${brandBlock(g.color)}
+      <div class="drop" style="margin-top:14px" role="button" tabindex="0">${icon("i-upload")}<span><b>${g.logo ? "Cambiar logo" : "Subir logo"}</b>SVG, PNG o WEBP · máximo 512 KB</span></div>
+    </div></div>
+    <div class="section"><h3>Usuarios</h3>
+      <p class="section-help">Quienes crees aquí entran desde la página del gimnasio, <span class="slug">/${g.slug}</span>, con su usuario y contraseña. Estos cambios se aplican al instante; no esperan a «Guardar cambios».</p>
+      <div class="box" id="users"></div>
+    </div>
+    <div class="section"><h3>Estado</h3><div class="box">
+      <div class="action-row"><div><div class="title">${suspended ? "Reactivar gimnasio" : "Suspender gimnasio"}</div><div class="sub">${suspended ? "Sus usuarios vuelven a poder iniciar sesión." : "Nadie del gimnasio puede entrar. Se puede deshacer."}</div></div><button class="btn ${suspended ? "btn-primary" : "btn-danger"}" id="toggle-status">${suspended ? "Reactivar" : icon("i-pause") + "Suspender"}</button></div>
+    </div></div>`,
+    `<button class="btn btn-secondary" id="cancel">Cancelar</button><button class="btn btn-primary" id="save">Guardar cambios</button>`);
+  bindBrand();
+  expandedUser = null; creatingUser = false; renderUsers();
+  const slugOk = bindSlug("#f-slug", "#w-slug", "#h-slug");
+  $("#f-name").addEventListener("input", (e) => (draft.name = e.target.value));
+  $("#cancel").onclick = closeSheet;
+  $("#save").onclick = () => { if (!slugOk()) return; const before = { ...g }; Object.assign(g, draft); renderGyms(); closeSheet(); toast(`${g.name} actualizado`, () => { Object.assign(g, before); renderGyms(); }); };
+  $("#toggle-status").onclick = () => {
+    const was = g.status; g.status = was === "active" ? "suspended" : "active"; renderGyms(); closeSheet();
+    toast(g.status === "suspended" ? `${g.name} suspendido` : `${g.name} reactivado`, () => { g.status = was; renderGyms(); });
+  };
+}
+
+/* ---------------- Usuarios de un gimnasio ---------------- */
+let expandedUser = null, creatingUser = false, newUser = null;
+const initials = (name) => monogram(name) || "?";
+function suggestUsername(name) {
+  const words = name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/\s+/).filter(Boolean);
+  return words.length > 1 ? `${words[0]}.${words[words.length - 1]}` : words[0] || "";
+}
+function usernameProblem(username) {
+  if (username.length < 3) return "Mínimo 3 caracteres.";
+  if (!/^[a-z0-9._-]+$/.test(username)) return "Solo minúsculas, números, punto, guion y guion bajo.";
+  if (editing.users.some((u) => u.username === username)) return "Ya existe en este gimnasio.";
+  return null;
+}
+function roleControl(selected, id) {
+  return `<div class="segmented small roles" role="tablist" aria-label="Perfil" data-role-for="${id}">
+      <span class="thumb" aria-hidden="true"></span>
+      ${ROLES.map((r) => `<button role="tab" aria-selected="${r.id === selected}" data-role="${r.id}">${r.name}</button>`).join("")}
+    </div>
+    <p class="role-help" id="role-help-${id}">${roleOf(selected).help}</p>`;
+}
+function newUserForm() {
+  return `<div class="new-user">
+    <div class="field"><label for="nu-name">Nombre completo</label><div class="input"><input id="nu-name" placeholder="Nombre y apellido" autocomplete="off" /></div></div>
+    <div class="field"><label for="nu-user">Usuario</label><div class="input mono" id="nu-wrap"><span class="prefix">@</span><input id="nu-user" placeholder="recepcion.tarde" spellcheck="false" autocomplete="off" /></div><div class="hint-line" id="nu-hint">Con este usuario entra en /${editing.slug}.</div></div>
+    <div class="field"><label>Perfil</label>${roleControl(newUser.role, "new")}</div>
+    <div class="hint-line">${icon("i-key")}La contraseña se genera al crearlo y se muestra una sola vez.</div>
+    <div class="detail-actions" style="justify-content:flex-end"><button class="btn btn-plain btn-sm" data-user-cancel>Cancelar</button><button class="btn btn-primary btn-sm" data-user-create>Crear usuario</button></div>
+  </div>`;
+}
+function userRow(u) {
+  const lastAdmin = u.active && u.role === "admin" && activeAdmins(editing) === 1;
+  return `<div class="user ${expandedUser === u.id ? "open" : ""} ${u.active ? "" : "inactive"}" data-user="${u.id}">
+    <button class="user-row" data-user-toggle="${u.id}" aria-expanded="${expandedUser === u.id}">
+      <span class="user-avatar" aria-hidden="true">${initials(u.name)}</span>
+      <span class="user-main"><span class="title">${u.name}</span><span class="slug">@${u.username}${u.active ? "" : " · desactivado"}</span></span>
+      <span class="role-pill ${u.role}">${roleOf(u.role).name}</span>
+      <span class="chev">${icon("i-chev")}</span>
+    </button>
+    <div class="user-detail"><div><div class="detail-inner">
+      <div class="field"><label>Perfil</label>${roleControl(u.role, u.id)}</div>
+      ${lastAdmin ? `<div class="hint-line">${icon("i-lock")}Es el único administrador activo: crea otro antes de cambiarle el perfil o desactivarlo.</div>` : ""}
+      <div class="detail-actions">
+        <button class="btn btn-secondary btn-sm" data-user-reset="${u.id}" ${u.active ? "" : "disabled"}>${icon("i-key")}Restablecer contraseña</button>
+        <button class="btn ${u.active ? "btn-danger" : "btn-secondary"} btn-sm" data-user-active="${u.id}" ${lastAdmin ? "disabled" : ""}>${u.active ? "Desactivar" : "Reactivar"}</button>
+      </div>
+      <div class="user-cred" id="cred-${u.id}"></div>
+    </div></div></div>
+  </div>`;
+}
+function renderUsers(credentialFor) {
+  const g = editing; const active = activeUsers(g);
+  $("#users").innerHTML = `
+    <div class="users-head"><div><div class="title">${active} ${active === 1 ? "usuario activo" : "usuarios activos"}</div><div class="sub">${activeAdmins(g)} ${activeAdmins(g) === 1 ? "administrador" : "administradores"} · ${g.users.filter((u) => u.active && u.role !== "admin").length} en recepción</div></div>
+      ${creatingUser ? "" : `<button class="btn btn-secondary btn-sm" data-user-new>${icon("i-plus")}Nuevo usuario</button>`}</div>
+    ${creatingUser ? newUserForm() : ""}
+    ${credentialFor ? `<div class="created-note">${icon("i-check")}${credentialFor.name} ya puede entrar.</div>${credentialCard(credentialFor.username, credentialFor.password, g.slug, `a ${credentialFor.name}`)}` : ""}
+    <div class="user-list">${g.users.map(userRow).join("")}</div>`;
+  document.querySelectorAll("#users .segmented.roles").forEach((group) => segmented(group, (b) => changeRole(group, b)));
+  if (creatingUser) bindNewUser();
+}
+function changeRole(group, button) {
+  const id = group.dataset.roleFor; const role = button.dataset.role;
+  if (id === "new") { newUser.role = role; $("#role-help-new").textContent = roleOf(role).help; return; }
+  const u = editing.users.find((x) => x.id === Number(id));
+  if (u.role === "admin" && role !== "admin" && u.active && activeAdmins(editing) === 1) {
+    // Nunca dejar al gimnasio sin nadie que pueda administrarlo.
+    group.querySelectorAll("button").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.role === u.role)));
+    placeThumb(group); toast("Debe quedar al menos un administrador activo"); return;
+  }
+  const before = u.role; u.role = role;
+  $(`#role-help-${u.id}`).textContent = roleOf(role).help;
+  const pill = group.closest(".user").querySelector(".role-pill"); pill.textContent = roleOf(role).name; pill.className = `role-pill ${role}`;
+  // Cambió cuántos administradores hay: el aviso de "único administrador" se
+  // recalcula cuando el pulgar ya terminó de deslizarse.
+  setTimeout(() => renderUsers(), 460);
+  toast(`${u.name}: ${roleOf(role).name}`, () => { u.role = before; renderUsers(); });
+}
+function bindNewUser() {
+  let touched = false;
+  const name = $("#nu-name"), username = $("#nu-user");
+  const check = (show) => { const p = usernameProblem(username.value); $("#nu-wrap").classList.toggle("invalid", !!p && show); $("#nu-hint").className = "hint-line" + (p && show ? " error" : ""); $("#nu-hint").innerHTML = p && show ? icon("i-info") + p : `Con este usuario entra en /${editing.slug}.`; return !p; };
+  name.addEventListener("input", () => { newUser.name = name.value; if (!touched) { username.value = suggestUsername(name.value); newUser.username = username.value; check(username.value.length > 0); } });
+  username.addEventListener("input", () => { touched = true; username.value = username.value.toLowerCase(); newUser.username = username.value; check(true); });
+  newUser.check = check;
+  setTimeout(() => name.focus({ preventScroll: true }), 60);
+}
+$("#sheet-body").addEventListener("click", (e) => {
+  const t = e.target.closest("button"); if (!t || !editing?.users) return;
+  if (t.dataset.userToggle) {
+    const id = Number(t.dataset.userToggle);
+    document.querySelectorAll("#users .user.open").forEach((el) => { if (Number(el.dataset.user) !== id) { el.classList.remove("open"); el.querySelector(".user-row").setAttribute("aria-expanded", "false"); } });
+    const el = t.closest(".user"); const open = el.classList.toggle("open");
+    t.setAttribute("aria-expanded", String(open)); expandedUser = open ? id : null;
+    if (open) placeThumb(el.querySelector(".segmented"));
+    return;
+  }
+  if (t.dataset.userNew !== undefined) { creatingUser = true; newUser = { name: "", username: "", role: "reception" }; renderUsers(); return; }
+  if (t.dataset.userCancel !== undefined) { creatingUser = false; renderUsers(); return; }
+  if (t.dataset.userCreate !== undefined) {
+    if (!newUser.name.trim()) { $("#nu-name").focus(); return; }
+    if (!newUser.check(true)) { $("#nu-user").focus(); return; }
+    const created = user(newUser.name.trim(), newUser.username, newUser.role);
+    editing.users.push(created); creatingUser = false; renderGyms();
+    renderUsers({ name: created.name, username: created.username, password: password() });
+    return;
+  }
+  if (t.dataset.userReset) {
+    const u = editing.users.find((x) => x.id === Number(t.dataset.userReset));
+    $(`#cred-${u.id}`).innerHTML = credentialCard(u.username, password(), editing.slug, `a ${u.name}`);
+    return;
+  }
+  if (t.dataset.userActive) {
+    const u = editing.users.find((x) => x.id === Number(t.dataset.userActive));
+    u.active = !u.active; renderUsers(); renderGyms();
+    toast(u.active ? `${u.name} puede volver a entrar` : `${u.name} ya no puede entrar`, () => { u.active = !u.active; renderUsers(); renderGyms(); });
+  }
+});
+
+function openCreator() {
+  editing = null; draft = { name: "", slug: "", color: "#0e9aa7", admin: "", adminName: "" }; let touched = false;
+  openSheet("Nuevo gimnasio", `
+    <div class="section" style="margin-top:4px"><h3>Gimnasio</h3><div class="box">
+      <div class="field"><label for="c-name">Nombre</label><div class="input"><input id="c-name" placeholder="Ej. Ñandú Fit Centro" /></div></div>
+      <div class="field"><label for="c-slug">Dirección de entrada</label><div class="input mono" id="cw-slug"><span class="prefix">…ts.net/</span><input id="c-slug" spellcheck="false" placeholder="nandu-fit-centro" /></div><div class="hint-line" id="ch-slug"></div></div>
+    </div></div>
+    <div class="section"><h3>Marca</h3><div class="box">${brandBlock(draft.color)}</div></div>
+    <div class="section"><h3>Primer administrador</h3><div class="box">
+      <div class="field"><label for="c-admin">Usuario</label><div class="input"><input id="c-admin" placeholder="admin" autocomplete="off" /></div></div>
+      <div class="field"><label for="c-admin-name">Nombre completo</label><div class="input"><input id="c-admin-name" placeholder="Nombre y apellido" /></div></div>
+      <div class="hint-line">${icon("i-key")}La contraseña se genera al crear el gimnasio. Después puedes agregar más usuarios desde Editar → Usuarios.</div>
+    </div></div>
+    <p class="hint-line" style="margin-top:14px">Arranca con los 9 planes de APEX como plantilla; el gimnasio los edita después.</p>`,
+    `<button class="btn btn-secondary" id="cancel">Cancelar</button><button class="btn btn-primary" id="create">Crear gimnasio</button>`);
+  bindBrand();
+  const slugOk = bindSlug("#c-slug", "#cw-slug", "#ch-slug");
+  $("#c-slug").addEventListener("input", () => (touched = true));
+  $("#c-name").addEventListener("input", (e) => { draft.name = e.target.value; if (!touched) { $("#c-slug").value = slugify(draft.name); draft.slug = $("#c-slug").value; slugOk(); } });
+  $("#c-admin").addEventListener("input", (e) => (draft.admin = e.target.value));
+  $("#c-admin-name").addEventListener("input", (e) => (draft.adminName = e.target.value));
+  $("#cancel").onclick = closeSheet;
+  $("#create").onclick = () => {
+    if (!draft.name.trim() || !slugOk()) { $("#c-name").focus(); return; }
+    const g = { id: Date.now(), name: draft.name.trim(), slug: draft.slug, status: "active", color: draft.color, clients: 0,
+      users: [user(draft.adminName.trim() || "Administrador", draft.admin.trim() || "admin", "admin")] };
+    gyms.push(g); renderGyms();
+    $("#sheet-title").textContent = "Gimnasio creado";
+    $("#sheet-body").innerHTML = `<div class="success-mark">${icon("i-check")}</div><div class="identity" style="padding-top:0">${avatar(g, "lg")}<div><div class="name-lg">${g.name}</div><span class="slug">/${g.slug}</span></div></div>${credentialCard(draft.admin || "admin", password(), g.slug)}`;
+    $("#sheet-foot").innerHTML = `<button class="btn btn-secondary" id="another">Crear otro</button><button class="btn btn-primary" id="done">Listo</button>`;
+    $("#done").onclick = closeSheet; $("#another").onclick = () => openCreator();
+  };
+}
+$("#new-gym").addEventListener("click", openCreator);
+
+/* ---------------- Aviso con deshacer ---------------- */
+let toastTimer;
+function toast(text, undo) {
+  $("#toast-text").textContent = text;
+  const btn = $("#toast-undo"); btn.hidden = !undo;
+  btn.onclick = () => { undo?.(); $("#toast").classList.remove("show"); };
+  $("#toast").classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("show"), undo ? 5000 : 1800);
+}
+
+/* ---------------- Borde de desplazamiento del cromo ---------------- */
+const onScroll = () => $("#chrome").classList.toggle("scrolled", window.scrollY > 4);
+addEventListener("scroll", onScroll, { passive: true }); onScroll();
+addEventListener("resize", () => { placeThumb($("#tabs")); placeThumb($("#filter")); });
+
+renderGyms(); renderSettings();
+document.fonts?.ready.then(() => { placeThumb($("#tabs")); placeThumb($("#filter")); });
+</script>
+</body>
+</html>

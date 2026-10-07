@@ -30,6 +30,7 @@ export * from "./domain/finance-period";
 
 /* Identity */
 export * from "./domain/company";
+export * from "./domain/company-rules";
 export * from "./domain/gym-settings";
 export * from "./domain/brand";
 

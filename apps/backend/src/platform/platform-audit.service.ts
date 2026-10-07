@@ -8,7 +8,9 @@ export type PlatformAction =
   | 'company.create'
   | 'company.update'
   | 'company.brand'
-  | 'company.admin-password';
+  | 'user.create'
+  | 'user.update'
+  | 'user.password';
 
 /** Qué hizo el super admin, sobre qué gimnasio. Reutiliza `audit_logs` (022). */
 @Injectable()

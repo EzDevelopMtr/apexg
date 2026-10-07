@@ -23,6 +23,12 @@
 @source "../../../packages/module-daily-log/src";
 @source "../../../packages/module-platform/src";
 
+/*
+  Tailwind has `motion-reduce:` and `contrast-more:` built in, but not this one:
+  translucent materials fall back to solid surfaces when the person asks for it.
+*/
+@custom-variant transparency-reduce (@media (prefers-reduced-transparency: reduce));
+
 * {
   box-sizing: border-box;
 }
