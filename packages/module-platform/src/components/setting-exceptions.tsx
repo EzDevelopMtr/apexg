@@ -22,7 +22,7 @@ export default function SettingExceptions({ setting, companies, actions }: Setti
   const nameOf = (id: string) => companies.find((c) => c.id === id)?.name ?? "";
 
   const add = () =>
-    void actions.addOverride(setting.key, adder.companyId, adder.value, nameOf(adder.companyId)).then(adder.stop);
+    void actions.addOverride(setting.key, adder.companyId, adder.value, nameOf(adder.companyId)).then((ok) => ok && adder.stop());
 
   return (
     <div className="overflow-hidden rounded-2xl bg-panel shadow-tile contrast-more:border contrast-more:border-body-faint">

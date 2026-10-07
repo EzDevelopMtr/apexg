@@ -21,8 +21,9 @@ const BUTTON_SIZE = { md: "px-[18px] py-1.5 text-[13px]", sm: "px-3 py-[5px] tex
 
 /**
  * A choice among a few peers, with a thumb that slides to the selected one.
- * Selects on pointer-down (feedback before release); the keyboard reaches it
- * through the click a button fires on Enter/Space (`detail === 0`).
+ * Selects on click, not pointer-down: a scroll that starts on it, or a
+ * right-click, must never change what is selected — some of these choices are
+ * saved at once. The press itself still answers on pointer-down (`active:`).
  */
 export default function SegmentedControl<T extends string>({
   options,
@@ -55,9 +56,8 @@ export default function SegmentedControl<T extends string>({
           role="tab"
           data-segment={option.id}
           aria-selected={option.id === value}
-          onPointerDown={() => select(option.id)}
-          onClick={(event) => event.detail === 0 && select(option.id)}
-          className={`relative z-[1] rounded-lg font-semibold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink ${BUTTON_SIZE[size]} ${option.id === value ? "text-body" : "text-body-soft hover:text-body-muted"}`}
+          onClick={() => select(option.id)}
+          className={`relative z-[1] rounded-lg font-semibold transition-[color,transform] duration-200 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-ink ${BUTTON_SIZE[size]} ${option.id === value ? "text-body" : "text-body-soft hover:text-body-muted"}`}
         >
           {option.label}
         </button>

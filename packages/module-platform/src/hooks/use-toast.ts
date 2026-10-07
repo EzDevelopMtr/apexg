@@ -29,10 +29,15 @@ export function useToast() {
     [hide],
   );
 
-  const onUndo = state.undo
+  // An undo can fail (another gym took the address meanwhile, the last admin
+  // rule…): then the toast says why instead of failing silently.
+  const undo = state.undo;
+  const onUndo = undo
     ? () => {
-        void state.undo?.();
         hide();
+        void Promise.resolve()
+          .then(undo)
+          .catch((cause: unknown) => notify(cause instanceof Error ? cause.message : "No se pudo deshacer."));
       }
     : undefined;
 

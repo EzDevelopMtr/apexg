@@ -28,10 +28,19 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
-/** The fixed part before a gym's address: "https://x.y.ts.net/" → "…ts.net/"; a relative base stays "/". */
+/**
+ * The fixed part before a gym's address: "https://x.y.ts.net/" → "…ts.net/".
+ * An IP or a two-part host is shown whole; anything unparsable falls back to
+ * "/" rather than breaking the panel.
+ */
 export function addressPrefix(base: string): string {
-  if (!/^https?:\/\//.test(base)) return "/";
-  const host = new URL(base).host;
+  let host: string;
+  try {
+    host = new URL(base).host;
+  } catch {
+    return "/";
+  }
   const labels = host.split(".");
-  return labels.length > 2 ? `…${labels.slice(-2).join(".")}/` : `${host}/`;
+  const isIp = /^[\d.:[\]]+$/.test(host.replace(/:\d+$/, ""));
+  return labels.length > 2 && !isIp ? `…${labels.slice(-2).join(".")}/` : `${host}/`;
 }

@@ -57,9 +57,9 @@ export default function PlatformPage({ adminName, adminEmail, onSignOut }: Platf
       </div>
 
       <Sheet open={view.sheet === "editor"} title="Editar gimnasio" onClose={view.closeSheet}>
-        {editing && (
+        {editing && view.mounted === "editor" && (
           <GymEditor
-            key={editing.id}
+            key={`${editing.id}:${view.edition}`}
             company={editing}
             takenSlugs={slugsBut(editing.id)}
             logoSrc={logoSrc(editing)}
@@ -70,7 +70,9 @@ export default function PlatformPage({ adminName, adminEmail, onSignOut }: Platf
         )}
       </Sheet>
       <Sheet open={view.sheet === "creator"} title="Nuevo gimnasio" onClose={view.closeSheet}>
-        <GymCreator key={view.creation} create={platform.create} takenSlugs={slugsBut()} onClose={view.closeSheet} onAnother={view.openCreator} />
+        {view.mounted === "creator" && (
+          <GymCreator key={view.creation} create={platform.create} takenSlugs={slugsBut()} onClose={view.closeSheet} onAnother={view.openCreator} />
+        )}
       </Sheet>
       <Toast visible={toast.visible} message={toast.message} onUndo={toast.onUndo} />
     </>

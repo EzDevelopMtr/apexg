@@ -44,7 +44,7 @@ export function useGymUsers(companyId: string, notify: Notify, onChanged: () => 
     async (action: () => Promise<void>, message: string, undo?: () => Promise<void>) => {
       try {
         await action();
-        notify(message, undo && (() => undo().then(reload).then(onChanged)));
+        notify(message, undo && (() => undo().finally(() => void reload().then(onChanged))));
       } catch (cause) {
         notify(cause instanceof Error ? cause.message : "No se pudo guardar.");
       }
