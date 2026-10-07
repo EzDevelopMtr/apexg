@@ -60,7 +60,7 @@ export default function GymCreator({ actions, takenSlugs, onClose, onAnother }: 
         <TextField id="new-gym-slug" label="Dirección de entrada" value={form.values.slug} onChange={form.setSlug} prefix={addressPrefix(gymLink(""))} mono placeholder="nandu-fit-centro" error={form.slugProblem} hint={form.values.slug ? gymLink(form.values.slug) : undefined} confirmed />
       </Section>
       <Section title="Marca">
-        <BrandFields name={form.values.name} color={form.color} onPick={form.pickColor} problem={form.colorProblem} logoSrc={form.logo.preview} onLogo={form.logo.pick} logoProblem={form.logo.problem} />
+        <BrandFields name={form.values.name} color={form.color} onPick={form.pickColor} problem={form.colorProblem} logoSrc={form.logo.preview} logo={form.logo.picker} />
       </Section>
       <Section title="Primer administrador" help="Después puedes agregar más usuarios desde Editar → Usuarios.">
         <TextField id="new-gym-admin" label="Usuario" value={form.values.adminUsername} onChange={(v) => form.set("adminUsername", v)} prefix="@" mono placeholder="admin" />
@@ -73,7 +73,7 @@ export default function GymCreator({ actions, takenSlugs, onClose, onAnother }: 
       {form.error && <p role="alert" className="mt-3 text-sm text-danger-ink">{form.error}</p>}
       <div className="sticky -bottom-[22px] -mx-[22px] mt-6 flex justify-end gap-2.5 bg-gradient-to-t from-panel from-60% to-transparent px-[22px] pb-[18px] pt-6">
         <button type="button" onClick={onClose} className={materialButton("tinted")}>Cancelar</button>
-        <button type="button" disabled={form.submitting} onClick={() => void form.submit()} className={materialButton("primary")}>
+        <button type="button" disabled={form.submitting || form.logo.picker.working} onClick={() => void form.submit()} className={materialButton("primary")}>
           {form.submitting ? "Creando…" : "Crear gimnasio"}
         </button>
       </div>

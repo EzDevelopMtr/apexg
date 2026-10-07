@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { CompanyChange, PlatformCompany } from "@apexg/core";
-import { isAllowedBrandColor, isHexColor, logoProblem, slugProblem } from "@apexg/core";
-import { LOGO_PROBLEM_TEXT, SLUG_PROBLEM_TEXT } from "../gym-rules";
+import { isAllowedBrandColor, isHexColor, slugProblem } from "@apexg/core";
+import { SLUG_PROBLEM_TEXT } from "../gym-rules";
+import { useLogoPicker } from "./use-logo-picker";
 import type { Notify } from "./use-toast";
 
 export interface CompanyActions {
@@ -27,7 +28,6 @@ export function useCompanyEditor(
   const [slug, setSlugState] = useState(company.slug);
   const [color, setColor] = useState<string | null>(company.brandColor);
   const [colorProblem, setColorProblem] = useState<string | null>(null);
-  const [logoIssue, setLogoIssue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const slugIssue = slugProblem(slug, takenSlugs);
@@ -78,21 +78,20 @@ export function useCompanyEditor(
     return ok;
   };
 
-  const uploadLogo = async (file: File) => {
-    const issue = logoProblem(file);
-    setLogoIssue(issue && LOGO_PROBLEM_TEXT[issue]);
-    if (!issue && (await run(() => actions.uploadLogo(company.id, file)))) notify("Logo actualizado");
-  };
+  const logo = useLogoPicker(async (file) => {
+    const ok = await run(() => actions.uploadLogo(company.id, file));
+    if (ok) notify("Logo actualizado");
+    return ok;
+  });
 
   return {
     fields: { name, setName, slug, setSlug: (value: string) => setSlugState(value.toLowerCase()), color, pickColor },
     slugProblem: slugIssue ? SLUG_PROBLEM_TEXT[slugIssue] : null,
     colorProblem,
-    logoProblem: logoIssue,
     error,
     busy,
     save,
     toggleStatus,
-    uploadLogo,
+    logo,
   };
 }

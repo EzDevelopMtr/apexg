@@ -1,8 +1,10 @@
 "use client";
 
-import { Info, Upload } from "lucide-react";
+import { Info } from "lucide-react";
 import { deriveBrandPalette, isHexColor } from "@apexg/core";
+import type { LogoPicker } from "../hooks/use-logo-picker";
 import GymAvatar from "./gym-avatar";
+import LogoField from "./logo-field";
 
 /** Presets in the cool half of the wheel: red, amber and green belong to the client states. */
 const SWATCHES = [
@@ -24,15 +26,14 @@ export interface BrandFieldsProps {
   readonly onPick: (color: string | null) => void;
   readonly problem: string | null;
   readonly logoSrc?: string;
-  readonly onLogo: (file: File) => void;
-  readonly logoProblem?: string | null;
+  readonly logo: LogoPicker;
 }
 
 const RING = "shadow-[0_0_0_2px_var(--color-panel),0_0_0_4px_var(--color-body)]";
 const SWATCH = "size-[30px] rounded-full shadow-tile transition-[transform,box-shadow] duration-100 ease-out active:scale-90";
 
 /** Colour and logo, with a live sample of the gym's own sign-in button. */
-export default function BrandFields({ name, color, onPick, problem, logoSrc, onLogo, logoProblem }: BrandFieldsProps) {
+export default function BrandFields({ name, color, onPick, problem, logoSrc, logo }: BrandFieldsProps) {
   const palette = color && isHexColor(color) ? deriveBrandPalette(color) : undefined;
   return (
     <>
@@ -63,19 +64,7 @@ export default function BrandFields({ name, color, onPick, problem, logoSrc, onL
         </span>
       </div>
 
-      <label className="mt-3.5 flex cursor-pointer items-center gap-3.5 rounded-xl border-[1.5px] border-dashed border-fill-3 p-3.5 text-[13px] text-body-soft transition-colors hover:border-brand hover:bg-fill-1">
-        <Upload size={18} className="text-brand-ink" />
-        <span>
-          <b className="block font-semibold text-body">{logoSrc ? "Cambiar logo" : "Subir logo"}</b>
-          SVG, PNG o WEBP · máximo 512 KB
-        </span>
-        <input type="file" accept="image/svg+xml,image/png,image/webp" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file) onLogo(file); e.target.value = ""; }} />
-      </label>
-      {logoProblem && (
-        <p role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-danger-ink">
-          <Info size={13} /> {logoProblem}
-        </p>
-      )}
+      <LogoField picker={logo} hasLogo={Boolean(logoSrc)} />
     </>
   );
 }

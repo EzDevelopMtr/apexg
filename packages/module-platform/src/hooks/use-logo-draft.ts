@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { logoProblem } from "@apexg/core";
-import { LOGO_PROBLEM_TEXT } from "../gym-rules";
+import { useLogoPicker } from "./use-logo-picker";
 
 /**
  * A logo picked before its gym exists: kept here, shown from a local preview,
@@ -12,20 +11,15 @@ import { LOGO_PROBLEM_TEXT } from "../gym-rules";
 export function useLogoDraft() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | undefined>(undefined);
-  const [problem, setProblem] = useState<string | null>(null);
+  const picker = useLogoPicker((next) => {
+    setFile(next);
+    setPreview(URL.createObjectURL(next));
+  });
 
   // Each preview URL holds the file in memory until revoked.
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
   }, [preview]);
 
-  const pick = (next: File) => {
-    const issue = logoProblem(next);
-    setProblem(issue ? LOGO_PROBLEM_TEXT[issue] : null);
-    if (issue) return;
-    setFile(next);
-    setPreview(URL.createObjectURL(next));
-  };
-
-  return { file, preview, problem, pick };
+  return { file, preview, picker };
 }
