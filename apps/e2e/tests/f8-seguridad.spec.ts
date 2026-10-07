@@ -1,13 +1,6 @@
 import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import {
-  RUTAS,
-  crearCliente,
-  crearPlan,
-  haceMeses,
-  irA,
-  marca,
-} from "../support/app";
+import { RUTAS, crearCliente, crearPlan, haceMeses, irA, marca, API_BACKEND } from "../support/app";
 
 const ID = marca();
 const PLAN = `E2E API ${ID}`;
@@ -33,13 +26,13 @@ test.describe("F8 · Seguridad", () => {
 
     // El id del cliente se toma de la propia API, no de la pantalla: la
     // prueba ataca el backend directamente, saltándose la UI a propósito.
-    const lista = await page.request.get("/api/backend/clients");
+    const lista = await page.request.get(`${API_BACKEND}/clients`);
     expect(lista.ok()).toBeTruthy();
     const clientes = (await lista.json()) as { id: string; fullName: string }[];
     const moroso = clientes.find((cliente) => cliente.fullName === CLIENTE);
     expect(moroso, `No se encontró ${CLIENTE} en la API`).toBeTruthy();
 
-    const ingreso = await page.request.post("/api/backend/attendances", {
+    const ingreso = await page.request.post(`${API_BACKEND}/attendances`, {
       data: { clientId: moroso?.id },
       failOnStatusCode: false,
     });
@@ -53,7 +46,7 @@ test.describe("F8 · Seguridad", () => {
 
     // Contra un pago que existe de verdad: contra un id inventado, un 404 de
     // "no existe" se confundiría con la negativa por falta de sesión.
-    const pagos = (await (await page.request.get("/api/backend/payments")).json()) as {
+    const pagos = (await (await page.request.get(`${API_BACKEND}/payments`)).json()) as {
       id: string;
       receiptPath: string | null;
     }[];
@@ -68,7 +61,7 @@ test.describe("F8 · Seguridad", () => {
     });
     const sinSesion = await anonimo.request.get(
       // El origen se toma de la propia página, no del .env.
-      `${new URL(page.url()).origin}/api/backend/payments/${conComprobante?.id}/receipt`,
+      `${new URL(page.url()).origin}${API_BACKEND}/payments/${conComprobante?.id}/receipt`,
       { failOnStatusCode: false },
     );
     await info.attach("comprobante-sin-sesion", {

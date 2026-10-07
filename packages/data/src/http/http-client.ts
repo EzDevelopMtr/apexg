@@ -1,13 +1,25 @@
 /**
  * Shared fetch wrapper for every HTTP repository.
  *
- * Calls go to `/api/backend/...` — a same-origin proxy in `apps/frontend`
- * that attaches the access token server-side from an httpOnly cookie (see
- * `apps/frontend/app/api/backend/[...path]/route.ts`). No repository here ever
- * sees a token; that boundary lives entirely in the web app.
+ * Calls go to `/<gym>/api/backend/...` — a same-origin proxy in
+ * `apps/frontend` that attaches that gym's access token server-side from an
+ * httpOnly cookie (see `apps/frontend/app/[gym]/api/backend/[...path]/route.ts`).
+ * No repository here ever sees a token; that boundary lives in the web app.
  */
 
-export const API_BASE = "/api/backend";
+const GYM_SEGMENT = /^[a-z0-9-]+$/;
+
+/**
+ * The proxy of the gym this tab belongs to — the first segment of its
+ * address (`/<gym>/modules/...`). Read on every call, never cached: a tab can
+ * only ever reach the gym it shows, whatever another tab signed into.
+ */
+export function apiBase(): string {
+  const gym = typeof window === "undefined" ? "" : (window.location.pathname.split("/")[1] ?? "");
+  // Outside a gym (server render, a stray page) there is no proxy to reach.
+  if (!GYM_SEGMENT.test(gym)) throw new ApiError(401, "Sin gimnasio en la dirección.");
+  return `/${gym}/api/backend`;
+}
 
 /** Carries the HTTP status so a repository can decide what it means (404 → not found, etc). */
 export class ApiError extends Error {
@@ -40,14 +52,15 @@ function buildUrl(
   searchParams?: Record<string, string | undefined>,
 ): string {
   if (!searchParams) {
-    return `${API_BASE}${path}`;
+    return `${apiBase()}${path}`;
   }
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(searchParams)) {
     if (value !== undefined) params.set(key, value);
   }
   const query = params.toString();
-  return query ? `${API_BASE}${path}?${query}` : `${API_BASE}${path}`;
+  const base = apiBase();
+  return query ? `${base}${path}?${query}` : `${base}${path}`;
 }
 
 function backendMessage(body: unknown, fallback: string): string {

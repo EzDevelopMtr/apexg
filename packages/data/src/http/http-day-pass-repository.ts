@@ -6,7 +6,7 @@ import {
   toApiString,
 } from "@apexg/core";
 import type { DayPassRepository, DayPassSale } from "../repositories";
-import { API_BASE, apiFetch } from "./http-client";
+import { apiBase, apiFetch } from "./http-client";
 import { localTime } from "./local-time";
 import { toFormData } from "./multipart";
 
@@ -64,6 +64,6 @@ export class HttpDayPassRepository implements DayPassRepository {
   }
 
   receiptUrl(id: DayPassId): string {
-    return `${API_BASE}/day-passes/${id}/receipt`;
+    return `${apiBase()}/day-passes/${id}/receipt`;
   }
 }

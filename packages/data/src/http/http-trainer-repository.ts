@@ -16,7 +16,7 @@ import {
 } from "@apexg/core";
 import type { TrainerRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
-import { API_BASE, ApiError, apiFetch } from "./http-client";
+import { apiBase, ApiError, apiFetch } from "./http-client";
 import { toFormData } from "./multipart";
 
 type ApiTrainerState = 1 | 2;
@@ -223,7 +223,7 @@ export class HttpTrainerRepository implements TrainerRepository {
   }
 
   commissionReceiptUrl(trainerId: TrainerId, commissionId: string): string {
-    return `${API_BASE}/trainers/${trainerId}/commissions/${commissionId}/receipt`;
+    return `${apiBase()}/trainers/${trainerId}/commissions/${commissionId}/receipt`;
   }
 
   /**

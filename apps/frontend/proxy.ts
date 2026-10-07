@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { GYM_COOKIE_NAME, SESSION_COOKIE_NAME } from "./lib/session-cookie-name";
+import { isUnexpired } from "./lib/token-claims";
 
 /**
  * RF-02/RNF-03: keeps signed-out visitors off private pages, server-side —
@@ -8,86 +9,49 @@ import { GYM_COOKIE_NAME, SESSION_COOKIE_NAME } from "./lib/session-cookie-name"
  * that let the page ship first and bounce after. This decides before any
  * HTML renders.
  *
- * Named `proxy` (not `middleware`) per Next.js 16's renamed convention —
- * same request-interception mechanism, new file/export name.
+ * Every gym lives under its own address: `/<slug>` is its entrance and
+ * `/<slug>/modules/...` its app. The session cookie is scoped to that path,
+ * so what arrives here under `/<slug>/` is that gym's session or none — two
+ * gyms open in two tabs never see each other's.
  *
- * Still not the authorization boundary: it only checks that the cookie
- * holds an unexpired token, decoded without verifying its signature (this
- * runs on the Edge runtime, with no access to the JWT secret, and does not
- * need it — every proxied request re-verifies the signature at the real
- * backend). This is a UX redirect, not the thing that actually protects
- * the data.
+ * Named `proxy` (not `middleware`) per Next.js 16's renamed convention.
+ *
+ * Still not the authorization boundary: it only checks that the cookie holds
+ * an unexpired token, decoded without verifying its signature — every
+ * request re-verifies it at the backend. This is a UX redirect.
  */
 
-const PUBLIC_PATHS = new Set(["/login"]);
+/** Top-level paths that are never a gym: the backend keeps slugs off them (company-slug.ts). */
+const NOT_A_GYM = new Set(["admin", "api", "login", "logout", "dashboard", "modules"]);
+/** The single-gym paths of before: sent on to the gym this browser last used. */
+const LEGACY_ROOTS = new Set(["dashboard", "modules"]);
+const SLUG = /^[a-z0-9-]+$/;
 
-/**
- * `/<slug>`: a gym's own entrance. Any single segment that is not one of the
- * private roots — the backend keeps slugs off those (company-slug.ts).
- */
-const PRIVATE_ROOTS = new Set(["/dashboard", "/modules"]);
-const GYM_ENTRANCE = /^\/[a-z0-9-]+$/;
-
-function isPublicPath(pathname: string): boolean {
-  return (
-    PUBLIC_PATHS.has(pathname) ||
-    (GYM_ENTRANCE.test(pathname) && !PRIVATE_ROOTS.has(pathname))
-  );
-}
-
-function decodeJwtPayload(token: string): { exp?: number } | undefined {
-  const segments = token.split(".");
-  const payloadSegment = segments[1];
-  if (segments.length !== 3 || !payloadSegment) {
-    return undefined;
-  }
-  try {
-    const base64 = payloadSegment.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
-    return JSON.parse(atob(padded)) as { exp?: number };
-  } catch {
-    return undefined;
-  }
-}
-
-function hasValidSession(request: NextRequest): boolean {
-  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (!token) {
-    return false;
-  }
-  const payload = decodeJwtPayload(token);
-  return typeof payload?.exp === "number" && payload.exp * 1000 > Date.now();
+function redirectTo(request: NextRequest, pathname: string): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  return NextResponse.redirect(url);
 }
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
+  const [first = "", second] = pathname.split("/").slice(1);
 
-  // The super admin's panel has its own session; app/admin/page.tsx checks it.
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+  if (LEGACY_ROOTS.has(first)) {
+    const gym = request.cookies.get(GYM_COOKIE_NAME)?.value;
+    return redirectTo(request, gym && SLUG.test(gym) ? `/${gym}${pathname}` : "/login");
+  }
+
+  // The platform panel has its own session; a gym's API routes check theirs.
+  if (!SLUG.test(first) || NOT_A_GYM.has(first) || second === "api") {
     return NextResponse.next();
   }
 
-  const authenticated = hasValidSession(request);
-  const publicPath = isPublicPath(pathname);
+  const signedIn = isUnexpired(request.cookies.get(SESSION_COOKIE_NAME)?.value);
+  const entrance = second === undefined || second === "";
 
-  if (!authenticated && !publicPath) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
-
-  // A gym's entrance sends a signed-in visitor on only if it is their own
-  // gym's. Another gym's session must not open this door: the page shows
-  // the form, which checks the verified session against its own gym.
-  const otherGymsEntrance =
-    pathname !== "/login" && request.cookies.get(GYM_COOKIE_NAME)?.value !== pathname.slice(1);
-
-  if (authenticated && publicPath && !otherGymsEntrance) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/modules";
-    return NextResponse.redirect(url);
-  }
-
+  if (entrance && signedIn) return redirectTo(request, `/${first}/modules`);
+  if (!entrance && !signedIn) return redirectTo(request, `/${first}`);
   return NextResponse.next();
 }
 
@@ -99,5 +63,5 @@ export function proxy(request: NextRequest): NextResponse {
  * dot in it, so matching on the extension is safe.
  */
 export const config = {
-  matcher: ["/((?!api|_next|.*\\..*).*)"],
+  matcher: ["/((?!api/|_next/|.*\\..*).*)"],
 };

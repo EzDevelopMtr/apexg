@@ -15,7 +15,7 @@ import {
   toPaymentId,
 } from "@apexg/core";
 import type { PaymentRepository } from "../repositories";
-import { API_BASE, apiFetch } from "./http-client";
+import { apiBase, apiFetch } from "./http-client";
 
 type ApiPaymentType =
   "full" | "first_installment" | "second_installment" | "final_installment";
@@ -115,7 +115,7 @@ export class HttpPaymentRepository implements PaymentRepository {
   }
 
   receiptUrl(paymentId: PaymentId): string {
-    return `${API_BASE}/payments/${paymentId}/receipt`;
+    return `${apiBase()}/payments/${paymentId}/receipt`;
   }
 
   async record(draft: Omit<Payment, "id">, receipt?: Blob): Promise<Payment> {

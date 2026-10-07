@@ -1,9 +1,9 @@
 import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import { RUTAS, irA } from "../support/app";
+import { RUTAS, irA, API_AUTH, GIMNASIO } from "../support/app";
 
 /** Same name the web app uses: `COOKIE_PREFIX` when set (see lib/session-cookie-name.ts). */
-const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_session`;
+const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_gym_session`;
 
 test.describe.configure({ mode: "serial" });
 
@@ -16,7 +16,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
     );
     expect(antes, "No hay cookie de sesión").toBeTruthy();
 
-    const renovada = await page.request.post("/api/auth/refresh");
+    const renovada = await page.request.post(`${API_AUTH}/refresh`);
     expect(renovada.status()).toBe(200);
 
     const despues = (await page.context().cookies()).find(
@@ -26,7 +26,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
     expect(despues?.value).not.toBe(antes?.value);
 
     // Y el nuevo sirve: la siguiente petición autenticada pasa.
-    const conElNuevo = await page.request.get("/api/auth/me");
+    const conElNuevo = await page.request.get(`${API_AUTH}/me`);
     expect(conElNuevo.status()).toBe(200);
 
     await info.attach("renovacion", {
@@ -42,7 +42,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
     // el listener, este evento no dispara ninguna petición y la espera vence.
     const renovacion = page.waitForRequest(
       (peticion) =>
-        peticion.url().includes("/api/auth/refresh") &&
+        peticion.url().includes(`${API_AUTH}/refresh`) &&
         peticion.method() === "POST",
       { timeout: 10_000 },
     );
@@ -62,7 +62,7 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
       storageState: { cookies: [], origins: [] },
     });
     const respuesta = await anonimo.request.post(
-      `${new URL(page.url()).origin}/api/auth/refresh`,
+      `${new URL(page.url()).origin}${API_AUTH}/refresh`,
       { failOnStatusCode: false },
     );
     expect(respuesta.status()).toBe(401);
@@ -81,7 +81,8 @@ test.describe("F9 · La sesión aguanta la jornada", () => {
       RUTAS.modulos,
     ]) {
       await irA(page, ruta);
-      expect(page.url(), `Rebotó al login en ${ruta}`).not.toContain("/login");
+      // Un rebote ahora cae en la entrada del gimnasio, no en /login.
+      expect(new URL(page.url()).pathname, `Rebotó al login en ${ruta}`).not.toBe(`/${GIMNASIO}`);
     }
   });
 });

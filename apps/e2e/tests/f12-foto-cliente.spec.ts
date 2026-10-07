@@ -1,14 +1,6 @@
 import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import {
-  RUTAS,
-  buscarParaIngreso,
-  crearPlan,
-  elegirOpcion,
-  esperarPost,
-  irA,
-  marca,
-} from "../support/app";
+import { RUTAS, buscarParaIngreso, crearPlan, elegirOpcion, esperarPost, irA, marca, API_BACKEND } from "../support/app";
 
 const ID = marca();
 const PLAN = `E2E Foto ${ID}`;
@@ -130,7 +122,7 @@ test.describe("F12 · Foto del cliente", () => {
     await irA(page, RUTAS.clientesTodos);
 
     const lista = (await (
-      await page.request.get("/api/backend/clients")
+      await page.request.get(`${API_BACKEND}/clients`)
     ).json()) as { id: string; fullName: string }[];
     const conFoto = lista.find((uno) => uno.fullName === CON_FOTO);
     expect(conFoto, `No se encontró ${CON_FOTO}`).toBeTruthy();
@@ -139,7 +131,7 @@ test.describe("F12 · Foto del cliente", () => {
       storageState: { cookies: [], origins: [] },
     });
     const respuesta = await anonimo.request.get(
-      `${new URL(page.url()).origin}/api/backend/clients/${conFoto?.id}/photo`,
+      `${new URL(page.url()).origin}${API_BACKEND}/clients/${conFoto?.id}/photo`,
       { failOnStatusCode: false },
     );
     expect(respuesta.status()).toBe(401);

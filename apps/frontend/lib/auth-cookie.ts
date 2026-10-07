@@ -1,34 +1,56 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE_NAME } from "./session-cookie-name";
+import { NextResponse } from "next/server";
+import { LEGACY_SESSION_COOKIE_NAME, SESSION_COOKIE_NAME } from "./session-cookie-name";
 
 /**
- * The access token lives ONLY in this httpOnly cookie — never in
- * localStorage/sessionStorage, never in a response body a client component
- * can read. Route Handlers read it server-side to call the real backend;
- * browser JS never sees the value.
+ * The only code allowed to touch a gym's session cookie. httpOnly, so the
+ * token never reaches browser JS; scoped to `/<gym>` (see
+ * `session-cookie-name.ts`), so each gym's tabs carry only that gym's token.
  */
 
-export async function setSessionCookie(
-  accessToken: string,
-  maxAgeSeconds: number,
-): Promise<void> {
+const gymPath = (gym: string) => `/${gym}`;
+
+export async function setSessionCookie(gym: string, accessToken: string, maxAgeSeconds: number): Promise<void> {
   const store = await cookies();
   store.set(SESSION_COOKIE_NAME, accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    path: "/",
+    path: gymPath(gym),
     maxAge: maxAgeSeconds,
   });
+  // The single browser-wide session of before would still ride along on
+  // every request: gone at the first sign-in.
+  store.delete({ name: LEGACY_SESSION_COOKIE_NAME, path: "/" });
 }
 
-export async function clearSessionCookie(): Promise<void> {
-  const store = await cookies();
-  store.delete(SESSION_COOKIE_NAME);
+export async function clearSessionCookie(gym: string): Promise<void> {
+  (await cookies()).delete({ name: SESSION_COOKIE_NAME, path: gymPath(gym) });
 }
 
+/**
+ * A refusal that also drops this gym's cookie, set on the response itself
+ * (a GET handler's `cookies().delete` did not reach the browser). Without it,
+ * a session the backend refuses — suspended gym, deactivated user, another
+ * gym's token — would keep sending the entrance on to an app that cannot load.
+ */
+export function signedOut(gym: string, message: string, status = 401): NextResponse {
+  const response = NextResponse.json({ message }, { status });
+  response.cookies.set(SESSION_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: gymPath(gym),
+    maxAge: 0,
+  });
+  return response;
+}
+
+/**
+ * The session the browser sent with this request. Under `/<gym>/...` only
+ * that gym's cookie matches the path, so this is that gym's or nothing.
+ */
 export async function readSessionCookie(): Promise<string | undefined> {
-  const store = await cookies();
-  return store.get(SESSION_COOKIE_NAME)?.value;
+  return (await cookies()).get(SESSION_COOKIE_NAME)?.value;
 }

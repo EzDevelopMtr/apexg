@@ -3,6 +3,7 @@
 import ListToolbar from "./list-toolbar";
 import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { MembershipSectionId } from "@apexg/core";
 import { membershipSections } from "@apexg/core";
 import { MembershipsPage } from "@apexg/module-memberships";
@@ -16,6 +17,7 @@ export default function MembershipsModule({
   sectionId: MembershipSectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
   const { session } = useSession();
 
   // RequireModule already blocked anyone without a session.
@@ -35,7 +37,7 @@ export default function MembershipsModule({
         <MembershipsPage
           sectionId={sectionId}
           role={session.role}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
         />
       </div>
     </div>

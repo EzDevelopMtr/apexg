@@ -20,6 +20,6 @@ export default async function GymLoginPage({ params }: GymPageProps) {
   if (!profile) notFound();
 
   return (
-    <LoginForm gym={profile.slug} companyId={profile.id} suspended={profile.status === "suspended"} />
+    <LoginForm suspended={profile.status === "suspended"} />
   );
 }

@@ -1,5 +1,5 @@
 import { caso, expect } from "../support/caso";
-import { irA, marca } from "../support/app";
+import { irA, marca, API_AUTH, GIMNASIO } from "../support/app";
 
 const ID = marca();
 
@@ -19,7 +19,8 @@ caso("CP-49", "Contraseña incorrecta rechaza el login sin decir cuál campo fal
   // Genérico: no debe distinguir "usuario no existe" de "clave incorrecta",
   // porque eso le regalaría a un atacante cuáles usuarios sí existen.
   await expect(alerta).not.toContainText(/usuario/i);
-  expect(page.url()).toContain("/apex-gym");
+  // Sin gimnasio recordado, /login lleva al de DEFAULT_GYM_SLUG: el que se prueba.
+  expect(page.url()).toContain(`/${GIMNASIO}`);
 
   await info.attach("login-rechazado", {
     body: await page.screenshot(),
@@ -28,7 +29,7 @@ caso("CP-49", "Contraseña incorrecta rechaza el login sin decir cuál campo fal
 });
 
 caso("CP-50", "Un usuario inexistente da el mismo rechazo genérico", async ({ page }) => {
-  await irA(page, "/login");
+  await irA(page, `/${GIMNASIO}`);
   await page.getByLabel("Usuario").fill(`no_existe_${ID}`);
   await page.getByRole("textbox", { name: "Contraseña" }).fill("cualquiera-123");
   await page.getByRole("button", { name: /ingresar/i }).click();
@@ -39,11 +40,11 @@ caso("CP-50", "Un usuario inexistente da el mismo rechazo genérico", async ({ p
 });
 
 caso("CP-51", "El formulario exige usuario y contraseña antes de llamar a la API", async ({ page }) => {
-  await irA(page, "/login");
+  await irA(page, `/${GIMNASIO}`);
 
   const peticiones: string[] = [];
   page.on("request", (r) => {
-    if (r.url().includes("/api/auth/login")) peticiones.push(r.url());
+    if (r.url().includes(`${API_AUTH}/login`)) peticiones.push(r.url());
   });
 
   await page.getByRole("button", { name: /ingresar/i }).click();
@@ -56,7 +57,7 @@ caso("CP-52", "Cinco intentos fallidos bloquean el inicio de sesión", async ({ 
   // "empresa:usuario" — usar el admin real lo dejaría fuera de su propia
   // cuenta durante la sesión de pruebas.
   const usuario = `rate_limit_${ID}`;
-  await irA(page, "/login");
+  await irA(page, `/${GIMNASIO}`);
 
   for (let intento = 1; intento <= 5; intento++) {
     await page.getByLabel("Usuario").fill(usuario);

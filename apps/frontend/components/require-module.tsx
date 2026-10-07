@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { canAccessModule, isModuleEnabled } from "@apexg/core";
 import { useGymSettings } from "@apexg/module-kit";
+import { useGymPath } from "../lib/gym-path";
 import { useSession } from "../lib/use-session";
 
 /**
@@ -23,6 +24,7 @@ export default function RequireModule({
 }) {
   const { session, loading } = useSession();
   const router = useRouter();
+  const to = useGymPath();
 
   const settings = useGymSettings();
   // The role matrix, and the gym's own switch (`modules.enabled`). The API
@@ -32,8 +34,8 @@ export default function RequireModule({
     : false;
 
   useEffect(() => {
-    if (!loading && session && !allowed) router.replace("/modules");
-  }, [loading, session, allowed, router]);
+    if (!loading && session && !allowed) router.replace(to("/modules"));
+  }, [loading, session, allowed, router, to]);
 
   if (loading || !session || !allowed) return null;
 

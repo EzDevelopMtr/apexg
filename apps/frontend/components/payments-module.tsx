@@ -3,6 +3,7 @@
 import ListToolbar from "./list-toolbar";
 import SectionHeading from "./section-heading";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { PaymentSectionId } from "@apexg/core";
 import { paymentSections } from "@apexg/core";
 import { PaymentsPage } from "@apexg/module-payments";
@@ -16,6 +17,7 @@ export default function PaymentsModule({
   sectionId: PaymentSectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
   const params = useSearchParams();
   const { session } = useSession();
 
@@ -36,7 +38,7 @@ export default function PaymentsModule({
         <PaymentsPage
           sectionId={sectionId}
           recordedBy={session.username}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
           // Quien llega desde el panel de ingreso trae al cliente en la URL,
           // para no obligar a la recepcionista a buscarlo otra vez con la
           // persona esperando en el mostrador.

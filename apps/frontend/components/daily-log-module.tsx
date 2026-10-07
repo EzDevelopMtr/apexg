@@ -2,6 +2,7 @@
 
 import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { DailyLogSectionId } from "@apexg/core";
 import { dailyLogSections } from "@apexg/core";
 import { DailyLogPage } from "@apexg/module-daily-log";
@@ -16,6 +17,7 @@ export default function DailyLogModule({
 }) {
   const { session } = useSession();
   const router = useRouter();
+  const to = useGymPath();
 
   // RequireModule already blocked anyone without a session.
   if (!session) return null;
@@ -33,12 +35,12 @@ export default function DailyLogModule({
         <DailyLogPage
           sectionId={sectionId}
           recordedBy={session.username}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
           // Payments owns the charge; the daily log only asks for it. The
           // client travels in the URL so the form opens already pointed at
           // the person standing at the counter.
           onCharge={(clientId) =>
-            router.push(`/modules/payments/record?client=${clientId}`)
+            router.push(to(`/modules/payments/record?client=${clientId}`))
           }
         />
       </div>

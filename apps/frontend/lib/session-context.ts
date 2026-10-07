@@ -17,11 +17,12 @@ export interface SessionContextValue {
   readonly session: Session | null;
   /**
    * True while the session is being hydrated from the httpOnly cookie
-   * (a `GET /api/auth/me` round trip). Without it the first render would
+   * (a `GET /<gym>/api/auth/me` round trip). Without it the first render would
    * bounce a signed-in user to the login page.
    */
   readonly loading: boolean;
-  readonly signIn: (gym: string, username: string, password: string) => Promise<SignInResult>;
+  /** Signs into the gym of the provider — the one in the address. */
+  readonly signIn: (username: string, password: string) => Promise<SignInResult>;
   readonly signOut: () => Promise<void>;
 }
 

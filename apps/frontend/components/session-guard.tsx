@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useGymPath } from "../lib/gym-path";
 import { useSession } from "../lib/use-session";
 
 /**
@@ -16,10 +17,11 @@ import { useSession } from "../lib/use-session";
 export default function SessionGuard({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   const router = useRouter();
+  const to = useGymPath();
 
   useEffect(() => {
-    if (!loading && !session) router.replace("/login");
-  }, [loading, session, router]);
+    if (!loading && !session) router.replace(to(""));
+  }, [loading, session, router, to]);
 
   if (loading || !session) return null;
 

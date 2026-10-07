@@ -82,7 +82,7 @@ export function backendErrorMessage(body: unknown, fallback: string): string {
 /**
  * Forwards a request to the backend and returns its response untouched.
  *
- * Used by the `/api/backend/*` proxy, which must not assume JSON in either
+ * Used by the `/<gym>/api/backend/*` proxy, which must not assume JSON in either
  * direction: a payment carries its receipt up as `multipart/form-data`, and
  * comes back down as an image. `callBackend` parses both ends as JSON, which
  * throws on the way up and corrupts the file on the way down.

@@ -3,6 +3,7 @@
 import ListToolbar from "./list-toolbar";
 import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { ExpenseSectionId } from "@apexg/core";
 import { expenseSections } from "@apexg/core";
 import { ExpensesPage } from "@apexg/module-expenses";
@@ -16,6 +17,7 @@ export default function ExpensesModule({
   sectionId: ExpenseSectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
   const { session } = useSession();
 
   // RequireModule already blocked anyone without a session.
@@ -35,7 +37,7 @@ export default function ExpensesModule({
         <ExpensesPage
           sectionId={sectionId}
           recordedBy={session.username}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
         />
       </div>
     </div>

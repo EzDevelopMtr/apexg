@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 /**
  * The panel is the platform's, not a gym's: its own icon and titles, never
- * the brand of the gym last opened in this browser (the root layout's).
+ * any gym's brand.
  */
 export const metadata: Metadata = {
   title: { absolute: "Panel de plataforma" },

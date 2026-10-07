@@ -1,12 +1,12 @@
 import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import { irA, marca } from "../support/app";
+import { RUTAS, irA, marca } from "../support/app";
 
 const ID = marca();
 const BOLSILLO = `Máquina de remo ${ID}`;
 // Finanzas es una sola vista: los bolsillos y el balance viven en el resumen.
-const AHORRO = "/modules/finances/dashboard";
+const AHORRO = RUTAS.finanzasPanel;
 
 /**
  * La tarjeta de ese bolsillo.

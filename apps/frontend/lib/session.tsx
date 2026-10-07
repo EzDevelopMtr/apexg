@@ -16,8 +16,8 @@ import { SessionContext } from "./session-context";
  *
  * The access token itself lives ONLY in an httpOnly cookie (see
  * `lib/auth-cookie.ts`) — this component never sees it. It hydrates from
- * `GET /api/auth/me` on mount, and `signIn`/`signOut` go through the
- * `/api/auth/*` Route Handlers, which are the only code allowed to touch
+ * `GET /<gym>/api/auth/me` on mount, and `signIn`/`signOut` go through the
+ * `/<gym>/api/auth/*` Route Handlers, which are the only code allowed to touch
  * the cookie.
  */
 
@@ -53,22 +53,35 @@ function toSession(user: MeUser): Session | null {
   };
 }
 
-/** The gym session behind the cookie, or `null`. */
-async function loadSession(): Promise<Session | null> {
-  // The platform panel (/admin) has its own session and belongs to no gym:
-  // asking for a gym session there only produces a 401.
-  if (window.location.pathname.startsWith("/admin")) return null;
+/** Drops this gym's cookie server-side; nothing else signs anyone out. */
+function clearCookie(gym: string): Promise<unknown> {
+  return fetch(`/${gym}/api/auth/logout`, { method: "POST" }).catch(() => undefined);
+}
+
+/**
+ * This gym's session behind its cookie, or `null`. A valid token whose role
+ * the app does not know is no session either — and its cookie goes, or the
+ * entrance would keep sending it back here.
+ */
+async function loadSession(gym: string): Promise<Session | null> {
   try {
-    const response = await fetch("/api/auth/me");
+    const response = await fetch(`/${gym}/api/auth/me`);
     if (!response.ok) return null;
     const { user } = (await response.json()) as { user: MeUser };
-    return toSession(user);
+    const session = toSession(user);
+    if (!session) await clearCookie(gym);
+    return session;
   } catch {
     return null;
   }
 }
 
-export function SessionProvider({ children }: { children: ReactNode }) {
+/**
+ * One per gym address (`app/[gym]/layout.tsx`): every call goes to that
+ * gym's own `/<gym>/api/auth/*`, so a tab only ever holds the session of the
+ * gym it shows — another gym signed in in another tab is another session.
+ */
+export function SessionProvider({ gym, children }: { gym: string; children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -76,7 +89,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    void loadSession().then((next) => {
+    void loadSession(gym).then((next) => {
       if (!cancelled) {
         setSession(next);
         setLoading(false);
@@ -86,7 +99,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [gym]);
 
   // El token dura 15 minutos y no hay refresh token, así que una jornada de
   // recepción se quedaba sin sesión a mitad de un cobro: bastaba con que una
@@ -97,7 +110,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (!session) return;
 
     const renew = () => {
-      fetch("/api/auth/refresh", { method: "POST" }).catch(() => undefined);
+      fetch(`/${gym}/api/auth/refresh`, { method: "POST" }).catch(() => undefined);
     };
     const timer = setInterval(renew, RENEWAL_INTERVAL_MS);
 
@@ -113,7 +126,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [session]);
+  }, [session, gym]);
 
   // Any proxied request coming back 401 (the token expired despite the
   // renewal above — a suspended laptop, say) clears the session the same way
@@ -121,17 +134,17 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const onExpired = () => {
       setSession(null);
-      router.replace("/login");
+      void clearCookie(gym).then(() => router.replace(`/${gym}`));
     };
     window.addEventListener("apexg:session-expired", onExpired);
     return () => window.removeEventListener("apexg:session-expired", onExpired);
-  }, [router]);
+  }, [router, gym]);
 
-  const signIn = useCallback(async (gym: string, username: string, password: string): Promise<SignInResult> => {
-    const response = await fetch("/api/auth/login", {
+  const signIn = useCallback(async (username: string, password: string): Promise<SignInResult> => {
+    const response = await fetch(`/${gym}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gym, username, password }),
+      body: JSON.stringify({ username, password }),
     });
 
     const payload = (await response.json().catch(() => null)) as
@@ -147,17 +160,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
     const next = toSession(payload.user);
     if (!next) {
+      await clearCookie(gym);
       return { ok: false, message: "Tu rol no está configurado en la aplicación." };
     }
 
     setSession(next);
     return { ok: true };
-  }, []);
+  }, [gym]);
 
   const signOut = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
+    await clearCookie(gym);
     setSession(null);
-  }, []);
+  }, [gym]);
 
   const value = useMemo(
     () => ({ session, loading, signIn, signOut }),

@@ -1,7 +1,7 @@
 import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import { RUTAS, esperarPost, irA, marca } from "../support/app";
+import { RUTAS, esperarPost, irA, marca, API_BACKEND } from "../support/app";
 
 const ID = marca();
 const EFECTIVO = `E2E Visitante efectivo ${ID}`;
@@ -105,12 +105,12 @@ test.describe("F20 · Pase de día para visitantes", () => {
 
   caso("CP-92", "La API no acepta una transferencia sin comprobante ni un precio propio", async ({ page }) => {
     await irA(page, RUTAS.ingreso);
-    const sinComprobante = await page.request.post("/api/backend/day-passes", {
+    const sinComprobante = await page.request.post(`${API_BACKEND}/day-passes`, {
       data: { visitorName: "E2E API", paymentMethod: "transfer" },
     });
     expect(sinComprobante.status()).toBe(400);
 
-    const conPrecio = await page.request.post("/api/backend/day-passes", {
+    const conPrecio = await page.request.post(`${API_BACKEND}/day-passes`, {
       data: { visitorName: "E2E API", paymentMethod: "cash", amount: "1.00" },
     });
     expect(conPrecio.status()).toBe(400);

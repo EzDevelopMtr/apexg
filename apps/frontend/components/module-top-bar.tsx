@@ -5,11 +5,12 @@ import { usePathname } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { findModule, navTabsFor } from "@apexg/core";
 import { Icon, TopBarShell, topBarTabClasses } from "@apexg/ui";
+import { useGymPath } from "../lib/gym-path";
 
 export interface ModuleTopBarProps {
   /** Module id, e.g. `clients`. Its name and sections are looked up from it. */
   moduleId: string;
-  /** Where the module's sections live, e.g. `/modules/clients`. */
+  /** Where the module's sections live inside the gym, e.g. `/modules/clients`. */
   basePath: string;
 }
 
@@ -22,12 +23,14 @@ export interface ModuleTopBarProps {
  */
 export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) {
   const currentPath = usePathname();
+  const to = useGymPath();
+  const base = to(basePath);
   const module = findModule(moduleId);
 
   // Inalcanzable en la práctica: RequireModule ya rechazó un id desconocido.
   if (!module) return null;
 
-  const currentSection = currentPath.slice(basePath.length + 1);
+  const currentSection = currentPath.slice(base.length + 1);
   const tabs = navTabsFor(moduleId);
 
   return (
@@ -35,7 +38,7 @@ export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) 
       title={module.name}
       trailing={
         <Link
-          href="/modules"
+          href={to("/modules")}
           className="flex h-9 items-center gap-2 rounded-lg px-3 text-sm text-body-faint transition hover:bg-panel/10 hover:text-body"
         >
           <ArrowLeft size={18} className="shrink-0" />
@@ -49,7 +52,7 @@ export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) 
             return (
               <Link
                 key={tab.id}
-                href={`${basePath}/${tab.id}`}
+                href={`${base}/${tab.id}`}
                 aria-current={active ? "page" : undefined}
                 className={topBarTabClasses(active)}
               >

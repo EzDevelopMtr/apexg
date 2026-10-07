@@ -1,11 +1,8 @@
 import "server-only";
-import { cookies } from "next/headers";
 import { deriveBrandPalette, isAllowedBrandColor, isHexColor } from "@apexg/core";
 import type { Brand } from "@apexg/ui";
 import { logoUrl } from "./brand-urls";
-import { findCompanyProfile } from "./company-profile";
 import type { CompanyProfile } from "./company-profile";
-import { GYM_COOKIE_NAME } from "./session-cookie-name";
 
 export { logoUrl };
 
@@ -27,8 +24,3 @@ export function brandOf(profile: CompanyProfile): Brand {
   };
 }
 
-/** The gym this browser signed into: private pages are branded by it. */
-export async function currentProfile(): Promise<CompanyProfile | undefined> {
-  const slug = (await cookies()).get(GYM_COOKIE_NAME)?.value;
-  return slug ? findCompanyProfile(slug) : undefined;
-}

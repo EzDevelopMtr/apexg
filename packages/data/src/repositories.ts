@@ -55,7 +55,7 @@ export interface ClientRepository {
    * Dónde abrir la foto de un cliente.
    *
    * La arma esta capa para que ningún módulo tenga que saber que la API vive
-   * detrás de `/api/backend`. La dirección es todo lo que recibe un
+   * detrás de `/<gimnasio>/api/backend`. La dirección es todo lo que recibe un
    * componente: el archivo lo sirve un endpoint que comprueba permisos, nunca
    * una carpeta pública.
    */
@@ -95,7 +95,7 @@ export interface PaymentRepository {
    * Where to open a payment's receipt.
    *
    * Built here rather than in a component so no module has to know the API
-   * lives behind `/api/backend`. The address is all a component gets: the file
+   * lives behind `/<gym>/api/backend`. The address is all a component gets: the file
    * is served by an endpoint that checks permissions, never from a public
    * folder, so there is no direct path to hand out.
    */

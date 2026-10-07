@@ -1,16 +1,6 @@
 import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import {
-  RUTAS,
-  buscarParaIngreso,
-  crearCliente,
-  crearPlan,
-  elegirOpcion,
-  esperarPost,
-  esperarResumenDePago,
-  irA,
-  marca,
-} from "../support/app";
+import { RUTAS, buscarParaIngreso, crearCliente, crearPlan, elegirOpcion, esperarPost, esperarResumenDePago, irA, marca, API_BACKEND, API_AUTH } from "../support/app";
 
 const ID = marca();
 const PLAN = `E2E Rastro ${ID}`;
@@ -32,7 +22,7 @@ test.describe("F13 · Quién hizo qué", () => {
     });
 
     await irA(page, RUTAS.modulos);
-    const yo = (await (await page.request.get("/api/auth/me")).json()) as {
+    const yo = (await (await page.request.get(`${API_AUTH}/me`)).json()) as {
       user: { fullName: string };
     };
     AUTOR = yo.user.fullName;
@@ -96,7 +86,7 @@ test.describe("F13 · Quién hizo qué", () => {
     await irA(page, RUTAS.clientesTodos);
 
     const lista = (await (
-      await page.request.get("/api/backend/clients")
+      await page.request.get(`${API_BACKEND}/clients`)
     ).json()) as { id: string; fullName: string; registeredBy: string }[];
     const nuestro = lista.find((uno) => uno.fullName === CLIENTE);
     expect(nuestro?.registeredBy).toBe(AUTOR);
@@ -105,7 +95,7 @@ test.describe("F13 · Quién hizo qué", () => {
     // rechaza los campos que no conoce, así que el autor solo puede salir
     // del token.
     const respuesta = await page.request.patch(
-      `/api/backend/clients/${nuestro?.id}`,
+      `${API_BACKEND}/clients/${nuestro?.id}`,
       {
         data: { fullName: CLIENTE, registeredBy: "Otra persona" },
         failOnStatusCode: false,
@@ -115,7 +105,7 @@ test.describe("F13 · Quién hizo qué", () => {
 
     // Y el autor sigue siendo el de verdad.
     const despues = (await (
-      await page.request.get(`/api/backend/clients/${nuestro?.id}`)
+      await page.request.get(`${API_BACKEND}/clients/${nuestro?.id}`)
     ).json()) as { registeredBy: string };
     expect(despues.registeredBy).toBe(AUTOR);
   });

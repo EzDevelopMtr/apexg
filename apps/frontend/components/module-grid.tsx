@@ -8,6 +8,7 @@ import { MODULES, ROLE_LABELS, canAccessModule, isModuleEnabled } from "@apexg/c
 import { useGymSettings } from "@apexg/module-kit";
 import { ACCENT_GLOW, ACCENT_TILE, Button, Icon, Logo } from "@apexg/ui";
 import type { Session } from "../lib/session-context";
+import { useGymPath } from "../lib/gym-path";
 import { useSession } from "../lib/use-session";
 
 const CARD_BASE =
@@ -106,6 +107,7 @@ function SessionBar({
 
 export default function ModuleGrid() {
   const router = useRouter();
+  const to = useGymPath();
   const { session, signOut } = useSession();
 
   // RF-02: the matrix decides what this role even sees. Hiding a card is not
@@ -123,7 +125,7 @@ export default function ModuleGrid() {
     // navigating before that finishes could race proxy.ts into seeing the
     // still-valid cookie and bouncing straight back here.
     await signOut();
-    router.replace("/login");
+    router.replace(to(""));
   };
 
   return (
@@ -167,7 +169,7 @@ export default function ModuleGrid() {
             module.available && module.route ? (
               <Link
                 key={module.id}
-                href={module.route}
+                href={to(module.route)}
                 className={`${CARD_BASE} ${CARD_AVAILABLE}`}
               >
                 <ModuleCard module={module} />

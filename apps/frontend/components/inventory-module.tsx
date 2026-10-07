@@ -3,6 +3,7 @@
 import ListToolbar from "./list-toolbar";
 import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { InventorySectionId } from "@apexg/core";
 import { inventorySections } from "@apexg/core";
 import { InventoryPage } from "@apexg/module-inventory";
@@ -15,6 +16,7 @@ export default function InventoryModule({
   sectionId: InventorySectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
   const section = inventorySections.getSection(sectionId);
 
   return (
@@ -28,7 +30,7 @@ export default function InventoryModule({
         <ListToolbar moduleId="inventory" basePath={BASE_PATH} />
         <InventoryPage
           sectionId={sectionId}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
         />
       </div>
     </div>

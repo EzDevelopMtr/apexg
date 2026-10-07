@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { listFiltersFor, navSectionsFor, primaryActionFor } from "@apexg/core";
 import { FilterBar, buttonClasses, filterChipClasses } from "@apexg/ui";
+import { useGymPath } from "../lib/gym-path";
 
 export interface ListToolbarProps {
   moduleId: string;
+  /** Inside the gym, e.g. `/modules/clients`. */
   basePath: string;
 }
 
@@ -23,7 +25,8 @@ export interface ListToolbarProps {
  * Fuera de un listado —en un formulario o un panel— no se muestra.
  */
 export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
-  const currentSection = usePathname().slice(basePath.length + 1);
+  const base = useGymPath()(basePath);
+  const currentSection = usePathname().slice(base.length + 1);
   const isList = navSectionsFor(moduleId).some(
     (section) => section.id === currentSection && section.kind === "list",
   );
@@ -42,7 +45,7 @@ export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
             return (
               <Link
                 key={filter.id}
-                href={`${basePath}/${filter.id}`}
+                href={`${base}/${filter.id}`}
                 aria-current={active ? "page" : undefined}
                 className={filterChipClasses(active)}
               >
@@ -58,7 +61,7 @@ export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
 
       {action && (
         <Link
-          href={`${basePath}/${action.id}`}
+          href={`${base}/${action.id}`}
           className={buttonClasses("primary", "sm")}
         >
           <Plus size={18} />

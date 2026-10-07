@@ -1,31 +1,39 @@
 import { expect } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 
+/** El gimnasio que se prueba: cada gimnasio vive bajo su propia direccion. */
+export const GIMNASIO = process.env.E2E_GYM ?? "apex-gym";
+/** Su proxy al backend y sus rutas de sesion: la cookie de sesion solo viaja ahi. */
+export const API_BACKEND = `/${GIMNASIO}/api/backend`;
+export const API_AUTH = `/${GIMNASIO}/api/auth`;
+
+const enElGimnasio = (ruta: string) => `/${GIMNASIO}${ruta}`;
+
 /** Rutas reales de la app, en un solo sitio para que un cambio se note aqui. */
 export const RUTAS = {
-  modulos: "/modules",
-  ingreso: "/modules/daily-log/checkin",
-  hoy: "/modules/daily-log/today",
-  venta: "/modules/daily-log/sell",
-  clientesNuevo: "/modules/clients/add",
-  clientesTodos: "/modules/clients/all",
-  planesNuevo: "/modules/memberships/add",
-  planesTodos: "/modules/memberships/all",
-  cobrar: "/modules/payments/record",
-  pagosTodos: "/modules/payments/all",
-  categoriasInventario: "/modules/inventory/categories",
-  categoriasEgresos: "/modules/expenses/categories",
-  inventarioTodos: "/modules/inventory/all",
-  inventarioNuevo: "/modules/inventory/add",
-  inventarioBajoMinimo: "/modules/inventory/lowStock",
-  inventarioAgotados: "/modules/inventory/outOfStock",
-  pagosPendientes: "/modules/payments/outstanding",
-  entrenadoresTodos: "/modules/trainers/all",
-  entrenadoresNuevo: "/modules/trainers/add",
-  entrenadoresComisiones: "/modules/trainers/commissions",
-  egresosTodos: "/modules/expenses/all",
-  egresosNuevo: "/modules/expenses/add",
-  finanzasPanel: "/modules/finances/dashboard",
+  modulos: enElGimnasio("/modules"),
+  ingreso: enElGimnasio("/modules/daily-log/checkin"),
+  hoy: enElGimnasio("/modules/daily-log/today"),
+  venta: enElGimnasio("/modules/daily-log/sell"),
+  clientesNuevo: enElGimnasio("/modules/clients/add"),
+  clientesTodos: enElGimnasio("/modules/clients/all"),
+  planesNuevo: enElGimnasio("/modules/memberships/add"),
+  planesTodos: enElGimnasio("/modules/memberships/all"),
+  cobrar: enElGimnasio("/modules/payments/record"),
+  pagosTodos: enElGimnasio("/modules/payments/all"),
+  categoriasInventario: enElGimnasio("/modules/inventory/categories"),
+  categoriasEgresos: enElGimnasio("/modules/expenses/categories"),
+  inventarioTodos: enElGimnasio("/modules/inventory/all"),
+  inventarioNuevo: enElGimnasio("/modules/inventory/add"),
+  inventarioBajoMinimo: enElGimnasio("/modules/inventory/lowStock"),
+  inventarioAgotados: enElGimnasio("/modules/inventory/outOfStock"),
+  pagosPendientes: enElGimnasio("/modules/payments/outstanding"),
+  entrenadoresTodos: enElGimnasio("/modules/trainers/all"),
+  entrenadoresNuevo: enElGimnasio("/modules/trainers/add"),
+  entrenadoresComisiones: enElGimnasio("/modules/trainers/commissions"),
+  egresosTodos: enElGimnasio("/modules/expenses/all"),
+  egresosNuevo: enElGimnasio("/modules/expenses/add"),
+  finanzasPanel: enElGimnasio("/modules/finances/dashboard"),
 } as const;
 
 /** Sufijo unico por corrida: dos ejecuciones no pueden pisarse los datos. */
@@ -209,7 +217,7 @@ export function baseUrl(): string {
 export function esperarPost(page: Page, ruta: string) {
   return page.waitForResponse(
     (respuesta) =>
-      respuesta.url().includes(`/api/backend`) &&
+      respuesta.url().includes(API_BACKEND) &&
       respuesta.url().includes(ruta) &&
       respuesta.request().method() === "POST",
   );

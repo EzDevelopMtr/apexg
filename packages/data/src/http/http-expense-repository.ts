@@ -6,7 +6,7 @@ import {
   toExpenseId,
 } from "@apexg/core";
 import type { ExpenseEntry, ExpenseRepository } from "../repositories";
-import { API_BASE, apiFetch } from "./http-client";
+import { apiBase, apiFetch } from "./http-client";
 import { toFormData } from "./multipart";
 
 type ApiCategoryState = 1 | 2;
@@ -80,7 +80,7 @@ export class HttpExpenseRepository implements ExpenseRepository {
   }
 
   receiptUrl(id: ExpenseId): string {
-    return `${API_BASE}/expenses/${id}/receipt`;
+    return `${apiBase()}/expenses/${id}/receipt`;
   }
 
   async listCategories(): Promise<readonly ExpenseCategory[]> {

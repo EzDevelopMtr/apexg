@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { ClientSectionId } from "@apexg/core";
 import { getClientSection } from "@apexg/core";
 import { ClientsPage } from "@apexg/module-clients";
@@ -20,6 +21,7 @@ export default function ClientsModule({
   sectionId: ClientSectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
 
   return (
     <div className="p-8">
@@ -32,7 +34,7 @@ export default function ClientsModule({
         <ListToolbar moduleId="clients" basePath={CLIENTS_BASE_PATH} />
         <ClientsPage
           sectionId={sectionId}
-          onNavigate={(next) => router.push(`${CLIENTS_BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${CLIENTS_BASE_PATH}/${next}`))}
         />
       </div>
     </div>

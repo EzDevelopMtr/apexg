@@ -8,7 +8,7 @@ import type {
 import { toClientId, toMembershipTypeId, toTrainerId } from "@apexg/core";
 import type { ClientRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
-import { API_BASE, ApiError, apiFetch } from "./http-client";
+import { apiBase, ApiError, apiFetch } from "./http-client";
 import { toFormData } from "./multipart";
 
 type ApiClientState = 1 | 2 | 3;
@@ -143,7 +143,7 @@ export class HttpClientRepository implements ClientRepository {
   }
 
   photoUrl(clientId: ClientId): string {
-    return `${API_BASE}/clients/${clientId}/photo`;
+    return `${apiBase()}/clients/${clientId}/photo`;
   }
 
   async create(draft: ClientDraft, photo?: Blob): Promise<Client> {

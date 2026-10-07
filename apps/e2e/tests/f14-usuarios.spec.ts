@@ -1,9 +1,9 @@
 import { test } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import { RUTAS, baseUrl, irA } from "../support/app";
+import { RUTAS, baseUrl, irA, API_BACKEND, GIMNASIO } from "../support/app";
 
 /** Same name the web app uses: `COOKIE_PREFIX` when set (see lib/session-cookie-name.ts). */
-const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_session`;
+const SESSION_COOKIE = `${process.env.COOKIE_PREFIX ?? "apexg"}_gym_session`;
 
 test.describe.configure({ mode: "serial" });
 
@@ -17,12 +17,12 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
     await irA(page, RUTAS.modulos);
     await page.getByRole("button", { name: /cerrar sesión/i }).click();
     // /login ya no es el formulario: redirige a la entrada del gimnasio.
-    await page.waitForURL("**/apex-gym");
+    await page.waitForURL(`**/${GIMNASIO}`);
 
     const cookies = await page.context().cookies();
     expect(cookies.find((c) => c.name === SESSION_COOKIE)).toBeUndefined();
 
-    const sinSesion = await page.request.get("/api/backend/clients", {
+    const sinSesion = await page.request.get(`${API_BACKEND}/clients`, {
       failOnStatusCode: false,
     });
     expect(sinSesion.status()).toBe(401);
@@ -49,7 +49,7 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
       { ...sesion!, value: alterado },
     ]);
 
-    const respuesta = await page.request.get("/api/backend/clients", {
+    const respuesta = await page.request.get(`${API_BACKEND}/clients`, {
       failOnStatusCode: false,
     });
     expect(respuesta.status()).toBe(401);
@@ -69,14 +69,14 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
     const origen = baseUrl();
 
     const rutas = [
-      "/api/backend/clients",
-      "/api/backend/payments",
-      "/api/backend/membership-types",
-      "/api/backend/expenses",
-      "/api/backend/inventory-items",
-      "/api/backend/trainers",
-      "/api/backend/savings-pockets",
-      "/api/backend/attendances",
+      `${API_BACKEND}/clients`,
+      `${API_BACKEND}/payments`,
+      `${API_BACKEND}/membership-types`,
+      `${API_BACKEND}/expenses`,
+      `${API_BACKEND}/inventory-items`,
+      `${API_BACKEND}/trainers`,
+      `${API_BACKEND}/savings-pockets`,
+      `${API_BACKEND}/attendances`,
     ];
 
     for (const ruta of rutas) {
@@ -101,7 +101,8 @@ test.describe("F14 · Usuarios, sesión y permisos", () => {
       RUTAS.ingreso,
     ]) {
       await irA(page, ruta);
-      expect(page.url(), `${ruta} rebotó al login`).not.toContain("/login");
+      // Un rebote ahora cae en la entrada del gimnasio, no en /login.
+      expect(new URL(page.url()).pathname, `${ruta} rebotó al login`).not.toBe(`/${GIMNASIO}`);
       // Un módulo al que no se tiene acceso muestra su propio contenido, no
       // una pantalla en blanco ni un error sin manejar.
       await expect(page.locator("main")).not.toBeEmpty();

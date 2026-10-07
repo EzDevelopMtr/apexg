@@ -1,4 +1,5 @@
 import { test as setup, expect } from "@playwright/test";
+import { GIMNASIO } from "../support/app";
 
 const SESSION = "reports/session.json";
 
@@ -17,7 +18,7 @@ setup("CP-01 · Iniciar sesion con credenciales validas", async ({ page }) => {
     "Falta E2E_USERNAME o E2E_PASSWORD en apps/e2e/.env",
   ).toBeTruthy();
 
-  await page.goto("/login");
+  await page.goto(`/${GIMNASIO}`);
   await page.getByLabel("Usuario").fill(usuario as string);
   await page.getByRole("textbox", { name: "Contraseña" }).fill(clave as string);
   await page.getByRole("button", { name: /ingresar/i }).click();

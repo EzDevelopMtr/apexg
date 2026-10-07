@@ -3,6 +3,7 @@
 import ListToolbar from "./list-toolbar";
 import SectionHeading from "./section-heading";
 import { useRouter } from "next/navigation";
+import { useGymPath } from "../lib/gym-path";
 import type { TrainerSectionId } from "@apexg/core";
 import { trainerSections } from "@apexg/core";
 import { TrainersPage } from "@apexg/module-trainers";
@@ -15,6 +16,7 @@ export default function TrainersModule({
   sectionId: TrainerSectionId;
 }) {
   const router = useRouter();
+  const to = useGymPath();
   const section = trainerSections.getSection(sectionId);
 
   return (
@@ -28,7 +30,7 @@ export default function TrainersModule({
         <ListToolbar moduleId="trainers" basePath={BASE_PATH} />
         <TrainersPage
           sectionId={sectionId}
-          onNavigate={(next) => router.push(`${BASE_PATH}/${next}`)}
+          onNavigate={(next) => router.push(to(`${BASE_PATH}/${next}`))}
         />
       </div>
     </div>
