@@ -44,11 +44,6 @@ export default function DailyModuleCard({ module, pulse, href, shortcutHref }: D
       <div className="pointer-events-none relative mt-4">
         <h3 className={`font-bold text-body ${module.featured ? "text-2xl" : "text-xl"}`}>
           {module.name}
-          {module.featured && (
-            <span className="ml-2 inline-block rounded-full bg-brand-soft px-2 py-0.5 align-middle text-xs font-semibold text-brand-ink">
-              Lo más usado
-            </span>
-          )}
         </h3>
         <p className="mt-1 text-sm text-body-soft">{module.description}</p>
       </div>
