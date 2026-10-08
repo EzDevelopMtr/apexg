@@ -63,7 +63,6 @@ function DayPassFields({ pass }: { pass: UseDayPassesResult }) {
           id="dayPassReceipt"
           label="Comprobante"
           accept="image/jpeg,image/png,image/webp,application/pdf"
-          hint="Captura de la transferencia. JPG, PNG, WEBP o PDF, hasta 5 MB."
           file={values.receipt}
           onChange={(file) => setValue("receipt", file)}
           error={problemText(problems, "receiptRequired")}
@@ -100,7 +99,6 @@ export default function DayPassDialog({
     <Modal
       open={open}
       title="Pase de día"
-      description="Para visitantes: no se registran como clientes."
       onClose={close}
     >
       <form

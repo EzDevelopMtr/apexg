@@ -36,7 +36,7 @@ export default function CheckInCard({ attendance, onCharge, actions }: CheckInCa
 
   return (
     <Card>
-      <CardHeader title="Registrar ingreso" description="Busca por nombre, o elige de la lista." action={<div className="flex flex-wrap gap-2">{actions}</div>} />
+      <CardHeader title="Registrar ingreso" action={<div className="flex flex-wrap gap-2">{actions}</div>} />
       <CardBody>
         <CheckInSearch value={query} onChange={search}>
           {attendance.matches.map((candidate) => (

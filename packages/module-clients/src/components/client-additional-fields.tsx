@@ -76,7 +76,6 @@ export default function ClientAdditionalFields({
         id="photo"
         label="Foto (opcional)"
         accept="image/jpeg,image/png,image/webp"
-        hint="Se ve en la lista y al registrar el ingreso. JPG, PNG o WEBP, hasta 2 MB."
         file={values.photo}
         onChange={(file) => setValue("photo", file)}
       />

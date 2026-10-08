@@ -30,7 +30,6 @@ export function NewPocketDialog({
     <Modal
       open={open}
       title="Nuevo bolsillo"
-      description="¿Para qué estás ahorrando y cuánto necesitas?"
       onClose={close}
     >
       <div className="space-y-4">

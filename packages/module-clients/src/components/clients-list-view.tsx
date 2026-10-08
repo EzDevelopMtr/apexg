@@ -74,7 +74,6 @@ export default function ClientsListView({
       <Modal
         open={editing !== null}
         title="Editar cliente"
-        description="Actualiza la información del cliente."
         onClose={() => setEditing(null)}
       >
         {editing && (

@@ -66,10 +66,7 @@ export default function ContactCard({ overview }: { overview: FinanceOverview })
 
   return (
     <Card>
-      <CardHeader
-        title="Plata por recuperar"
-        description={`${outlook.activeCount} clientes activos. Estos son los que conviene contactar.`}
-      />
+      <CardHeader title="Plata por recuperar" />
       <CardBody>
         <div className="grid gap-8 md:grid-cols-3">
           <Column

@@ -50,7 +50,7 @@ export default function FinancesPage() {
         <PeriodFilter period={period} />
         <FinanceKpis overview={overview} versus={period.period.versus} />
         <TrendCard overview={overview} />
-        <BreakdownCards overview={overview} rangeLabel={period.rangeLabel} />
+        <BreakdownCards overview={overview} />
         <ContactCard overview={overview} />
         <Section title="Bolsillos de ahorro">
           <SavingsPanel />

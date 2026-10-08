@@ -5,11 +5,6 @@ import type { Money } from "@apexg/core";
 import { Card, CardBody, CardHeader, ColumnChart } from "@apexg/ui";
 import type { FinanceOverview } from "../hooks/use-finance-overview";
 
-const DESCRIPTION = {
-  day: "Por día. Pasa el mouse sobre una barra para ver el detalle y la utilidad.",
-  month: "Por mes. Pasa el mouse sobre una barra para ver el detalle y la utilidad.",
-} as const;
-
 /**
  * Ingresos contra egresos a lo largo del periodo.
  *
@@ -22,10 +17,7 @@ export default function TrendCard({ overview }: { overview: FinanceOverview }) {
 
   return (
     <Card>
-      <CardHeader
-        title="Ingresos y egresos"
-        description={DESCRIPTION[overview.granularity]}
-      />
+      <CardHeader title="Ingresos y egresos" />
       <CardBody>
         <ColumnChart
           label="Ingresos y egresos del periodo"

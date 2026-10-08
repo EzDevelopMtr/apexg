@@ -31,7 +31,6 @@ export default function NewClientsCard({
     <Card>
       <CardHeader
         title={clients.length > 0 ? `Clientes nuevos · ${clients.length}` : "Clientes nuevos"}
-        description="Registrados hoy, con su plan y forma de pago."
       />
       <CardBody>
         {clients.length === 0 ? (
@@ -68,11 +67,6 @@ export default function NewClientsCard({
               );
             })}
           </ul>
-        )}
-        {clients.length > VISIBLE_ROWS && (
-          <p className="mt-3 text-xs text-body-faint">
-            Desliza la lista para ver los {clients.length - VISIBLE_ROWS} restantes.
-          </p>
         )}
       </CardBody>
     </Card>

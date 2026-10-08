@@ -49,9 +49,6 @@ export default function SavingsPanel() {
                   ? "Todavía no hay bolsillos."
                   : `Apartado en total: ${formatCOP(totalSavedNow)}`}
               </p>
-              <p className="mt-1 text-sm text-body-soft">
-                Plata con un destino. Sale de la utilidad, no de los egresos.
-              </p>
             </div>
             <Button size="sm" onClick={() => setDialog({ kind: "newPocket" })}>
               <Plus size={16} />

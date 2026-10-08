@@ -58,7 +58,6 @@ export default function FinanceKpis({
       <KpiCard
         label="Comisiones por pagar"
         value={formatCOP(overview.commissionsDue)}
-        hint="Se pagan desde Entrenadores → Comisiones"
         icon={<HandCoins size={20} />}
       />
     </div>

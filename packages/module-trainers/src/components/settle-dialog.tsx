@@ -54,7 +54,6 @@ function PayoutFields({ settlement }: { settlement: UseSettlementResult }) {
           id="settlementReceipt"
           label="Comprobante"
           accept="image/jpeg,image/png,image/webp,application/pdf"
-          hint="Captura de la transferencia. JPG, PNG, WEBP o PDF, hasta 5 MB."
           file={receipt}
           onChange={settlement.setReceipt}
           error={

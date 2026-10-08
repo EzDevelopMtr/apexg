@@ -92,9 +92,10 @@ test.describe("F2 · Ingresos de la mañana", () => {
       .getByText(/dentro ahora/i)
       .first()
       .textContent();
+    // El total del día es la tarjeta «Ingresos al gym» del resumen.
     const ingresaron = await page
-      .getByText(/personas ingresaron hoy/i)
-      .first()
+      .getByText(/^ingresos al gym$/i)
+      .locator("xpath=following-sibling::p[1]")
       .textContent();
 
     const dentro = Number(/(\d+)/.exec(encabezado ?? "")?.[1] ?? "0");

@@ -26,7 +26,6 @@ test.describe("F22 · Finanzas por periodo", () => {
     const hoy = new Date();
     const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
     await expect(columnas(page)).toHaveCount(diasDelMes);
-    await expect(page.getByText(/^por día\./i)).toBeVisible();
     await info.attach("mes-actual", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   });
 
@@ -42,7 +41,6 @@ test.describe("F22 · Finanzas por periodo", () => {
     await irA(page, RUTAS.finanzasPanel);
     await page.getByRole("button", { name: "Últimos 6 meses" }).click();
     await expect(columnas(page)).toHaveCount(6);
-    await expect(page.getByText(/^por mes\./i)).toBeVisible();
   });
 
   caso("CP-99", "Personalizado filtra de verdad, y avisa si las fechas están al revés", async ({ page }, info) => {

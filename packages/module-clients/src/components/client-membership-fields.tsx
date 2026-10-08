@@ -113,13 +113,9 @@ export default function ClientMembershipFields({
           disabled
           // RF-07: derived from the start date and the plan's term, so it is
           // shown rather than typed. The old form let staff enter any date.
-          aria-describedby="expiration-hint"
         />
       </div>
 
-      <p id="expiration-hint" className="-mt-2 text-sm text-body-soft">
-        El vencimiento se calcula automáticamente según el tipo de membresía.
-      </p>
     </>
   );
 }

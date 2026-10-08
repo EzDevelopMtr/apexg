@@ -68,7 +68,6 @@ export default function DayPassList({ passes, receiptUrl }: DayPassListProps) {
       <Card>
         <CardHeader
           title={`Pases de día · ${passes.length}`}
-          description="Visitantes de hoy, sin ficha de cliente."
         />
         <CardBody padding="sm">
           <ul className="divide-y divide-line-soft">

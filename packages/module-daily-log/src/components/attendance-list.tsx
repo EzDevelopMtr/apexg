@@ -76,7 +76,6 @@ export default function AttendanceList({
     <Card>
       <CardHeader
         title={`Dentro ahora · ${inside.length}`}
-        description={`${entries.length} personas ingresaron hoy`}
       />
       <CardBody padding="sm">
         {entries.length === 0 ? (

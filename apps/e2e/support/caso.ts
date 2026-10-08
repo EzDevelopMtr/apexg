@@ -3,6 +3,11 @@ import type { Page, TestInfo } from "@playwright/test";
 
 export { expect };
 
+/** El gimnasio que se prueba: su sesión se renueva por su propia dirección. */
+const GIMNASIO = process.env.E2E_GYM ?? "apex-gym";
+/** La sesión que cada caso recibe al abrir su navegador: la guarda `auth.setup.ts`. */
+const SESION = new URL("../reports/session.json", import.meta.url).pathname.slice(1);
+
 /**
  * Un caso del plan de pruebas, no un `test` suelto.
  *
@@ -18,6 +23,12 @@ export function caso(
 ): void {
   base(`${id} · ${titulo}`, async ({ page }, testInfo) => {
     testInfo.annotations.push({ type: "caso", description: id });
+    // El token dura 15 minutos y cada caso abre su navegador desde la sesión
+    // guardada al inicio: en una corrida larga (con ventana visible, 15 o más)
+    // llegaría vencida. Cada caso la renueva y vuelve a guardarla, así el
+    // siguiente arranca con una vigente. Sin sesión (login) no hace nada.
+    const renovada = await page.request.post(`/${GIMNASIO}/api/auth/refresh`, { failOnStatusCode: false });
+    if (renovada.ok()) await page.context().storageState({ path: SESION });
     await cuerpo({ page }, testInfo);
   });
 }

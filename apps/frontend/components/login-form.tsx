@@ -96,9 +96,6 @@ export default function LoginForm({ suspended = false }: LoginFormProps) {
           <Logo size="md" className="mb-8" />
 
           <h1 className="text-2xl font-bold text-body">Inicia sesión</h1>
-          <p className="mt-1 text-body-soft">
-            Accede a tu cuenta y sigue con tu entrenamiento.
-          </p>
 
           {suspended && (
             <p role="alert" className="mt-6 rounded-lg border border-warn-line bg-warn-soft p-3 text-sm text-warn-ink">

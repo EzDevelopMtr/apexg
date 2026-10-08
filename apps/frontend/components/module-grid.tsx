@@ -19,13 +19,8 @@ const SHELL = "mx-auto w-full max-w-7xl px-6 lg:px-10";
 const PAGE_Y = "pt-[clamp(1.25rem,3vh,2.5rem)] pb-[clamp(1.5rem,4vh,3rem)]";
 const TIER_TITLE = "text-xs font-semibold uppercase tracking-wider text-body-faint";
 
-function TierHeading({ title, hint }: { title: string; hint: string }) {
-  return (
-    <div className="mb-4 flex items-baseline gap-3">
-      <h2 className={TIER_TITLE}>{title}</h2>
-      <span className="text-sm text-body-faint">{hint}</span>
-    </div>
-  );
+function TierHeading({ title }: { title: string }) {
+  return <h2 className={`mb-4 ${TIER_TITLE}`}>{title}</h2>;
 }
 
 /**
@@ -66,7 +61,6 @@ export default function ModuleGrid() {
             <span aria-hidden className="hidden h-14 w-px bg-line sm:block" />
             <div>
               <h1 className="text-3xl font-bold text-body">¡Hola, {session?.username}!</h1>
-              <p className="mt-2 text-body-soft">Selecciona el módulo al que deseas ingresar.</p>
             </div>
           </div>
           <div className="flex w-full flex-col-reverse gap-4 sm:flex-row sm:items-center lg:ml-auto lg:w-auto">
@@ -77,7 +71,7 @@ export default function ModuleGrid() {
 
         {daily.length > 0 && (
           <section className="mt-[clamp(1.75rem,5vh,3rem)]">
-            <TierHeading title="Para el día a día" hint="Lo que se usa en cada turno" />
+            <TierHeading title="Para el día a día" />
             <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
               {daily.map((module) => (
                 <DailyModuleCard
@@ -94,7 +88,7 @@ export default function ModuleGrid() {
 
         {management.length > 0 && (
           <section className="mt-10">
-            <TierHeading title="Gestión del gimnasio" hint="Se revisa cada tanto" />
+            <TierHeading title="Gestión del gimnasio" />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               {management.map((module) => (
                 <ManagementModuleCard key={module.id} module={module} href={module.available ? hrefOf(module.route) : null} />

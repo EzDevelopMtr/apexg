@@ -13,19 +13,14 @@ import type { FinanceOverview } from "../hooks/use-finance-overview";
  */
 export default function BreakdownCards({
   overview,
-  rangeLabel,
 }: {
   overview: FinanceOverview;
   /** El periodo escrito, "14 – 20 sep 2026". */
-  rangeLabel: string;
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Card>
-        <CardHeader
-          title="De dónde viene el ingreso"
-          description={`${rangeLabel}, por plan, venta de productos y pases de día.`}
-        />
+        <CardHeader title="De dónde viene el ingreso" />
         <CardBody>
           <BarList
             label="Ingresos del periodo por origen"
@@ -41,10 +36,7 @@ export default function BreakdownCards({
       </Card>
 
       <Card>
-        <CardHeader
-          title="En qué se va"
-          description={`${rangeLabel}, por categoría, contra el periodo anterior.`}
-        />
+        <CardHeader title="En qué se va" />
         <CardBody>
           <BarList
             label="Egresos del periodo por categoría"

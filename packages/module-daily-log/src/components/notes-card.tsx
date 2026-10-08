@@ -30,10 +30,7 @@ export default function NotesCard({
 
   return (
     <Card>
-      <CardHeader
-        title="Novedades del día"
-        description="Observaciones e incidentes."
-      />
+      <CardHeader title="Novedades del día" />
       <CardBody className="space-y-4">
         {notes.length === 0 ? (
           <p className="text-body-faint">Sin novedades registradas.</p>
@@ -62,9 +59,7 @@ export default function NotesCard({
             }}
             placeholder="Ej. Se dañó una caminadora"
           />
-          <p className="mt-2 text-xs text-body-faint">
-            {saving ? "Guardando..." : "Enter para agregarla."}
-          </p>
+          {saving && <p className="mt-2 text-xs text-body-faint">Guardando...</p>}
         </div>
       </CardBody>
     </Card>
