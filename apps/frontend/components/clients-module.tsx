@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useGymPath } from "../lib/gym-path";
 import type { ClientSectionId } from "@apexg/core";
 import { getClientSection } from "@apexg/core";
@@ -22,6 +22,8 @@ export default function ClientsModule({
 }) {
   const router = useRouter();
   const to = useGymPath();
+  // A name picked on the selector's client search arrives as ?q=.
+  const initialQuery = useSearchParams().get("q") ?? undefined;
 
   return (
     <div className="p-8">
@@ -31,9 +33,12 @@ export default function ClientsModule({
           sectionId={sectionId}
           title={getClientSection(sectionId).title}
         />
-        <ListToolbar moduleId="clients" basePath={CLIENTS_BASE_PATH} />
         <ClientsPage
           sectionId={sectionId}
+          initialQuery={initialQuery}
+          toolbar={({ search, counts }) => (
+            <ListToolbar moduleId="clients" basePath={CLIENTS_BASE_PATH} search={search} counts={counts} />
+          )}
           onNavigate={(next) => router.push(to(`${CLIENTS_BASE_PATH}/${next}`))}
         />
       </div>

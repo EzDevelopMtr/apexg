@@ -7,10 +7,9 @@ import { CollectionGate } from "@apexg/module-kit";
 import { useDailyLog } from "../hooks/use-daily-log";
 import { useProductSales } from "../hooks/use-product-sales";
 import { useSaleCatalogs } from "../hooks/use-sale-catalogs";
-import CheckInPanel from "./check-in-panel";
 import DailyLogHistory from "./daily-log-history";
-import DailyLogPanel from "./daily-log-panel";
 import RegisterSaleForm from "./register-sale-form";
+import TodayPanel from "./today-panel";
 
 export interface DailyLogPageProps {
   sectionId: DailyLogSectionId;
@@ -43,10 +42,6 @@ export default function DailyLogPage({
   const catalogs = useSaleCatalogs();
   const [referenceDate] = useState(today);
 
-  if (sectionId === "checkin") {
-    return <CheckInPanel onCharge={onCharge} />;
-  }
-
   if (sectionId === "sell") {
     return (
       <CollectionGate
@@ -71,14 +66,15 @@ export default function DailyLogPage({
       errorMessage="No pudimos cargar el apartado diario."
     >
       {sectionId === "today" ? (
-        <DailyLogPanel
+        <TodayPanel
           payments={log.payments}
           productSales={log.productSales}
-          dayPasses={log.dayPasses}
           clients={log.clients}
           notes={log.notes}
           on={referenceDate}
           onAddNote={(text) => log.addNote(text, recordedBy, referenceDate)}
+          onCharge={onCharge}
+          onNavigate={onNavigate}
         />
       ) : (
         <DailyLogHistory notes={log.notes} />

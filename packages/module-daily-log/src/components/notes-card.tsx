@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import type { DailyLogNote } from "@apexg/core";
-import { Button, Card, CardBody, CardHeader, Textarea } from "@apexg/ui";
+import { Card, CardBody, CardHeader, Input } from "@apexg/ui";
 
-/** The day's notes, plus a box to add one (RF-34). */
+/** The day's notes, plus a box to add one with Enter — no separate button (RF-34). */
 export default function NotesCard({
   notes,
   onAddNote,
@@ -51,18 +51,20 @@ export default function NotesCard({
         )}
 
         <div className="border-t border-line-soft pt-4">
-          <Textarea
+          <Input
             id="newNote"
             label="Agregar novedad"
             value={text}
+            disabled={saving}
             onChange={(event) => setText(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void submit();
+            }}
             placeholder="Ej. Se dañó una caminadora"
           />
-          <div className="mt-3 flex justify-end">
-            <Button onClick={submit} disabled={saving || !text.trim()}>
-              {saving ? "Guardando..." : "Agregar"}
-            </Button>
-          </div>
+          <p className="mt-2 text-xs text-body-faint">
+            {saving ? "Guardando..." : "Enter para agregarla."}
+          </p>
         </div>
       </CardBody>
     </Card>

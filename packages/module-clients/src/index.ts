@@ -6,6 +6,7 @@
  */
 
 export { default as ClientsPage } from "./components/clients-page";
+export type { ClientsToolbarSlots } from "./components/clients-list-view";
 export type { ClientsPageProps } from "./components/clients-page";
 
 export { default as ClientForm } from "./components/client-form";

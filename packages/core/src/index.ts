@@ -42,6 +42,7 @@ export * from "./domain/permissions";
 export * from "./navigation/accents";
 export * from "./navigation/icons";
 export * from "./navigation/modules";
+export * from "./navigation/module-pulse";
 export * from "./navigation/client-sections";
 export * from "./navigation/section-catalog";
 export * from "./navigation/membership-sections";

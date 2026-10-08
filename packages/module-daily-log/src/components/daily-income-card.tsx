@@ -72,8 +72,8 @@ function rowsFor({
 /**
  * What came in today, and where it came from (RF-34).
  *
- * Collapsed, it shows the total the way it always has. Expanded, it lists
- * every payment, sale and day pass behind that total — a receptionist can
+ * The total itself sits in the summary row above; this card is the detail
+ * behind it. Expanded, it lists every payment, sale and day pass — a receptionist can
  * see not just where the money came from but which client paid, which
  * product moved and which visitor came in.
  */
@@ -98,7 +98,7 @@ export default function DailyIncomeCard({
 
   return (
     <Card>
-      <CardHeader title="Ingresos del día" description={on} />
+      <CardHeader title="Movimientos del día" description={on} />
       <CardBody>
         <button
           type="button"
@@ -107,14 +107,11 @@ export default function DailyIncomeCard({
           className="flex w-full items-center justify-between text-left"
         >
           <div>
-            <p className="text-3xl font-bold text-body">
-              {formatCOP(log.income)}
+            <p className="text-lg font-semibold text-body">
+              {count} {count === 1 ? "movimiento registrado" : "movimientos registrados"}
             </p>
             <p className="mt-1 text-sm text-body-soft">
-              {count}{" "}
-              {count === 1
-                ? "movimiento registrado"
-                : "movimientos registrados"}
+              {expanded ? "Ocultar detalle" : `Ver de dónde salieron los ${formatCOP(log.income)}`}
             </p>
           </div>
           {expanded ? (

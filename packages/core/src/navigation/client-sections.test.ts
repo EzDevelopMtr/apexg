@@ -6,6 +6,7 @@ import { toClientId } from "../domain/client";
 import { toMembershipTypeId } from "../domain/membership";
 import {
   CLIENT_SECTIONS,
+  countClientsBySection,
   getClientSection,
   isClientSectionId,
 } from "./client-sections";
@@ -126,5 +127,25 @@ describe("client sections under a gym's settings", () => {
     const soon = { ...lapsed, expirationDate: "2026-03-20" } as typeof lapsed;
     expect(expiring.includes(soon, on)).toBe(false);
     expect(expiring.includes(soon, on, { ...DEFAULT_GYM_SETTINGS, expiringSoonDays: 14 })).toBe(true);
+  });
+});
+
+describe("countClientsBySection", () => {
+  it("cuenta cada filtro con el mismo predicado que su tabla", () => {
+    const counts = countClientsBySection(ALL, TODAY);
+    for (const id of ["all", "active", "expiring", "overdue"] as const) {
+      expect(counts[id], id).toBe(idsIn(id).length);
+    }
+  });
+
+  it("no cuenta el formulario: no es un filtro", () => {
+    expect(countClientsBySection(ALL, TODAY).add).toBeUndefined();
+  });
+
+  it("respeta los días de gracia del gimnasio", () => {
+    const sinGracia = countClientsBySection([OVERDUE], TODAY, DEFAULT_GYM_SETTINGS).overdue;
+    const conGracia = countClientsBySection([OVERDUE], TODAY, { ...DEFAULT_GYM_SETTINGS, graceDays: 30 }).overdue;
+    expect(sinGracia).toBe(1);
+    expect(conGracia).toBe(0);
   });
 });

@@ -12,7 +12,8 @@ const enElGimnasio = (ruta: string) => `/${GIMNASIO}${ruta}`;
 /** Rutas reales de la app, en un solo sitio para que un cambio se note aqui. */
 export const RUTAS = {
   modulos: enElGimnasio("/modules"),
-  ingreso: enElGimnasio("/modules/daily-log/checkin"),
+  // El ingreso vive en «Hoy»: ya no tiene pestaña propia.
+  ingreso: enElGimnasio("/modules/daily-log/today"),
   hoy: enElGimnasio("/modules/daily-log/today"),
   venta: enElGimnasio("/modules/daily-log/sell"),
   clientesNuevo: enElGimnasio("/modules/clients/add"),

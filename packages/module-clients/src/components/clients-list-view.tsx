@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import type {
   Client,
   ClientDraft,
@@ -8,6 +9,7 @@ import type {
   ClientSection,
   IsoDate,
 } from "@apexg/core";
+import { countClientsBySection } from "@apexg/core";
 import { useGymSettings, useMembershipTypeCatalog } from "@apexg/module-kit";
 import { Modal } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
@@ -25,6 +27,18 @@ export interface ClientsListViewProps {
     photo?: File,
   ) => Promise<void>;
   photoUrl: (clientId: ClientId) => string;
+  /** Prefills the search: a name picked on the selector's client search. */
+  initialQuery?: string;
+  /**
+   * The app's toolbar (filters and main action, which route), given this
+   * view's search and the count behind each filter so all share one row.
+   */
+  toolbar?: (slots: ClientsToolbarSlots) => ReactNode;
+}
+
+export interface ClientsToolbarSlots {
+  readonly search: ReactNode;
+  readonly counts: Partial<Record<string, number>>;
 }
 
 export default function ClientsListView({
@@ -33,16 +47,20 @@ export default function ClientsListView({
   referenceDate,
   onSave,
   photoUrl,
+  initialQuery = "",
+  toolbar,
 }: ClientsListViewProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [editing, setEditing] = useState<Client | null>(null);
   const settings = useGymSettings();
   const visible = useVisibleClients(clients, section, { query, referenceDate, settings });
   const membershipTypes = useMembershipTypeCatalog();
+  const counts = useMemo(() => countClientsBySection(clients, referenceDate, settings), [clients, referenceDate, settings]);
+  const search = <ClientSearch value={query} onChange={setQuery} />;
 
   return (
     <>
-      <ClientSearch value={query} onChange={setQuery} />
+      {toolbar ? toolbar({ search, counts }) : <div className="mb-4">{search}</div>}
 
       <ClientList
         clients={visible}

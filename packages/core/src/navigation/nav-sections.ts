@@ -21,6 +21,8 @@ export interface NavigableSection {
   readonly label: string;
   readonly icon: IconName;
   readonly kind: SectionView<never>["kind"];
+  /** `false` when it opens from a button in the panel rather than as a tab. */
+  readonly tab: boolean;
 }
 
 /**
@@ -40,11 +42,12 @@ export interface NavTab {
 function toNavigable(
   sections: readonly ModuleSection<string, never>[],
 ): readonly NavigableSection[] {
-  return sections.map(({ id, label, icon, view }) => ({
+  return sections.map(({ id, label, icon, view, tab }) => ({
     id,
     label,
     icon,
     kind: view.kind,
+    tab: tab !== false,
   }));
 }
 
@@ -89,7 +92,7 @@ const LIST_TAB_LABEL = "Listado";
  * un registro más en el catálogo, no una pestaña que alguien deba recordar.
  */
 export function navTabsFor(moduleId: string): readonly NavTab[] {
-  const sections = navSectionsFor(moduleId);
+  const sections = navSectionsFor(moduleId).filter((section) => section.tab);
   const listIds = listsOf(moduleId).map((section) => section.id);
   const firstList = listIds[0];
   const hasList = firstList !== undefined;
@@ -123,6 +126,14 @@ export function primaryActionFor(moduleId: string): NavigableSection | null {
   return (
     navSectionsFor(moduleId).find((section) => section.kind === "form") ?? null
   );
+}
+
+/**
+ * Las tareas que el panel del módulo ofrece como botones —registrar una
+ * venta desde el apartado diario—: secciones marcadas `tab: false`.
+ */
+export function panelActionsFor(moduleId: string): readonly NavigableSection[] {
+  return navSectionsFor(moduleId).filter((section) => !section.tab);
 }
 
 /** Etiqueta del filtro que devuelve el listado completo. */

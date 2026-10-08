@@ -32,8 +32,27 @@ export default function Table({ headers, children }: TableProps) {
   );
 }
 
-export function TableRow({ children }: { children: ReactNode }) {
-  return <tr className="transition hover:bg-surface">{children}</tr>;
+/** True when the click landed on a control inside the row, which acts on its own. */
+const onControl = (target: EventTarget) => target instanceof Element && target.closest("button, a, input, select, textarea") !== null;
+
+/**
+ * A row. With `onActivate` the whole row is the way into the record — click
+ * or Enter — so a table needs no "Acción" column of identical buttons.
+ * Controls inside it (a photo, a link) keep their own click.
+ */
+export function TableRow({ children, onActivate, label }: { children: ReactNode; onActivate?: () => void; label?: string }) {
+  if (!onActivate) return <tr className="transition hover:bg-surface">{children}</tr>;
+  return (
+    <tr
+      tabIndex={0}
+      aria-label={label}
+      onClick={(event) => !onControl(event.target) && onActivate()}
+      onKeyDown={(event) => event.key === "Enter" && event.target === event.currentTarget && onActivate()}
+      className="cursor-pointer transition hover:bg-surface focus:outline-none focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
+    >
+      {children}
+    </tr>
+  );
 }
 
 export function TableCell({

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 import { listFiltersFor, navSectionsFor, primaryActionFor } from "@apexg/core";
@@ -11,6 +12,10 @@ export interface ListToolbarProps {
   moduleId: string;
   /** Inside the gym, e.g. `/modules/clients`. */
   basePath: string;
+  /** The list's search, on the same row as the filters. */
+  search?: ReactNode;
+  /** How many records each filter holds, shown beside its label. */
+  counts?: Partial<Record<string, number>>;
 }
 
 /**
@@ -24,7 +29,7 @@ export interface ListToolbarProps {
  *
  * Fuera de un listado —en un formulario o un panel— no se muestra.
  */
-export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
+export default function ListToolbar({ moduleId, basePath, search, counts }: ListToolbarProps) {
   const base = useGymPath()(basePath);
   const currentSection = usePathname().slice(base.length + 1);
   const isList = navSectionsFor(moduleId).some(
@@ -34,11 +39,11 @@ export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
 
   const filters = listFiltersFor(moduleId);
   const action = primaryActionFor(moduleId);
-  if (filters.length === 0 && !action) return null;
+  if (filters.length === 0 && !action && !search) return null;
 
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-      {filters.length > 0 ? (
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      {filters.length > 0 && (
         <FilterBar label="Filtrar el listado">
           {filters.map((filter) => {
             const active = filter.id === currentSection;
@@ -50,19 +55,20 @@ export default function ListToolbar({ moduleId, basePath }: ListToolbarProps) {
                 className={filterChipClasses(active)}
               >
                 {filter.label}
+                {counts?.[filter.id] !== undefined && (
+                  <span className="ml-1.5 text-xs tabular-nums opacity-70">{counts[filter.id]}</span>
+                )}
               </Link>
             );
           })}
         </FilterBar>
-      ) : (
-        // Mantiene la acción a la derecha aunque no haya filtros.
-        <span />
       )}
+      {search}
 
       {action && (
         <Link
           href={`${base}/${action.id}`}
-          className={buttonClasses("primary", "sm")}
+          className={`${buttonClasses("primary", "sm")} ml-auto`}
         >
           <Plus size={18} />
           {action.label}

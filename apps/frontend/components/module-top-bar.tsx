@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { findModule, navTabsFor } from "@apexg/core";
 import { Icon, TopBarShell, topBarTabClasses } from "@apexg/ui";
 import { useGymPath } from "../lib/gym-path";
+import ModuleJump from "./module-jump";
 
 export interface ModuleTopBarProps {
   /** Module id, e.g. `clients`. Its name and sections are looked up from it. */
@@ -36,15 +36,7 @@ export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) 
   return (
     <TopBarShell
       title={module.name}
-      trailing={
-        <Link
-          href={to("/modules")}
-          className="flex h-9 items-center gap-2 rounded-lg px-3 text-sm text-body-faint transition hover:bg-panel/10 hover:text-body"
-        >
-          <ArrowLeft size={18} className="shrink-0" />
-          <span className="hidden md:inline">Cambiar módulo</span>
-        </Link>
-      }
+      trailing={<ModuleJump current={moduleId} />}
     >
       {tabs.length > 0
         ? tabs.map((tab) => {

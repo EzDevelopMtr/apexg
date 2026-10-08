@@ -1,6 +1,8 @@
+import type { IsoDate } from "../domain/calendar";
 import type { Client } from "../domain/client";
 import { isExpiringSoon, resolveStatus } from "../domain/client";
 import { DEFAULT_GYM_SETTINGS } from "../domain/gym-settings";
+import type { GymSettings } from "../domain/gym-settings";
 import { createSectionCatalog } from "./section-catalog";
 import type { ModuleSection } from "./section-catalog";
 
@@ -75,3 +77,22 @@ export const DEFAULT_CLIENT_SECTION = clientSections.defaultSectionId;
  */
 export const isClientSectionId = clientSections.isSectionId;
 export const getClientSection = clientSections.getSection;
+
+/**
+ * How many clients each list section holds on `on` — the counts beside the
+ * filter chips. Computed from the same predicates the table uses, so a chip
+ * can never promise a number its list does not show.
+ */
+export function countClientsBySection(
+  clients: readonly Client[],
+  on: IsoDate,
+  settings: GymSettings = DEFAULT_GYM_SETTINGS,
+): Partial<Record<ClientSectionId, number>> {
+  const counts: Partial<Record<ClientSectionId, number>> = {};
+  for (const section of clientSections.sections) {
+    if (section.view.kind !== "list") continue;
+    const { includes } = section.view;
+    counts[section.id] = clients.filter((client) => includes(client, on, settings)).length;
+  }
+  return counts;
+}

@@ -18,7 +18,19 @@ export interface Module {
    */
   readonly available: boolean;
   readonly route: string | null;
+  /** How often it is used: it decides where and how large it shows on the selector. */
+  readonly tier: ModuleTier;
+  /** The daily module the selector leads with. */
+  readonly featured?: true;
+  /** A daily module's most frequent task, offered right on its card. Route relative to the gym. */
+  readonly shortcut?: { readonly label: string; readonly route: string };
 }
+
+/**
+ * `daily`: used on every shift — large on the selector, with live figures and
+ * one shortcut. `management`: checked now and then — compact, below.
+ */
+export type ModuleTier = "daily" | "management";
 
 /**
  * Every module the SRS defines.
@@ -35,6 +47,8 @@ export const MODULES: readonly Module[] = [
     accent: "green",
     available: true,
     route: "/modules/clients/all",
+    tier: "daily",
+    shortcut: { label: "Agregar", route: "/modules/clients/add" },
   },
   {
     id: "memberships",
@@ -44,6 +58,7 @@ export const MODULES: readonly Module[] = [
     accent: "violet",
     available: true,
     route: "/modules/memberships/all",
+    tier: "management",
   },
   {
     id: "payments",
@@ -53,6 +68,8 @@ export const MODULES: readonly Module[] = [
     accent: "fuchsia",
     available: true,
     route: "/modules/payments/all",
+    tier: "daily",
+    shortcut: { label: "Cobrar", route: "/modules/payments/record" },
   },
   {
     id: "trainers",
@@ -62,6 +79,7 @@ export const MODULES: readonly Module[] = [
     accent: "orange",
     available: true,
     route: "/modules/trainers/all",
+    tier: "management",
   },
   {
     id: "expenses",
@@ -71,6 +89,7 @@ export const MODULES: readonly Module[] = [
     accent: "teal",
     available: true,
     route: "/modules/expenses/all",
+    tier: "management",
   },
   {
     id: "inventory",
@@ -80,6 +99,7 @@ export const MODULES: readonly Module[] = [
     accent: "rose",
     available: true,
     route: "/modules/inventory/all",
+    tier: "management",
   },
   {
     id: "finances",
@@ -89,17 +109,33 @@ export const MODULES: readonly Module[] = [
     accent: "lime",
     available: true,
     route: "/modules/finances/dashboard",
+    tier: "management",
   },
   {
     id: "dailyLog",
     name: "Apartado diario",
-    description: "Bitácora del día",
+    description: "Ingresos, ventas y novedades del día",
     icon: "notebook",
     accent: "amber",
     available: true,
     route: "/modules/daily-log/today",
+    tier: "daily",
+    featured: true,
+    shortcut: { label: "Registrar ingreso", route: "/modules/daily-log/today" },
   },
 ];
+
+/**
+ * The selector's two tiers. Daily modules lead, the featured one first; the
+ * rest keep catalogue order. A new module only declares its tier.
+ */
+export function modulesByTier(modules: readonly Module[]): Record<ModuleTier, readonly Module[]> {
+  const daily = modules.filter((module) => module.tier === "daily");
+  return {
+    daily: [...daily.filter((module) => module.featured), ...daily.filter((module) => !module.featured)],
+    management: modules.filter((module) => module.tier === "management"),
+  };
+}
 
 export function findModule(id: string): Module | undefined {
   return MODULES.find((module) => module.id === id);

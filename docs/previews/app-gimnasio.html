@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>App del gimnasio — propuesta</title>
+<style>
+/* =====================================================================
+   Propuesta de rediseño de la app de cada gimnasio.
+   Mismo lenguaje que el panel de plataforma: tokens de
+   packages/ui/src/theme.css, resortes críticamente amortiguados, material
+   translúcido en el cromo, respuesta al presionar, deshacer en vez de
+   confirmar. Verde, ámbar y rojo SOLO para los estados del cliente.
+   ===================================================================== */
+:root {
+  --color-shell: #0a0c0e; --color-canvas: #0f1215; --color-panel: #171a1f; --color-surface: #1c2026;
+  --color-brand: #0e9aa7; --color-brand-strong: #13adb9; --color-brand-ink: #6fd3db;
+  --color-brand-soft: #0d3236; --color-brand-contrast: #ffffff;
+  --color-body: #f2f5f7; --color-body-muted: #c4cbd2; --color-body-soft: #9ba3ab; --color-body-faint: #6e767e;
+  --color-ok-soft: #12331f; --color-ok-ink: #6ee7a0;
+  --color-warn-soft: #3a2e12; --color-warn-ink: #fbd24e;
+  --color-danger-soft: #3a1a1c; --color-danger-ink: #f98a8a;
+  --color-idle-soft: #23272d; --color-idle-ink: #a8b0b8;
+  --spring: linear(0, 0.0596, 0.186, 0.3294, 0.4656, 0.584, 0.6819, 0.7601, 0.821, 0.8677, 0.9029, 0.9292, 0.9487, 0.963, 0.9734, 0.9809, 0.9864, 0.9903, 0.9931, 0.9951, 0.9966, 0.9976, 0.9983, 0.9988, 1);
+  --spring-fast: linear(0, 0.0816, 0.2431, 0.4129, 0.562, 0.6819, 0.7736, 0.8412, 0.89, 0.9246, 0.9487, 0.9653, 0.9767, 0.9844, 0.9896, 0.9931, 0.9955, 0.997, 0.998, 0.9987, 1);
+  --t-spring: 600ms; --t-spring-fast: 450ms;
+  --hairline: rgba(255, 255, 255, 0.06);
+  --fill-1: rgba(255, 255, 255, 0.04); --fill-2: rgba(255, 255, 255, 0.07); --fill-3: rgba(255, 255, 255, 0.11);
+  --side: 248px;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0; min-height: 100vh; overflow-x: hidden;
+  font: 100%/1.5 Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--color-body); background-color: var(--color-canvas);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; -webkit-tap-highlight-color: transparent; }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.tabular { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-brand-ink); outline-offset: 2px; }
+kbd { font: 600 11px ui-monospace, "SF Mono", Menlo, Consolas, monospace; padding: 2px 6px; border-radius: 6px; background: var(--fill-2); color: var(--color-body-soft); box-shadow: inset 0 -1px 0 rgba(0,0,0,.35); }
+
+/* La app retrocede un poco cuando una hoja toma el foco. */
+.app { display: grid; grid-template-columns: var(--side) minmax(0, 1fr); min-height: 100vh; transform-origin: 50% 0; transition: transform var(--t-spring) var(--spring), filter 300ms ease; }
+.app.pushed { transform: scale(0.985); filter: brightness(0.8); }
+
+/* ---------- Barra lateral: frecuencia de uso, de arriba abajo ---------- */
+.side { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 18px 14px; background: color-mix(in srgb, var(--color-shell) 70%, transparent); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: inset -1px 0 0 var(--hairline); }
+.gym { display: flex; align-items: center; gap: 10px; padding: 4px 6px 16px; }
+.gym-mark { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 14px; background: var(--color-brand); color: var(--color-brand-contrast); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+.gym b { display: block; font-size: 15px; letter-spacing: -0.01em; }
+.gym span { font-size: 12px; color: var(--color-body-faint); }
+.find { display: flex; align-items: center; gap: 10px; width: 100%; height: 38px; padding: 0 10px; border-radius: 11px; background: var(--fill-2); color: var(--color-body-faint); font-size: 14px; transition: background-color 150ms ease, transform 100ms ease-out; }
+.find:hover { background: var(--fill-3); }
+.find:active { transform: scale(0.98); }
+.find span { flex: 1; text-align: left; }
+.nav-group { margin-top: 20px; }
+.nav-group h4 { margin: 0 0 6px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-body-faint); }
+.nav-item { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; height: 40px; padding: 0 10px; border-radius: 10px; font-size: 14px; font-weight: 550; color: var(--color-body-soft); transition: background-color 150ms ease, color 150ms ease, transform 100ms ease-out; }
+.nav-item:hover { background: var(--fill-1); color: var(--color-body); }
+.nav-item:active { transform: scale(0.98); }
+.nav-item[aria-current="page"] { background: var(--fill-2); color: var(--color-body); }
+.nav-item[aria-current="page"] svg { color: var(--color-brand-ink); }
+.nav-item.primary { height: 46px; font-size: 15px; font-weight: 650; }
+.nav-item .count { margin-left: auto; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--fill-3); color: var(--color-body-muted); }
+.nav-group.occasional .nav-item { height: 34px; font-size: 13px; }
+.nav-group.occasional .nav-item svg { width: 16px; height: 16px; }
+.me { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px 6px 0; border-top: 1px solid var(--hairline); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--fill-3); color: var(--color-body-muted); flex: none; }
+.me .who { flex: 1; min-width: 0; line-height: 1.2; }
+.me .who b { display: block; font-size: 13px; }
+.me .who span { font-size: 12px; color: var(--color-body-faint); }
+
+/* ---------- Barra superior: solo controles de la vista previa ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: flex-end; gap: 14px; height: 56px; padding: 0 28px; background: color-mix(in srgb, var(--color-canvas) 70%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.preview-tag { margin-right: auto; font-size: 11px; font-weight: 600; color: var(--color-brand-ink); background: var(--color-brand-soft); padding: 3px 10px; border-radius: 999px; }
+.ctl { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-body-faint); }
+
+/* ---------- Controles comunes ---------- */
+.segmented { position: relative; display: inline-flex; padding: 3px; border-radius: 11px; background: var(--fill-2); }
+.segmented button { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; color: var(--color-body-soft); border-radius: 8px; transition: color 200ms ease; white-space: nowrap; }
+.segmented button[aria-selected="true"] { color: var(--color-body); }
+.segmented .thumb { position: absolute; top: 3px; bottom: 3px; left: 0; border-radius: 8px; background: var(--fill-3); box-shadow: 0 1px 2px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06); transition: transform var(--t-spring-fast) var(--spring-fast), width var(--t-spring-fast) var(--spring-fast); }
+.segmented.sm button { padding: 4px 10px; font-size: 12px; }
+.segmented .n { font-size: 11px; color: var(--color-body-faint); font-weight: 600; }
+.switch { position: relative; width: 42px; height: 26px; border-radius: 999px; background: var(--fill-3); transition: background-color 250ms ease; flex: none; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: transform var(--t-spring-fast) var(--spring-fast); }
+.switch[aria-checked="true"] { background: var(--color-brand); }
+.switch[aria-checked="true"]::after { transform: translateX(16px); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 600; white-space: nowrap; transition: transform 100ms ease-out, background-color 150ms ease, opacity 150ms ease; }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; pointer-events: none; }
+.btn-primary { background: var(--color-brand); color: var(--color-brand-contrast); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
+.btn-primary:hover { background: var(--color-brand-strong); }
+.btn-secondary { background: var(--fill-2); }
+.btn-secondary:hover { background: var(--fill-3); }
+.btn-plain { color: var(--color-brand-ink); padding: 0 10px; }
+.btn-plain:hover { background: var(--fill-1); }
+.btn-lg { height: 48px; padding: 0 22px; font-size: 15px; border-radius: 14px; }
+.btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--fill-2); color: var(--color-body-soft); }
+.btn-icon:hover { background: var(--fill-3); color: var(--color-body); }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; width: max-content; white-space: nowrap; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.active { background: var(--color-ok-soft); color: var(--color-ok-ink); }
+.pill.expiring { background: var(--color-warn-soft); color: var(--color-warn-ink); }
+.pill.overdue { background: var(--color-danger-soft); color: var(--color-danger-ink); }
+.pill.inactive { background: var(--color-idle-soft); color: var(--color-idle-ink); }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.dot.active { background: var(--color-ok-ink); } .dot.expiring { background: var(--color-warn-ink); } .dot.overdue { background: var(--color-danger-ink); } .dot.inactive { background: var(--color-idle-ink); }
+
+/* Notas de diseño: se pueden apagar desde la barra superior. */
+.note { display: none; gap: 8px; align-items: flex-start; margin: 10px 0 0; padding: 8px 12px; border-radius: 10px; font-size: 12px; line-height: 1.45; color: var(--color-brand-ink); background: color-mix(in srgb, var(--color-brand-soft) 70%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-brand) 30%, transparent); }
+.note svg { width: 14px; height: 14px; margin-top: 1px; }
+body.notes .note { display: flex; }
+
+/* ---------- Página ---------- */
+main { max-width: 1120px; padding: 12px 28px 96px; }
+.view { animation: enter 420ms var(--spring) both; }
+@keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 22px; }
+.display { margin: 0; font-size: clamp(1.9rem, 3.6vw, 2.6rem); line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; }
+.lede { margin: 6px 0 0; color: var(--color-body-soft); font-size: 15px; }
+.card { background: var(--color-panel); border-radius: 18px; box-shadow: inset 0 1px 0 var(--hairline); }
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 6px; }
+.card-head h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--color-body-soft); display: flex; align-items: center; gap: 8px; }
+.card-head h3 svg { width: 16px; height: 16px; color: var(--color-brand-ink); }
+
+/* ---------- Hoy: quién llega ---------- */
+.arrive { padding: 22px; border-radius: 22px; background: linear-gradient(160deg, color-mix(in srgb, var(--color-brand) 16%, var(--color-panel)), var(--color-panel) 60%); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.arrive label { display: block; font-size: 13px; font-weight: 600; color: var(--color-body-soft); margin: 0 0 10px 4px; }
+.big-input { display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 18px; border-radius: 16px; background: rgba(0,0,0,.28); box-shadow: inset 0 0 0 1px var(--hairline); transition: box-shadow 150ms ease; }
+.big-input:focus-within { box-shadow: inset 0 0 0 1px var(--color-brand), 0 0 0 4px var(--color-brand-soft); }
+.big-input svg { width: 22px; height: 22px; color: var(--color-body-faint); }
+.big-input input { flex: 1; min-width: 0; border: 0; background: none; outline: none; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.big-input input::placeholder { color: var(--color-body-faint); }
+.match { margin-top: 12px; display: flex; align-items: center; gap: 16px; padding: 14px 14px 14px 16px; border-radius: 16px; background: rgba(0,0,0,.22); animation: materialize 360ms var(--spring) both; }
+.match .avatar { width: 46px; height: 46px; font-size: 15px; }
+.match .info { flex: 1; min-width: 0; }
+.match .info b { display: block; font-size: 17px; letter-spacing: -0.01em; }
+.match .info span { font-size: 13px; color: var(--color-body-soft); }
+.match .why { display: block; margin-top: 4px; font-size: 12px; color: var(--color-body-faint); }
+.others { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 12px; border-radius: 999px; font-size: 13px; background: var(--fill-2); color: var(--color-body-muted); transition: background-color 150ms ease, transform 100ms ease-out; }
+.chip:hover { background: var(--fill-3); }
+.chip:active { transform: scale(0.96); }
+
+/* ---------- Hoy: lo que más se hace, a un toque ---------- */
+.quick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0 24px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; padding: 16px; border-radius: 18px; background: var(--color-panel); box-shadow: inset 0 1px 0 var(--hairline); text-align: left; transition: transform 100ms ease-out, background-color 150ms ease; }
+.tile:hover { background: var(--color-surface); }
+.tile:active { transform: scale(0.97); }
+.tile .ico { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--color-brand-soft); color: var(--color-brand-ink); }
+.tile b { display: block; font-size: 15px; letter-spacing: -0.01em; }
+.tile span { display: flex; align-items: center; justify-content: space-between; width: 100%; font-size: 12px; color: var(--color-body-faint); }
+
+.today-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; }
+.cash { padding: 4px 18px 18px; }
+.cash .total { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.cash .sub { font-size: 13px; color: var(--color-body-faint); }
+.bar { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin: 14px 0 10px; background: var(--fill-2); }
+.bar i { display: block; height: 100%; transition: width var(--t-spring) var(--spring); }
+.legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.legend div { font-size: 12px; color: var(--color-body-faint); }
+.legend b { display: block; font-size: 14px; color: var(--color-body); }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; }
+.c1 { background: var(--color-brand); } .c2 { background: color-mix(in srgb, var(--color-brand) 55%, #fff 0%); opacity: .7; } .c3 { background: var(--color-body-faint); }
+
+.rows { padding: 4px 6px 8px; }
+.row { position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 58px; padding: 8px 12px; border-radius: 12px; text-align: left; transition: background-color 150ms ease, transform 100ms ease-out; }
+.row:hover { background: var(--fill-1); }
+.row:active { transform: scale(0.995); background: var(--fill-2); }
+.row .avatar { width: 36px; height: 36px; }
+.row .t { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .s { font-size: 12px; color: var(--color-body-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.row .end { display: flex; align-items: center; gap: 8px; }
+/* La acción de la fila aparece al pasar el cursor: la lista no se llena de botones. */
+.row .hover-act { opacity: 0; transform: translateX(4px); transition: opacity 150ms ease, transform var(--t-spring-fast) var(--spring-fast); }
+.row:hover .hover-act, .row:focus-within .hover-act { opacity: 1; transform: none; }
+.subhead { margin: 10px 12px 2px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--color-body-faint); display: flex; align-items: center; gap: 8px; }
+
+.timeline { padding: 4px 18px 16px; }
+.event { display: grid; grid-template-columns: 52px 26px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 40px; font-size: 14px; }
+.event.new { animation: materialize 420ms var(--spring) both; }
+.event time { font-size: 12px; color: var(--color-body-faint); }
+.event .k { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--fill-2); color: var(--color-body-soft); }
+.event .k svg { width: 14px; height: 14px; }
+.event .amt { font-weight: 600; font-size: 13px; }
+.notes-box { padding: 4px 18px 16px; }
+.notes-box textarea { width: 100%; min-height: 84px; resize: vertical; border: 0; border-radius: 12px; padding: 12px; background: var(--fill-1); outline: none; font-size: 14px; line-height: 1.5; }
+.notes-box textarea:focus { box-shadow: inset 0 0 0 1px var(--color-brand); }
+.saved { font-size: 12px; color: var(--color-body-faint); transition: opacity 200ms ease; }
+
+/* ---------- Listas (Clientes, Pagos, gestión) ---------- */
+.toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.search { position: relative; flex: 1; max-width: 340px; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-body-faint); }
+.search input { width: 100%; height: 38px; border-radius: 11px; border: 1px solid transparent; background: var(--fill-2); padding: 0 12px 0 36px; font-size: 14px; outline: none; }
+.search input:focus { border-color: var(--color-brand); }
+.table { background: var(--color-panel); border-radius: 18px; overflow: hidden; box-shadow: inset 0 1px 0 var(--hairline); }
+.trow { position: relative; display: grid; grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) 110px 120px 18px; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 0 18px; text-align: left; transition: background-color 150ms ease; }
+.trow + .trow::before { content: ""; position: absolute; top: 0; left: 72px; right: 0; height: 1px; background: var(--hairline); }
+.trow:hover { background: var(--fill-1); }
+.trow:active { background: var(--fill-2); }
+.trow .t { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trow .s { font-size: 12px; color: var(--color-body-faint); }
+.trow .r { text-align: right; font-size: 14px; font-weight: 600; }
+.trow .r small { display: block; font-size: 11px; font-weight: 500; color: var(--color-body-faint); }
+.chev { color: var(--color-body-faint); }
+.thead { display: grid; grid-template-columns: 40px minmax(0, 1.5fr) minmax(0, 1.2fr) 110px 120px 18px; gap: 14px; padding: 12px 18px 6px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--color-body-faint); }
+.thead span:nth-child(5) { text-align: right; }
+.empty { padding: 36px; text-align: center; color: var(--color-body-soft); font-size: 14px; }
+.stock { display: flex; align-items: center; gap: 10px; }
+.stock .meter { width: 70px; height: 6px; border-radius: 999px; background: var(--fill-2); overflow: hidden; }
+.stock .meter i { display: block; height: 100%; background: var(--color-body-soft); border-radius: 999px; }
+.stock.low .meter i { background: var(--color-body-faint); }
+.tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--fill-2); color: var(--color-body-muted); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { padding: 16px 18px; }
+.kpi .label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--color-body-faint); }
+.kpi .value { font-size: 26px; font-weight: 650; letter-spacing: -0.015em; margin-top: 6px; }
+.kpi .hint { font-size: 12px; color: var(--color-body-soft); }
+
+/* ---------- Hoja (modal) ---------- */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity 300ms ease; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; z-index: 50; top: 12px; right: 12px; bottom: 12px; width: min(500px, calc(100vw - 24px)); border-radius: 24px; display: flex; flex-direction: column; background: color-mix(in srgb, var(--color-panel) 88%, transparent); backdrop-filter: blur(40px) saturate(160%); -webkit-backdrop-filter: blur(40px) saturate(160%); box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(255,255,255,.05); transform: translateX(calc(100% + 28px)); transition: transform var(--t-spring) var(--spring); will-change: transform; }
+.sheet.open { transform: none; }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 18px 8px 22px; }
+.sheet-head h2 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+.sheet-body { flex: 1; overflow: auto; padding: 6px 22px 22px; }
+.sheet-foot { display: flex; gap: 10px; align-items: center; justify-content: flex-end; padding: 14px 22px 18px; }
+.sheet-foot .grow { margin-right: auto; }
+.sheet-swap { animation: swap 380ms var(--spring) both; }
+@keyframes swap { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+.sheet-swap.back { animation-name: swapback; }
+@keyframes swapback { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+.identity { display: flex; align-items: center; gap: 16px; padding: 6px 0 4px; }
+.identity .avatar { width: 58px; height: 58px; font-size: 19px; }
+.identity .nm { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.15; }
+.identity .doc { font-size: 13px; color: var(--color-body-faint); }
+.section { margin-top: 20px; }
+.section > h3 { margin: 0 0 8px 2px; font-size: 12px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--color-body-faint); }
+.box { background: var(--fill-1); border-radius: 14px; padding: 14px; }
+.plan-line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.plan-line b { font-size: 15px; }
+.progress { height: 8px; border-radius: 999px; background: var(--fill-2); overflow: hidden; margin: 10px 0 6px; }
+.progress i { display: block; height: 100%; border-radius: 999px; background: var(--color-brand); }
+.muted { font-size: 12px; color: var(--color-body-faint); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 14px; }
+.kv span { color: var(--color-body-soft); }
+.kv b { text-align: right; }
+.more { position: relative; }
+.menu { position: absolute; bottom: calc(100% + 8px); left: 0; min-width: 220px; padding: 6px; border-radius: 14px; background: color-mix(in srgb, var(--color-surface) 92%, transparent); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); box-shadow: 0 16px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); transform-origin: bottom left; transform: scale(.94); opacity: 0; pointer-events: none; transition: transform var(--t-spring-fast) var(--spring-fast), opacity 150ms ease; }
+.menu.open { transform: none; opacity: 1; pointer-events: auto; }
+.menu button { display: flex; align-items: center; gap: 10px; width: 100%; height: 38px; padding: 0 10px; border-radius: 9px; font-size: 14px; text-align: left; }
+.menu button:hover { background: var(--fill-2); }
+.menu svg { width: 16px; height: 16px; color: var(--color-body-soft); }
+
+/* Pasos del alta */
+.steps { display: flex; gap: 6px; margin: 2px 0 18px; }
+.steps i { flex: 1; height: 4px; border-radius: 999px; background: var(--fill-2); overflow: hidden; position: relative; }
+.steps i::after { content: ""; position: absolute; inset: 0; background: var(--color-brand); transform: scaleX(0); transform-origin: left; transition: transform var(--t-spring) var(--spring); }
+.steps i.done::after { transform: scaleX(1); }
+.step-title { font-size: 20px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 4px; }
+.field { margin-top: 12px; }
+.field label { display: block; font-size: 13px; color: var(--color-body-soft); margin-bottom: 6px; }
+.input { display: flex; align-items: center; gap: 8px; height: 44px; border-radius: 12px; background: var(--fill-2); border: 1px solid transparent; padding: 0 12px; transition: border-color 150ms ease, box-shadow 150ms ease; }
+.input:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px var(--color-brand-soft); }
+.input input, .input select { flex: 1; min-width: 0; border: 0; background: none; outline: none; font-size: 15px; }
+.input select option { background: var(--color-panel); }
+.input .prefix { color: var(--color-body-faint); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.disclose { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--color-brand-ink); }
+.disclose svg { width: 16px; height: 16px; transition: transform var(--t-spring-fast) var(--spring-fast); }
+.disclose[aria-expanded="true"] svg { transform: rotate(90deg); }
+.reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--t-spring) var(--spring); }
+.reveal.open { grid-template-rows: 1fr; }
+.reveal > div { overflow: hidden; min-height: 0; }
+.plans { display: grid; gap: 8px; }
+.plan { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: var(--fill-1); text-align: left; box-shadow: inset 0 0 0 1px transparent; transition: box-shadow 150ms ease, background-color 150ms ease, transform 100ms ease-out; }
+.plan:hover { background: var(--fill-2); }
+.plan:active { transform: scale(0.99); }
+.plan[aria-checked="true"] { box-shadow: inset 0 0 0 1.5px var(--color-brand); background: color-mix(in srgb, var(--color-brand-soft) 55%, transparent); }
+.radio { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--fill-3); transition: box-shadow 200ms ease; }
+.plan[aria-checked="true"] .radio { box-shadow: inset 0 0 0 5px var(--color-brand); }
+.plan b { font-size: 15px; }
+.plan .muted { display: block; }
+.plan .price { font-weight: 650; font-size: 15px; }
+.badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand-ink); margin-left: 6px; }
+.amount { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; text-align: center; margin: 8px 0 2px; }
+.amount input { width: 100%; text-align: center; border: 0; background: none; outline: none; font-size: 40px; font-weight: 700; letter-spacing: -0.02em; }
+.center { text-align: center; }
+.drop { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px 14px; border-radius: 12px; border: 1.5px dashed var(--fill-3); font-size: 13px; color: var(--color-body-soft); }
+.drop svg { color: var(--color-brand-ink); }
+.summary { margin-top: 18px; }
+.success { text-align: center; padding: 24px 6px 6px; }
+.success .mark { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; background: var(--color-brand-soft); color: var(--color-brand-ink); animation: materialize 520ms var(--spring) both; }
+.success .mark svg { width: 30px; height: 30px; }
+.success h3 { margin: 0; font-size: 22px; letter-spacing: -0.015em; }
+.success p { margin: 6px 0 0; color: var(--color-body-soft); font-size: 14px; }
+.products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.product { position: relative; padding: 12px; border-radius: 14px; background: var(--fill-1); text-align: left; transition: background-color 150ms ease, transform 100ms ease-out, box-shadow 150ms ease; }
+.product:hover { background: var(--fill-2); }
+.product:active { transform: scale(0.96); }
+.product:disabled { opacity: .4; pointer-events: none; }
+.product b { display: block; font-size: 14px; }
+.product .muted { display: block; }
+.product .qty { position: absolute; top: 8px; right: 8px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--color-brand); color: #fff; animation: materialize 300ms var(--spring) both; }
+.product.in { box-shadow: inset 0 0 0 1.5px var(--color-brand); }
+
+/* ---------- Búsqueda universal (Ctrl+K) ---------- */
+.palette { position: fixed; z-index: 70; top: 12vh; left: 50%; width: min(620px, calc(100vw - 32px)); border-radius: 20px; overflow: hidden; background: color-mix(in srgb, var(--color-surface) 90%, transparent); backdrop-filter: blur(40px) saturate(170%); -webkit-backdrop-filter: blur(40px) saturate(170%); box-shadow: 0 30px 90px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(255,255,255,.05); transform: translateX(-50%) scale(.96); opacity: 0; pointer-events: none; transition: transform var(--t-spring-fast) var(--spring-fast), opacity 160ms ease; }
+.palette.open { transform: translateX(-50%); opacity: 1; pointer-events: auto; }
+.palette .big-input { border-radius: 0; height: 58px; background: none; box-shadow: inset 0 -1px 0 var(--hairline); }
+.palette .big-input input { font-size: 17px; }
+.results { max-height: 52vh; overflow: auto; padding: 8px; }
+.result { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; min-height: 46px; padding: 6px 10px; border-radius: 11px; text-align: left; font-size: 14px; }
+.result[aria-selected="true"] { background: var(--fill-2); }
+.result .ico { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--fill-2); color: var(--color-body-soft); }
+.result .ico svg { width: 16px; height: 16px; }
+.result .avatar { width: 30px; height: 30px; font-size: 11px; }
+.result small { display: block; font-size: 12px; color: var(--color-body-faint); }
+.result .go { font-size: 12px; color: var(--color-body-faint); }
+.group-label { margin: 8px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--color-body-faint); }
+.palette-foot { display: flex; gap: 14px; padding: 10px 16px; font-size: 12px; color: var(--color-body-faint); box-shadow: inset 0 1px 0 var(--hairline); }
+
+/* ---------- Aviso con deshacer ---------- */
+.toast { position: fixed; z-index: 80; left: calc(50% + var(--side) / 2); bottom: 24px; display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 18px; border-radius: 16px; font-size: 14px; font-weight: 500; background: color-mix(in srgb, var(--color-surface) 82%, transparent); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: 0 16px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08); transform: translate(-50%, 16px) scale(.96); opacity: 0; filter: blur(6px); pointer-events: none; transition: transform var(--t-spring) var(--spring), opacity 220ms ease, filter 260ms ease; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; filter: none; pointer-events: auto; }
+.toast .btn { height: 32px; }
+
+@keyframes materialize { from { opacity: 0; transform: scale(.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* ---------- Celular: barra inferior con lo diario; lo demás en "Más" ---------- */
+.tabbar { display: none; }
+@media (max-width: 900px) {
+  :root { --side: 0px; }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .topbar { padding: 0 16px; }
+  .topbar .ctl span, .preview-tag { display: none; }
+  .topbar { justify-content: space-between; }
+  /* En el teléfono no hay teclado físico: sin atajos, y tarjetas más bajas. */
+  .tile { flex-direction: row; align-items: center; gap: 12px; padding: 14px; }
+  .tile span, .big-input kbd, .find kbd { display: none; }
+  .big-input { height: 54px; }
+  .match { flex-wrap: wrap; }
+  .match .btn { width: 100%; }
+  .tile b { font-size: 14px; }
+  .big-input input { font-size: 18px; }
+  main { padding: 8px 16px 110px; }
+  .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .today-grid { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .thead { display: none; }
+  .trow { grid-template-columns: 40px minmax(0, 1fr) auto 14px; }
+  .trow .c3, .trow .c4 { display: none; }
+  .trow + .trow::before { left: 72px; }
+  .products { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .row .hover-act { opacity: 1; transform: none; }
+  .tabbar { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--color-shell) 75%, transparent); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 var(--hairline); }
+  .tabbar button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; font-size: 11px; font-weight: 600; color: var(--color-body-faint); border-radius: 10px; transition: color 150ms ease, transform 100ms ease-out; }
+  .tabbar button:active { transform: scale(.94); }
+  .tabbar button[aria-current="page"] { color: var(--color-brand-ink); }
+  .tabbar svg { width: 22px; height: 22px; }
+  .sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: 24px 24px 0 0; transform: translateY(100%); }
+  .sheet.open { transform: none; }
+  .toast { left: 50%; bottom: 92px; }
+}
+
+/* ---------- Accesibilidad ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .app, .sheet, .toast, .palette, .segmented .thumb, .switch::after, .menu, .reveal, .bar i, .steps i::after { transition: opacity 200ms ease !important; }
+  .app.pushed { transform: none; }
+  .view, .match, .event.new, .sheet-swap, .success .mark, .product .qty { animation: none; }
+  .sheet { transform: none !important; opacity: 0; pointer-events: none; }
+  .sheet.open { opacity: 1; pointer-events: auto; }
+  .toast { filter: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .side, .topbar, .tabbar { background: var(--color-shell); backdrop-filter: none; }
+  .sheet, .palette, .menu { background: var(--color-panel); backdrop-filter: none; }
+  .toast { background: var(--color-surface); backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .card, .table, .sheet, .palette, .tile { border: 1px solid var(--color-body-faint); }
+}
+</style>
+</head>
+<body class="notes">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41M17.66 6.34l1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="i-card" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></symbol>
+    <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M14.4 14.4 9.6 9.6M18.66 21.51a2 2 0 1 1-2.83-2.83l-1.77 1.77a2 2 0 1 1-2.83-2.83l6.37-6.37a2 2 0 1 1 2.83 2.83l-1.77 1.77a2 2 0 1 1 2.83 2.83zM21.5 21.5l-1.4-1.4M3.9 3.9 2.5 2.5M6.4 12.77a2 2 0 1 1-2.83-2.83l1.77-1.77a2 2 0 1 1-2.83-2.83l2.83-2.83a2 2 0 1 1 2.83 2.83l1.77-1.77a2 2 0 1 1 2.83 2.83z"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></symbol>
+    <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2M13 17v2M13 11v2"/></symbol>
+    <symbol id="i-door" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5M15 12H3"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92Z"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+    <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <aside class="side" aria-label="Navegación">
+    <div class="gym"><div class="gym-mark">SF</div><div><b>Smart Fit</b><span>Sede principal</span></div></div>
+    <button class="find" data-act="palette"><svg class="i"><use href="#i-search"/></svg><span>Buscar o hacer…</span><kbd>Ctrl K</kbd></button>
+    <nav id="nav"></nav>
+    <div class="me"><div class="avatar" id="me-avatar">LG</div><div class="who"><b id="me-name">Laura Gómez</b><span id="me-role">Administradora</span></div><button class="btn-icon" title="Cerrar sesión" aria-label="Cerrar sesión"><svg class="i"><use href="#i-out"/></svg></button></div>
+  </aside>
+
+  <div>
+    <header class="topbar">
+      <span class="preview-tag">Propuesta · datos de ejemplo</span>
+      <div class="ctl"><span>Ver como</span>
+        <div class="segmented sm" id="role-seg" role="tablist"><button role="tab" data-role="admin" aria-selected="true">Administración</button><button role="tab" data-role="reception" aria-selected="false">Recepción</button></div>
+      </div>
+      <div class="ctl"><span>Notas de diseño</span><button class="switch" id="notes-switch" role="switch" aria-checked="true" aria-label="Notas de diseño"></button></div>
+    </header>
+    <main id="main"></main>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar" aria-label="Navegación"></nav>
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title"><div id="sheet-inner" style="display:contents"></div></aside>
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Buscar o hacer">
+  <div class="big-input"><svg class="i"><use href="#i-search"/></svg><input id="palette-input" placeholder="Nombre, documento o lo que quieras hacer…" autocomplete="off" /></div>
+  <div class="results" id="results" role="listbox"></div>
+  <div class="palette-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> moverse</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Esc</kbd> cerrar</span></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toast-msg"></span><button class="btn btn-plain" id="toast-undo">Deshacer</button></div>
+
+<script>
+/* ============================ Datos de ejemplo ============================ */
+const STATE_LABEL = { active: "Activo", expiring: "Por vencer", overdue: "En mora", inactive: "Vencido" };
+const PLANS = [
+  { id: "mes", name: "Mensualidad (lunes a sábado)", price: 65000, min: 30000, length: "1 mes", popular: true },
+  { id: "mes3", name: "Mes 3 veces por semana", price: 50000, min: 30000, length: "1 mes" },
+  { id: "quincena", name: "Quincena", price: 45000, length: "15 días" },
+  { id: "semana", name: "Semana", price: 25000, length: "7 días" },
+  { id: "promo1", name: "Promo amigos/familiar", price: 60000, length: "1 mes", more: true },
+  { id: "promo2", name: "Promo folleto físico", price: 55000, length: "1 mes", more: true },
+  { id: "semi", name: "Semipersonalizado", price: 150000, min: 75000, length: "1 mes", trainer: true, more: true },
+  { id: "perso", name: "Personalizado", price: 200000, min: 100000, length: "1 mes", trainer: true, more: true },
+];
+const TRAINERS = ["Andrés Mejía", "Camila Rojas", "Felipe Duarte"];
+let clients = [
+  { id: 1, name: "Ana María Ruiz", doc: "1023456789", phone: "300 112 2334", plan: "mes", state: "active", ends: "6 nov", left: 29, total: 30, debt: 0 },
+  { id: 2, name: "Carlos Pérez", doc: "79845123", phone: "311 445 9902", plan: "mes3", state: "active", ends: "21 oct", left: 13, total: 30, debt: 0 },
+  { id: 3, name: "María José López", doc: "1032998741", phone: "315 220 1188", plan: "mes", state: "expiring", ends: "10 oct", left: 2, total: 30, debt: 0 },
+  { id: 4, name: "Julián Torres", doc: "1010223344", phone: "320 556 7788", plan: "perso", state: "overdue", ends: "30 sep", left: -8, total: 30, debt: 100000, trainer: "Camila Rojas" },
+  { id: 5, name: "Valentina Gómez", doc: "1144556677", phone: "301 778 9900", plan: "quincena", state: "expiring", ends: "9 oct", left: 1, total: 15, debt: 0 },
+  { id: 6, name: "Santiago Herrera", doc: "80123456", phone: "312 345 6789", plan: "mes", state: "overdue", ends: "2 oct", left: -6, total: 30, debt: 35000 },
+  { id: 7, name: "Daniela Castro", doc: "1020304050", phone: "316 789 0123", plan: "mes", state: "active", ends: "28 oct", left: 20, total: 30, debt: 0 },
+  { id: 8, name: "Mateo Vargas", doc: "1098765432", phone: "318 901 2345", plan: "semana", state: "inactive", ends: "28 sep", left: -10, total: 7, debt: 0 },
+  { id: 9, name: "Isabella Moreno", doc: "1056789012", phone: "304 567 8901", plan: "mes", state: "expiring", ends: "12 oct", left: 4, total: 30, debt: 0 },
+  { id: 10, name: "Sebastián Ríos", doc: "1077889900", phone: "305 678 9012", plan: "semi", state: "active", ends: "1 nov", left: 24, total: 30, debt: 0, trainer: "Andrés Mejía" },
+  { id: 11, name: "Laura Restrepo", doc: "1033445566", phone: "317 234 5678", plan: "mes3", state: "active", ends: "25 oct", left: 17, total: 30, debt: 15000 },
+];
+const PRODUCTS = [
+  { id: "agua", name: "Agua 600 ml", price: 2000, stock: 15, min: 5 },
+  { id: "gato", name: "Gatorade", price: 4500, stock: 3, min: 5 },
+  { id: "barra", name: "Barra de proteína", price: 3500, stock: 22, min: 6 },
+  { id: "sobre", name: "Proteína (sobre)", price: 6000, stock: 0, min: 4 },
+  { id: "crea", name: "Creatina (porción)", price: 8000, stock: 6, min: 3 },
+  { id: "toalla", name: "Toalla (alquiler)", price: 3000, stock: 9, min: 2 },
+];
+let events = [
+  { id: 1, time: "5:31", kind: "in", text: "Carlos Pérez registró ingreso" },
+  { id: 2, time: "5:48", kind: "pay", text: "Pago · Daniela Castro · efectivo", amount: 65000, bucket: "pagos" },
+  { id: 3, time: "6:05", kind: "in", text: "Ana María Ruiz registró ingreso" },
+  { id: 4, time: "6:20", kind: "sell", text: "2 × Agua 600 ml · efectivo", amount: 4000, bucket: "ventas" },
+  { id: 5, time: "6:42", kind: "pass", text: "Pase de día · Camilo Ortiz", amount: 6000, bucket: "pases" },
+];
+const PAST_PAYMENTS = [
+  { who: "Sebastián Ríos", what: "Pago completo · Semipersonalizado", how: "Transferencia", amount: 150000, when: "Ayer" },
+  { who: "Laura Restrepo", what: "Abono · Mes 3 veces por semana", how: "Efectivo", amount: 35000, when: "Ayer", owes: 15000 },
+  { who: "Isabella Moreno", what: "Pago completo · Mensualidad", how: "Efectivo", amount: 65000, when: "Lun 6 oct" },
+];
+
+/* ============================ Utilidades ============================ */
+const $ = (s, r = document) => r.querySelector(s);
+const money = (n) => "$ " + Math.round(n).toLocaleString("es-CO");
+const icon = (id, cls = "i") => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
+const initials = (n) => n.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const planOf = (c) => PLANS.find((p) => p.id === c.plan);
+const note = (t) => `<p class="note">${icon("info")}<span>${t}</span></p>`;
+const now = () => new Date().toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" }).replace(/\s?[ap]\.?\s?m\.?/i, "");
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const state = { view: "hoy", role: "admin", filter: "all", q: "" };
+
+/* Navegación por frecuencia: lo diario arriba y grande, lo ocasional abajo y pequeño. */
+const NAV = [
+  { group: "Día a día", items: [
+    { id: "hoy", label: "Hoy", icon: "sun", primary: true, count: () => attention().length },
+    { id: "clientes", label: "Clientes", icon: "users" },
+    { id: "pagos", label: "Pagos", icon: "wallet" },
+  ] },
+  { group: "Gestión", admin: true, items: [
+    { id: "planes", label: "Planes", icon: "card" },
+    { id: "entrenadores", label: "Entrenadores", icon: "dumbbell" },
+  ] },
+  { group: "Cada tanto", admin: true, occasional: true, items: [
+    { id: "inventario", label: "Inventario", icon: "box", count: () => PRODUCTS.filter((p) => p.stock <= p.min).length },
+    { id: "egresos", label: "Egresos", icon: "receipt" },
+    { id: "finanzas", label: "Finanzas", icon: "chart" },
+  ] },
+];
+const visibleGroups = () => NAV.filter((g) => !g.admin || state.role === "admin");
+
+function renderNav() {
+  $("#nav").innerHTML = visibleGroups().map((g) => `
+    <div class="nav-group ${g.occasional ? "occasional" : ""}"><h4>${g.group}</h4>
+      ${g.items.map((it) => { const n = it.count ? it.count() : 0; return `
+        <button class="nav-item ${it.primary ? "primary" : ""}" data-go="${it.id}" ${state.view === it.id ? 'aria-current="page"' : ""}>
+          ${icon(it.icon)}<span>${it.label}</span>${n ? `<span class="count">${n}</span>` : ""}
+        </button>`; }).join("")}
+    </div>`).join("") + (state.role === "admin" ? note("Lo diario arriba y grande; inventario, egresos y finanzas abajo, más pequeños: se usan cada tanto. Recepción ni los ve.") : note("Recepción ve solo lo que usa: Hoy, Clientes y Pagos. Sin menús que no le sirven."));
+  const tabs = [["hoy", "Hoy", "sun"], ["clientes", "Clientes", "users"], ["pagos", "Pagos", "wallet"], ["mas", "Más", "grid"]];
+  $("#tabbar").innerHTML = tabs.map(([id, l, ic]) => `<button data-go="${id}" ${state.view === id ? 'aria-current="page"' : ""}>${icon(ic)}${l}</button>`).join("");
+  $("#me-name").textContent = state.role === "admin" ? "Laura Gómez" : "Pedro Salas";
+  $("#me-role").textContent = state.role === "admin" ? "Administradora" : "Recepción";
+  $("#me-avatar").textContent = state.role === "admin" ? "LG" : "PS";
+}
+
+/* ============================ Vista: Hoy ============================ */
+const attention = () => clients.filter((c) => c.state === "overdue" || (c.state === "expiring" && c.left <= 2));
+function primaryFor(c) {
+  if (c.state === "overdue") return { label: `Cobrar ${money(c.debt)}`, act: "charge", why: `Debe ${money(c.debt)} · venció el ${c.ends}` };
+  if (c.state === "inactive") return { label: "Renovar plan", act: "renew", why: `Su plan venció el ${c.ends}` };
+  if (c.state === "expiring") return { label: "Registrar ingreso", act: "checkin", why: `Vence ${c.left <= 1 ? "mañana" : `en ${c.left} días`} · al salir, ofrécele renovar` };
+  return { label: "Registrar ingreso", act: "checkin", why: `Al día · vence el ${c.ends}` };
+}
+function cashTotals() {
+  const t = { pagos: 0, ventas: 0, pases: 0 };
+  events.forEach((e) => { if (e.bucket) t[e.bucket] += e.amount; });
+  return t;
+}
+function viewHoy() {
+  const t = cashTotals(); const sum = t.pagos + t.ventas + t.pases || 1;
+  const due = attention(); const soon = clients.filter((c) => c.state === "expiring" && c.left > 2);
+  const date = new Date().toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
+  return `
+  <div class="page-head"><div><h1 class="display">Hoy</h1><p class="lede">${date.charAt(0).toUpperCase() + date.slice(1)} · ${events.filter((e) => e.kind === "in").length} ingresos hasta ahora</p></div></div>
+  <section class="arrive">
+    <label for="arrive-input">¿Quién llega?</label>
+    <div class="big-input">${icon("search")}<input id="arrive-input" placeholder="Documento o nombre" autocomplete="off" value="${esc(state.q)}" /><kbd>Enter</kbd></div>
+    <div id="arrive-result"></div>
+    ${note("Lo más frecuente del día —registrar el ingreso— es lo primero y más grande. Un solo botón que cambia según el estado: ingreso si está al día, cobrar si debe, renovar si venció, crear si no existe. Prueba con «Julián», «Mateo» o un documento nuevo.")}
+  </section>
+  <div class="quick">
+    ${[["new", "user-plus", "Nuevo cliente", "N"], ["charge", "wallet", "Cobrar", "C"], ["sell", "cart", "Vender", "V"], ["pass", "ticket", "Pase de día", "D"]].map(([a, ic, l, k]) => `
+      <button class="tile" data-act="${a}"><div class="ico">${icon(ic)}</div><div><b>${l}</b><span>Atajo <kbd>${k}</kbd></span></div></button>`).join("")}
+  </div>
+  <div class="today-grid">
+    <div class="stack">
+      <section class="card"><div class="card-head"><h3>${icon("bell")}Por atender</h3><span class="muted">${due.length + soon.length} clientes</span></div>
+        <div class="rows">
+          ${due.length ? `<div class="subhead"><span class="dot overdue"></span>Urgente</div>${due.map(attRow).join("")}` : ""}
+          ${soon.length ? `<div class="subhead"><span class="dot expiring"></span>Esta semana</div>${soon.map(attRow).join("")}` : ""}
+          ${!due.length && !soon.length ? `<div class="empty">Nada pendiente. Todo al día.</div>` : ""}
+        </div>
+        <div style="padding:0 18px 14px">${note("Reemplaza revisar filtros en Clientes: lo que pide acción hoy aparece solo. La acción de cada fila se asoma al pasar el cursor; tocar la fila abre la ficha.")}</div>
+      </section>
+      <section class="card"><div class="card-head"><h3>${icon("clock")}Movimientos de hoy</h3></div>
+        <div class="timeline" id="timeline">${events.slice().reverse().map(eventRow).join("")}</div>
+      </section>
+    </div>
+    <div class="stack">
+      <section class="card"><div class="card-head"><h3>${icon("wallet")}Caja de hoy</h3><span class="muted">Efectivo y transferencias</span></div>
+        <div class="cash"><div class="total tabular">${money(t.pagos + t.ventas + t.pases)}</div><div class="sub">entró hoy al gimnasio</div>
+          <div class="bar"><i class="c1" style="width:${(t.pagos / sum) * 100}%"></i><i class="c2" style="width:${(t.ventas / sum) * 100}%"></i><i class="c3" style="width:${(t.pases / sum) * 100}%"></i></div>
+          <div class="legend"><div><i class="c1"></i>Pagos<b class="tabular">${money(t.pagos)}</b></div><div><i class="c2"></i>Ventas<b class="tabular">${money(t.ventas)}</b></div><div><i class="c3"></i>Pases<b class="tabular">${money(t.pases)}</b></div></div>
+        </div>
+      </section>
+      <section class="card"><div class="card-head"><h3>${icon("note")}Notas del día</h3><span class="saved" id="saved">Se guarda solo</span></div>
+        <div class="notes-box"><textarea id="day-notes" placeholder="Algo que el siguiente turno deba saber…">Revisar la caminadora 3: hace ruido.</textarea>${note("Sin botón Guardar: se guarda mientras escribes.")}</div>
+      </section>
+    </div>
+  </div>`;
+}
+function attRow(c) {
+  const p = primaryFor(c);
+  const short = c.state === "overdue" ? "Cobrar" : "Renovar";
+  return `<div class="row" data-client="${c.id}" role="button" tabindex="0"><div class="avatar">${initials(c.name)}</div>
+    <div><div class="t">${esc(c.name)}</div><div class="s">${p.why}</div></div>
+    <div class="end"><button class="btn btn-secondary hover-act" style="height:32px" data-act="${c.state === "overdue" ? "charge" : "renew"}" data-id="${c.id}">${short}</button><span class="pill ${c.state}">${STATE_LABEL[c.state]}</span></div></div>`;
+}
+const EV_ICON = { in: "door", pay: "wallet", sell: "cart", pass: "ticket", new: "user-plus" };
+function eventRow(e) { return `<div class="event ${e.fresh ? "new" : ""}"><time>${e.time}</time><span class="k">${icon(EV_ICON[e.kind])}</span><span>${esc(e.text)}</span><span class="amt tabular">${e.amount ? money(e.amount) : ""}</span></div>`; }
+
+function renderArrive() {
+  const box = $("#arrive-result"); if (!box) return;
+  const q = state.q.trim().toLowerCase();
+  if (!q) { box.innerHTML = ""; return; }
+  const found = clients.filter((c) => c.doc.startsWith(q.replace(/\D/g, "") || "\u0000") || c.name.toLowerCase().includes(q));
+  if (!found.length) {
+    const digits = /^\d{5,}$/.test(q);
+    box.innerHTML = `<div class="match"><div class="avatar">${icon("user-plus")}</div><div class="info"><b>${digits ? `Nadie con el documento ${esc(q)}` : `Nadie se llama «${esc(state.q)}»`}</b><span>¿Es la primera vez que viene?</span></div>
+      <button class="btn btn-primary btn-lg" data-act="new" data-prefill="${esc(state.q)}">Registrarlo</button></div>`;
+    return;
+  }
+  const c = found[0]; const p = primaryFor(c);
+  box.innerHTML = `<div class="match"><div class="avatar">${initials(c.name)}</div>
+    <div class="info"><b>${esc(c.name)} <span class="pill ${c.state}" style="margin-left:6px;vertical-align:2px">${STATE_LABEL[c.state]}</span></b><span>${planOf(c).name}</span><span class="why">${p.why}</span></div>
+    <button class="btn btn-primary btn-lg" data-act="${p.act}" data-id="${c.id}">${p.label}</button></div>
+    ${found.length > 1 ? `<div class="others">${found.slice(1, 5).map((o) => `<button class="chip" data-pick="${o.id}"><span class="dot ${o.state}"></span>${esc(o.name)}</button>`).join("")}</div>` : ""}`;
+}
+
+/* ============================ Vista: Clientes ============================ */
+function viewClientes() {
+  const counts = { all: clients.length, active: 0, expiring: 0, overdue: 0, inactive: 0 };
+  clients.forEach((c) => counts[c.state]++);
+  const segs = [["all", "Todos"], ["active", "Activos"], ["expiring", "Por vencer"], ["overdue", "En mora"]];
+  return `
+  <div class="page-head"><div><h1 class="display">Clientes</h1><p class="lede">${counts.active} activos de ${clients.length}</p></div>
+    <button class="btn btn-primary" data-act="new">${icon("plus")}Nuevo cliente</button></div>
+  <div class="toolbar">
+    <div class="segmented" id="filter-seg" role="tablist">${segs.map(([id, l]) => `<button role="tab" data-filter="${id}" aria-selected="${state.filter === id}">${id !== "all" ? `<span class="dot ${id}"></span>` : ""}${l}<span class="n">${counts[id]}</span></button>`).join("")}</div>
+    <label class="search">${icon("search")}<input id="client-search" placeholder="Buscar por nombre o documento" value="${esc(state.cq || "")}" /></label>
+  </div>
+  <div class="table" id="client-table"></div>
+  ${note("Antes: una pestaña por filtro, un botón por fila y una pestaña «Agregar». Ahora: filtros con su conteo en un solo control, filas sin botones (toda la fila abre la ficha) y una sola acción principal arriba.")}`;
+}
+function renderClientTable() {
+  const box = $("#client-table"); if (!box) return;
+  const q = (state.cq || "").toLowerCase();
+  const list = clients.filter((c) => (state.filter === "all" || c.state === state.filter) && (!q || c.name.toLowerCase().includes(q) || c.doc.includes(q)));
+  box.innerHTML = `<div class="thead"><span></span><span>Cliente</span><span>Plan</span><span>Estado</span><span>Vence · saldo</span><span></span></div>` +
+    (list.length ? list.map((c) => `<button class="trow" data-client="${c.id}"><div class="avatar">${initials(c.name)}</div>
+      <div><div class="t">${esc(c.name)}</div><div class="s tabular">${c.doc}</div></div>
+      <div class="c3"><div class="s" style="font-size:13px;color:var(--color-body-muted)">${planOf(c).name}</div></div>
+      <div class="c4"><span class="pill ${c.state}">${STATE_LABEL[c.state]}</span></div>
+      <div class="r tabular">${c.ends}<small>${c.debt ? `Debe ${money(c.debt)}` : "Al día"}</small></div>
+      <span class="chev">${icon("chev")}</span></button>`).join("") : `<div class="empty">Nadie con ese filtro.</div>`);
+}
+
+/* ============================ Vista: Pagos ============================ */
+function viewPagos() {
+  const today = events.filter((e) => e.kind === "pay" || e.kind === "new");
+  const pending = clients.filter((c) => c.debt > 0);
+  return `
+  <div class="page-head"><div><h1 class="display">Pagos</h1><p class="lede">${money(cashTotals().pagos)} cobrados hoy · ${pending.length} con saldo pendiente</p></div>
+    <button class="btn btn-primary" data-act="charge">${icon("plus")}Cobrar</button></div>
+  <section class="card" style="margin-bottom:16px"><div class="card-head"><h3>${icon("bell")}Con saldo pendiente</h3><span class="muted">${money(pending.reduce((s, c) => s + c.debt, 0))} por cobrar</span></div>
+    <div class="rows">${pending.map((c) => `<div class="row" data-client="${c.id}" role="button" tabindex="0"><div class="avatar">${initials(c.name)}</div><div><div class="t">${esc(c.name)}</div><div class="s">${planOf(c).name}</div></div>
+      <div class="end"><button class="btn btn-secondary hover-act" style="height:32px" data-act="charge" data-id="${c.id}">Cobrar</button><b class="tabular">${money(c.debt)}</b></div></div>`).join("")}</div></section>
+  <div class="table">
+    <div class="thead"><span></span><span>Cliente</span><span>Concepto</span><span>Forma</span><span>Valor</span><span></span></div>
+    ${[...today.slice().reverse().map((e) => ({ who: e.text.split(" · ")[1] || e.text, what: e.kind === "new" ? "Alta y primer pago" : "Pago", how: e.text.includes("transfer") ? "Transferencia" : "Efectivo", amount: e.amount, when: "Hoy " + e.time })), ...PAST_PAYMENTS].map((p) => `
+      <div class="trow"><div class="avatar">${initials(p.who)}</div><div><div class="t">${esc(p.who)}</div><div class="s">${p.when}</div></div>
+      <div class="c3"><span class="s" style="font-size:13px;color:var(--color-body-muted)">${p.what}</span></div><div class="c4"><span class="tag">${p.how}</span></div>
+      <div class="r tabular">${money(p.amount)}${p.owes ? `<small>Queda ${money(p.owes)}</small>` : ""}</div><span></span></div>`).join("")}
+  </div>
+  ${note("Los saldos pendientes arriba: es lo que hay que perseguir. El historial queda debajo, para consultar.")}`;
+}
+
+/* ============================ Vistas de gestión (ocasionales) ============================ */
+function viewInventario() {
+  const low = PRODUCTS.filter((p) => p.stock > 0 && p.stock <= p.min); const out = PRODUCTS.filter((p) => p.stock === 0);
+  return `<div class="page-head"><div><h1 class="display">Inventario</h1><p class="lede">${PRODUCTS.length} productos · ${low.length} por debajo del mínimo · ${out.length} agotado</p></div>
+    <button class="btn btn-secondary" data-act="sell">${icon("cart")}Vender</button><button class="btn btn-primary">${icon("plus")}Agregar producto</button></div>
+  <div class="table"><div class="thead"><span></span><span>Producto</span><span>Existencias</span><span>Precio</span><span>Estado</span><span></span></div>
+  ${PRODUCTS.map((p) => `<button class="trow"><div class="avatar">${icon("box")}</div><div><div class="t">${p.name}</div><div class="s">Mínimo ${p.min}</div></div>
+    <div class="c3"><div class="stock ${p.stock <= p.min ? "low" : ""}"><div class="meter"><i style="width:${Math.min(100, (p.stock / (p.min * 4)) * 100)}%"></i></div><span class="tabular">${p.stock}</span></div></div>
+    <div class="c4 tabular">${money(p.price)}</div><div class="r">${p.stock === 0 ? `<span class="tag">Agotado</span>` : p.stock <= p.min ? `<span class="tag">Reponer</span>` : ""}</div><span class="chev">${icon("chev")}</span></button>`).join("")}</div>
+  ${note("Situacional: abajo en el menú y sin estorbar el día. Aun así, cuando algo está por agotarse, el menú lo cuenta. Sin verde, ámbar ni rojo: esos colores son solo del estado del cliente.")}`;
+}
+function simpleView(title, lede, cols, rows, action, explain) {
+  return `<div class="page-head"><div><h1 class="display">${title}</h1><p class="lede">${lede}</p></div>${action ? `<button class="btn btn-primary">${icon("plus")}${action}</button>` : ""}</div>
+  <div class="table"><div class="thead"><span></span>${cols.map((c) => `<span>${c}</span>`).join("")}<span></span></div>
+  ${rows.map((r) => `<button class="trow"><div class="avatar">${icon(r.icon)}</div><div><div class="t">${r.a}</div><div class="s">${r.b}</div></div><div class="c3"><span class="s" style="font-size:13px;color:var(--color-body-muted)">${r.c}</span></div><div class="c4">${r.d}</div><div class="r tabular">${r.e}</div><span class="chev">${icon("chev")}</span></button>`).join("")}</div>
+  ${explain ? note(explain) : ""}`;
+}
+function viewFinanzas() {
+  const t = cashTotals();
+  return `<div class="page-head"><div><h1 class="display">Finanzas</h1><p class="lede">Octubre · al día de hoy</p></div>
+    <div class="segmented sm" id="period-seg"><button aria-selected="false">Semana</button><button aria-selected="true">Mes</button><button aria-selected="false">6 meses</button></div></div>
+  <div class="kpis">
+    <section class="card kpi"><div class="label">Ingresos</div><div class="value tabular">${money(4860000 + t.pagos + t.ventas + t.pases)}</div><div class="hint">+12 % que septiembre</div></section>
+    <section class="card kpi"><div class="label">Egresos</div><div class="value tabular">${money(2140000)}</div><div class="hint">Arriendo, servicios, nómina</div></section>
+    <section class="card kpi"><div class="label">Ganancia</div><div class="value tabular">${money(2720000 + t.pagos + t.ventas + t.pases)}</div><div class="hint">Lo que queda en el mes</div></section>
+    <section class="card kpi"><div class="label">Por cobrar</div><div class="value tabular">${money(clients.reduce((s, c) => s + c.debt, 0))}</div><div class="hint">${clients.filter((c) => c.debt).length} clientes con saldo</div></section>
+  </div>
+  ${note("Una sola pantalla con lo que importa al cierre. Se mira cada tanto: por eso vive abajo en el menú.")}`;
+}
+const VIEWS = {
+  hoy: viewHoy, clientes: viewClientes, pagos: viewPagos, inventario: viewInventario, finanzas: viewFinanzas,
+  planes: () => simpleView("Planes", `${PLANS.length} planes · el más vendido: Mensualidad`, ["Plan", "Duración", "Abono mínimo", "Precio"],
+    PLANS.map((p) => ({ icon: "card", a: p.name, b: p.trainer ? "Incluye entrenador" : p.more ? "Promoción" : "Plan regular", c: p.length, d: p.min ? `<span class="tag">${money(p.min)}</span>` : `<span class="muted">Pago completo</span>`, e: money(p.price) })), "Crear plan"),
+  entrenadores: () => simpleView("Entrenadores", "3 entrenadores · 2 con cupo", ["Entrenador", "Clientes", "Cupo", "Comisión del mes"],
+    TRAINERS.map((n, i) => ({ icon: "dumbbell", a: n, b: ["Mañanas", "Tardes", "Fines de semana"][i], c: `${[4, 5, 2][i]} clientes`, d: `<span class="tag">${[1, 0, 3][i]} libres</span>`, e: money([240000, 300000, 120000][i]) })), "Agregar entrenador"),
+  egresos: () => simpleView("Egresos", "Octubre · " + money(2140000), ["Concepto", "Categoría", "Forma", "Valor"],
+    [["Arriendo", "Local", "Transferencia", 1500000, "1 oct"], ["Luz", "Servicios", "Transferencia", 420000, "3 oct"], ["Agua", "Servicios", "Efectivo", 95000, "4 oct"], ["Productos de aseo", "Mantenimiento", "Efectivo", 125000, "6 oct"]]
+      .map(([a, c, f, v, d]) => ({ icon: "receipt", a, b: d, c, d: `<span class="tag">${f}</span>`, e: money(v) })), "Registrar egreso"),
+};
+
+/* ============================ Navegación ============================ */
+function go(view) {
+  if (view === "mas") { openMore(); return; }
+  state.view = view; renderNav();
+  $("#main").innerHTML = `<div class="view">${VIEWS[view]()}</div>`;
+  if (view === "hoy") renderArrive();
+  if (view === "clientes") renderClientTable();
+  document.querySelectorAll(".segmented").forEach(placeThumb);
+  window.scrollTo({ top: 0 });
+}
+function placeThumb(seg) {
+  let thumb = seg.querySelector(".thumb");
+  if (!thumb) { thumb = document.createElement("span"); thumb.className = "thumb"; seg.prepend(thumb); }
+  const on = seg.querySelector('[aria-selected="true"]'); if (!on) return;
+  thumb.style.width = on.offsetWidth + "px"; thumb.style.transform = `translateX(${on.offsetLeft - 3}px)`;
+}
+
+/* ============================ Hoja ============================ */
+let sheetBack = null;
+function openSheet(title, body, foot, { back = null, dir = "" } = {}) {
+  sheetBack = back;
+  $("#sheet-inner").innerHTML = `
+    <div class="sheet-head">${back ? `<button class="btn-icon" data-act="sheet-back" aria-label="Atrás">${icon("chev")}</button>` : ""}<h2 id="sheet-title" style="${back ? "margin-right:auto" : ""}">${title}</h2><button class="btn-icon" data-act="close" aria-label="Cerrar">${icon("x")}</button></div>
+    <div class="sheet-body"><div class="sheet-swap ${dir}">${body}</div></div>
+    ${foot ? `<div class="sheet-foot">${foot}</div>` : ""}`;
+  if (back) $("#sheet-inner .sheet-head .btn-icon svg").style.transform = "rotate(180deg)";
+  $("#sheet").classList.add("open"); $("#scrim").classList.add("open"); $("#app").classList.add("pushed");
+  document.querySelectorAll("#sheet .segmented").forEach(placeThumb);
+  setTimeout(() => $("#sheet [data-autofocus]")?.focus(), 80);
+}
+function closeSheet() { $("#sheet").classList.remove("open"); $("#scrim").classList.remove("open"); $("#app").classList.remove("pushed"); }
+
+/* Ficha del cliente: una acción principal según su estado; lo demás en «Más». */
+function openClient(id) {
+  const c = clients.find((x) => x.id === +id); const p = primaryFor(c); const plan = planOf(c);
+  const used = Math.max(0, Math.min(1, (c.total - Math.max(c.left, 0)) / c.total));
+  openSheet("Cliente", `
+    <div class="identity"><div class="avatar">${initials(c.name)}</div><div><div class="nm">${esc(c.name)}</div><div class="doc tabular">CC ${c.doc} · ${c.phone}</div><div style="margin-top:6px"><span class="pill ${c.state}">${STATE_LABEL[c.state]}</span></div></div></div>
+    <div class="section"><h3>Plan</h3><div class="box">
+      <div class="plan-line"><b>${plan.name}</b><span class="tabular">${money(plan.price)}</span></div>
+      <div class="progress"><i style="width:${used * 100}%"></i></div>
+      <div class="muted">${c.left >= 0 ? `Vence el ${c.ends} · quedan ${c.left} días` : `Venció el ${c.ends}`}${c.trainer ? ` · Entrenador: ${c.trainer}` : ""}</div>
+    </div></div>
+    <div class="section"><h3>Cuenta</h3><div class="box kv"><span>Saldo</span><b class="tabular">${c.debt ? money(c.debt) : "Al día"}</b><span>Último ingreso</span><b>${c.state === "active" ? "Hoy, 6:05" : "Hace 9 días"}</b><span>Cliente desde</span><b>Marzo 2026</b></div></div>
+    ${note("Antes, la ficha tenía cinco botones al mismo nivel. Ahora hay uno principal —el que tiene sentido por su estado— y lo ocasional queda en «Más».")}`,
+    `<div class="more grow"><button class="btn btn-secondary" data-act="menu">${icon("dots")}Más</button>
+      <div class="menu" id="client-menu"><button>${icon("pen")}Editar datos</button><button>${icon("repeat")}Cambiar plan</button><button>${icon("dumbbell")}Asignar entrenador</button><button>${icon("clock")}Ver historial</button><button>${icon("phone")}Escribir por WhatsApp</button></div></div>
+     <button class="btn btn-primary btn-lg" data-act="${p.act}" data-id="${c.id}">${p.label}</button>`);
+}
+
+/* Alta en tres pasos cortos: persona → plan → pago. Termina cobrando. */
+let nc = null;
+function openNew(prefill = "") {
+  const digits = /^\d+$/.test(prefill.trim());
+  nc = { step: 1, doc: digits ? prefill.trim() : "", name: digits ? "" : prefill.trim(), phone: "", plan: "mes", trainer: "", mode: "full", method: "cash", amount: 65000, more: false, showAll: false };
+  renderNew();
+}
+function renderNew(dir = "") {
+  const plan = PLANS.find((p) => p.id === nc.plan);
+  const steps = `<div class="steps">${[1, 2, 3].map((s) => `<i class="${s <= nc.step ? "done" : ""}"></i>`).join("")}</div>`;
+  let body = ""; let foot = "";
+  if (nc.step === 1) {
+    body = `${steps}<p class="step-title">¿Quién es?</p><p class="muted">Solo lo necesario para empezar. Lo demás, si hay tiempo.</p>
+      <div class="field"><label for="nc-doc">Documento</label><div class="input"><input id="nc-doc" inputmode="numeric" value="${esc(nc.doc)}" data-autofocus /></div></div>
+      <div class="field"><label for="nc-name">Nombre completo</label><div class="input"><input id="nc-name" value="${esc(nc.name)}" /></div></div>
+      <div class="field"><label for="nc-phone">Celular</label><div class="input"><span class="prefix">+57</span><input id="nc-phone" inputmode="tel" value="${esc(nc.phone)}" /></div></div>
+      <button class="disclose" data-act="nc-more" aria-expanded="${nc.more}">${icon("chev")}Contacto de emergencia y salud (opcional)</button>
+      <div class="reveal ${nc.more ? "open" : ""}"><div>
+        <div class="two"><div class="field"><label>Contacto de emergencia</label><div class="input"><input /></div></div><div class="field"><label>Su teléfono</label><div class="input"><input inputmode="tel" /></div></div></div>
+        <div class="two"><div class="field"><label>Tipo de sangre</label><div class="input"><select><option></option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>AB+</option></select></div></div><div class="field"><label>Nacimiento</label><div class="input"><input type="date" /></div></div></div>
+        <div class="field"><label>Condición médica</label><div class="input"><input placeholder="Lesiones, alergias…" /></div></div>
+      </div></div>
+      ${note("Hoy el formulario pide todos los campos de una vez. Aquí: tres datos y lo opcional plegado. El documento llega ya escrito si viniste desde «¿Quién llega?».")}`;
+    foot = `<button class="btn btn-primary btn-lg" data-act="nc-next" ${nc.doc && nc.name ? "" : "disabled"} id="nc-next">Elegir plan</button>`;
+  } else if (nc.step === 2) {
+    const main = PLANS.filter((p) => !p.more); const extra = PLANS.filter((p) => p.more);
+    const card = (p) => `<button class="plan" role="radio" aria-checked="${nc.plan === p.id}" data-plan="${p.id}"><span class="radio"></span><span><b>${p.name}</b>${p.popular ? `<span class="badge">El más elegido</span>` : ""}<span class="muted">${p.length}${p.min ? ` · abono desde ${money(p.min)}` : ""}${p.trainer ? " · con entrenador" : ""}</span></span><span class="price tabular">${money(p.price)}</span></button>`;
+    body = `${steps}<p class="step-title">¿Qué plan?</p><p class="muted">${esc(nc.name)}</p>
+      <div class="plans" role="radiogroup" style="margin-top:14px">${main.map(card).join("")}</div>
+      <button class="disclose" data-act="nc-all" aria-expanded="${nc.showAll}">${icon("chev")}Promociones y planes con entrenador</button>
+      <div class="reveal ${nc.showAll ? "open" : ""}"><div><div class="plans" style="margin-top:10px">${extra.map(card).join("")}</div></div></div>
+      ${plan.trainer ? `<div class="field"><label>Entrenador</label><div class="input"><select id="nc-trainer">${TRAINERS.map((t) => `<option ${nc.trainer === t ? "selected" : ""}>${t}</option>`).join("")}</select></div></div>` : ""}
+      ${note("Los planes más vendidos primero; promociones y personalizados plegados. El entrenador solo aparece si el plan lo admite.")}`;
+    foot = `<button class="btn btn-plain grow" data-act="nc-prev">Atrás</button><button class="btn btn-primary btn-lg" data-act="nc-next">Ir al pago</button>`;
+  } else if (nc.step === 3) {
+    const amount = nc.mode === "full" ? plan.price : nc.amount;
+    body = `${steps}<p class="step-title">Pago</p><p class="muted">${esc(nc.name)} · ${plan.name}</p>
+      <div style="margin-top:14px">${plan.min ? `<div class="segmented" id="mode-seg"><button data-mode="full" aria-selected="${nc.mode === "full"}">Pago completo</button><button data-mode="part" aria-selected="${nc.mode === "part"}">Abono</button></div>` : ""}</div>
+      <div class="amount tabular">${nc.mode === "full" ? money(plan.price) : `<input id="nc-amount" inputmode="numeric" value="${money(nc.amount)}" />`}</div>
+      <p class="muted center">${nc.mode === "full" ? "Queda al día" : `Queda debiendo ${money(Math.max(0, plan.price - nc.amount))} · mínimo ${money(plan.min)}`}</p>
+      <div class="center" style="margin-top:16px"><div class="segmented" id="method-seg"><button data-method="cash" aria-selected="${nc.method === "cash"}">Efectivo</button><button data-method="transfer" aria-selected="${nc.method === "transfer"}">Transferencia</button></div></div>
+      ${nc.method === "transfer" ? `<div class="drop">${icon("upload")}<span><b style="color:var(--color-body)">Foto del comprobante</b><br/>Arrastra o toca para subirla</span></div>` : ""}
+      ${note("El valor ya viene del plan; solo se toca si es abono. Un solo botón termina todo: crea al cliente y registra el pago.")}`;
+    foot = `<button class="btn btn-plain grow" data-act="nc-prev">Atrás</button><button class="btn btn-primary btn-lg" data-act="nc-done">Crear y cobrar ${money(amount)}</button>`;
+  }
+  openSheet("Nuevo cliente", body, foot, { dir });
+}
+function finishNew() {
+  const plan = PLANS.find((p) => p.id === nc.plan); const amount = nc.mode === "full" ? plan.price : nc.amount;
+  const c = { id: Date.now(), name: nc.name, doc: nc.doc, phone: nc.phone || "—", plan: plan.id, state: "active", ends: "8 nov", left: 30, total: 30, debt: plan.price - amount, trainer: plan.trainer ? nc.trainer || TRAINERS[0] : "" };
+  clients.unshift(c);
+  pushEvent({ kind: "new", text: `Nuevo cliente · ${c.name} · ${nc.method === "cash" ? "efectivo" : "transferencia"}`, amount, bucket: "pagos" });
+  openSheet("Nuevo cliente", `<div class="success"><div class="mark">${icon("check")}</div><h3>${esc(c.name)} ya es cliente</h3><p>${plan.name} · activo hasta el 8 nov${c.debt ? ` · debe ${money(c.debt)}` : ""}</p></div>
+    ${note("Al terminar, la siguiente acción lógica está a un toque: registrar su primer ingreso.")}`,
+    `<button class="btn btn-secondary grow" data-act="close">Listo</button><button class="btn btn-primary btn-lg" data-act="checkin" data-id="${c.id}">Registrar su ingreso</button>`);
+}
+
+/* Cobrar: si no viene un cliente, primero se elige. */
+function openCharge(id) {
+  const c = id ? clients.find((x) => x.id === +id) : null;
+  if (!c) {
+    const owing = clients.filter((x) => x.debt > 0);
+    openSheet("Cobrar", `<label class="search" style="max-width:none;display:block">${icon("search")}<input id="charge-search" placeholder="¿A quién le cobras?" data-autofocus /></label>
+      <div class="section"><h3>Con saldo pendiente</h3><div class="rows" style="padding:0">${owing.map((o) => `<div class="row" data-charge="${o.id}" role="button" tabindex="0"><div class="avatar">${initials(o.name)}</div><div><div class="t">${esc(o.name)}</div><div class="s">${planOf(o).name}</div></div><b class="tabular">${money(o.debt)}</b></div>`).join("")}</div></div>
+      ${note("Quien debe aparece primero: casi siempre es a quien se le va a cobrar.")}`, "");
+    return;
+  }
+  const plan = planOf(c); const amount = c.debt || plan.price;
+  openSheet("Cobrar", `<div class="identity"><div class="avatar">${initials(c.name)}</div><div><div class="nm">${esc(c.name)}</div><div class="doc">${c.debt ? `Saldo pendiente de ${plan.name}` : `Renovación · ${plan.name}`}</div></div></div>
+    <div class="amount tabular"><input id="charge-amount" inputmode="numeric" value="${money(amount)}" /></div>
+    <p class="muted center">${c.debt ? "Con esto queda al día" : "Extiende el plan un período más"}</p>
+    <div class="center" style="margin-top:16px"><div class="segmented" id="charge-method"><button data-cm="cash" aria-selected="true">Efectivo</button><button data-cm="transfer" aria-selected="false">Transferencia</button></div></div>
+    ${note("El valor sugerido es justo lo que debe; se puede cambiar para un abono.")}`,
+    `<button class="btn btn-primary btn-lg" data-act="charge-done" data-id="${c.id}" data-amount="${amount}">Cobrar ${money(amount)}</button>`, { dir: "" });
+}
+
+/* Vender: tocar el producto lo suma; el total arma el botón. */
+let cart = {};
+function openSell() { cart = {}; renderSell(); }
+function renderSell() {
+  const total = Object.entries(cart).reduce((s, [id, q]) => s + PRODUCTS.find((p) => p.id === id).price * q, 0);
+  const items = Object.values(cart).reduce((s, q) => s + q, 0);
+  openSheet("Vender", `<p class="muted" style="margin-top:0">Toca un producto para sumarlo.</p>
+    <div class="products">${PRODUCTS.map((p) => `<button class="product ${cart[p.id] ? "in" : ""}" data-prod="${p.id}" ${p.stock === 0 ? "disabled" : ""}>${cart[p.id] ? `<span class="qty">${cart[p.id]}</span>` : ""}<b>${p.name}</b><span class="muted tabular">${money(p.price)}</span><span class="muted">${p.stock === 0 ? "Agotado" : `Quedan ${p.stock - (cart[p.id] || 0)}`}</span></button>`).join("")}</div>
+    ${items ? `<div class="section"><h3>Venta</h3><div class="box kv">${Object.entries(cart).map(([id, q]) => { const p = PRODUCTS.find((x) => x.id === id); return `<span>${q} × ${p.name}</span><b class="tabular">${money(p.price * q)}</b>`; }).join("")}</div></div>` : ""}
+    ${note("Antes era un formulario con un selector de producto. Aquí son tarjetas: un toque, una unidad. El total va en el botón.")}`,
+    `${items ? `<button class="btn btn-plain grow" data-act="sell-clear">Vaciar</button>` : ""}<button class="btn btn-primary btn-lg" data-act="sell-done" ${items ? "" : "disabled"}>Cobrar ${money(total)}</button>`);
+}
+
+/* Pase de día: nombre y listo. */
+function openPass() {
+  openSheet("Pase de día", `<div class="field"><label for="pass-name">Nombre del visitante</label><div class="input"><input id="pass-name" data-autofocus /></div></div>
+    <div class="amount tabular" style="margin-top:22px">${money(6000)}</div><p class="muted center">Precio del pase de día</p>
+    <div class="center" style="margin-top:16px"><div class="segmented"><button aria-selected="true">Efectivo</button><button aria-selected="false">Transferencia</button></div></div>
+    ${note("Sin elegir plan: el pase de día tiene su propio precio. Un campo y un botón.")}`,
+    `<button class="btn btn-primary btn-lg" data-act="pass-done">Registrar pase · ${money(6000)}</button>`);
+}
+
+/* Celular: todo lo que no cabe en la barra inferior. */
+function openMore() {
+  const items = visibleGroups().flatMap((g) => g.items).filter((i) => !["hoy", "clientes", "pagos"].includes(i.id));
+  openSheet("Más", items.length ? `<div class="rows" style="padding:0">${items.map((i) => `<button class="row" data-go="${i.id}"><div class="avatar">${icon(i.icon)}</div><div><div class="t">${i.label}</div></div><span class="chev">${icon("chev")}</span></button>`).join("")}</div>` : `<div class="empty">Recepción no tiene más módulos.</div>`, "");
+}
+
+/* ============================ Acciones ============================ */
+let undoFn = null; let toastTimer = 0;
+function toast(msg, undo) {
+  undoFn = undo; $("#toast-msg").textContent = msg; $("#toast-undo").style.display = undo ? "" : "none";
+  $("#toast").classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 5000);
+}
+function pushEvent(e) {
+  const ev = { id: Date.now() + Math.random(), time: now(), fresh: true, ...e };
+  events.push(ev); refresh(); setTimeout(() => (ev.fresh = false), 600); return ev;
+}
+function removeEvent(ev) { events = events.filter((e) => e !== ev); refresh(); }
+function refresh() {
+  renderNav();
+  if (state.view === "hoy") { const keep = state.q; $("#main").innerHTML = `<div class="view" style="animation:none">${viewHoy()}</div>`; state.q = keep; renderArrive(); }
+  else if (state.view === "clientes") renderClientTable();
+  else go(state.view);
+  document.querySelectorAll("#main .segmented").forEach(placeThumb);
+}
+function checkin(id) {
+  const c = clients.find((x) => x.id === +id);
+  const ev = pushEvent({ kind: "in", text: `${c.name} registró ingreso` });
+  closeSheet(); state.q = ""; refresh(); $("#arrive-input")?.focus();
+  toast(`Ingreso de ${c.name.split(" ")[0]} · ${ev.time}`, () => removeEvent(ev));
+}
+function chargeDone(id, amountText) {
+  const c = clients.find((x) => x.id === +id); const amount = Number(String(amountText).replace(/\D/g, "")) || 0;
+  const before = { debt: c.debt, state: c.state, left: c.left, ends: c.ends };
+  if (c.debt) { c.debt = Math.max(0, c.debt - amount); if (!c.debt) { c.state = "active"; c.left = 30; c.ends = "8 nov"; } }
+  else { c.state = "active"; c.left = 30; c.ends = "8 nov"; }
+  const ev = pushEvent({ kind: "pay", text: `Pago · ${c.name} · ${$("#charge-method [aria-selected=true]")?.dataset.cm === "transfer" ? "transferencia" : "efectivo"}`, amount, bucket: "pagos" });
+  closeSheet(); state.q = ""; refresh();
+  toast(`Cobrado ${money(amount)} a ${c.name.split(" ")[0]}`, () => { Object.assign(c, before); removeEvent(ev); });
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-act],[data-go],[data-client],[data-filter],[data-role],[data-pick],[data-plan],[data-mode],[data-method],[data-cm],[data-prod],[data-charge],.segmented button");
+  if (!t) { document.querySelectorAll(".menu.open").forEach((m) => m.classList.remove("open")); return; }
+  if (t.closest(".segmented") && t.tagName === "BUTTON" && !t.dataset.filter && !t.dataset.role && !t.dataset.mode && !t.dataset.method) {
+    const seg = t.closest(".segmented"); seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === t))); placeThumb(seg);
+    if (!t.dataset.cm) return;
+  }
+  const a = t.dataset.act;
+  if (t.dataset.go) { closeSheet(); go(t.dataset.go); return; }
+  if (t.dataset.role) { state.role = t.dataset.role; const seg = $("#role-seg"); seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === t))); placeThumb(seg); if (state.role !== "admin" && !["hoy", "clientes", "pagos"].includes(state.view)) go("hoy"); else renderNav(); return; }
+  if (t.dataset.filter) { state.filter = t.dataset.filter; const seg = $("#filter-seg"); seg.querySelectorAll("button").forEach((b) => b.setAttribute("aria-selected", String(b === t))); placeThumb(seg); renderClientTable(); return; }
+  if (t.dataset.pick) { const c = clients.find((x) => x.id === +t.dataset.pick); state.q = c.name; $("#arrive-input").value = c.name; renderArrive(); return; }
+  if (t.dataset.plan) { nc.plan = t.dataset.plan; nc.mode = "full"; renderNew(); return; }
+  if (t.dataset.mode) { nc.mode = t.dataset.mode; nc.amount = PLANS.find((p) => p.id === nc.plan).min || 0; renderNew(); return; }
+  if (t.dataset.method) { nc.method = t.dataset.method; renderNew(); return; }
+  if (t.dataset.prod) { const p = PRODUCTS.find((x) => x.id === t.dataset.prod); if ((cart[p.id] || 0) < p.stock) cart[p.id] = (cart[p.id] || 0) + 1; renderSell(); return; }
+  if (t.dataset.charge) { openCharge(t.dataset.charge); return; }
+  if (t.dataset.client && !a) { openClient(t.dataset.client); return; }
+  e.stopPropagation();
+  switch (a) {
+    case "palette": openPalette(); break;
+    case "close": closeSheet(); break;
+    case "new": openNew(t.dataset.prefill || ""); break;
+    case "charge": openCharge(t.dataset.id); break;
+    case "renew": openCharge(t.dataset.id); break;
+    case "sell": openSell(); break;
+    case "pass": openPass(); break;
+    case "checkin": checkin(t.dataset.id); break;
+    case "menu": $("#client-menu").classList.toggle("open"); break;
+    case "nc-more": nc.more = !nc.more; renderNew(); break;
+    case "nc-all": nc.showAll = !nc.showAll; renderNew(); break;
+    case "nc-next": nc.step++; renderNew(); break;
+    case "nc-prev": nc.step--; renderNew("back"); break;
+    case "nc-done": finishNew(); break;
+    case "charge-done": chargeDone(t.dataset.id, $("#charge-amount").value); break;
+    case "sell-clear": cart = {}; renderSell(); break;
+    case "sell-done": {
+      const lines = Object.entries(cart).map(([id, q]) => { const p = PRODUCTS.find((x) => x.id === id); p.stock -= q; return { p, q }; });
+      const total = lines.reduce((s, l) => s + l.p.price * l.q, 0);
+      const ev = pushEvent({ kind: "sell", text: lines.map((l) => `${l.q} × ${l.p.name}`).join(", ") + " · efectivo", amount: total, bucket: "ventas" });
+      closeSheet(); toast(`Venta de ${money(total)}`, () => { lines.forEach((l) => (l.p.stock += l.q)); removeEvent(ev); }); break;
+    }
+    case "pass-done": {
+      const name = $("#pass-name").value.trim() || "Visitante";
+      const ev = pushEvent({ kind: "pass", text: `Pase de día · ${name}`, amount: 6000, bucket: "pases" });
+      closeSheet(); toast(`Pase de día de ${name}`, () => removeEvent(ev)); break;
+    }
+  }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "arrive-input") { state.q = e.target.value; renderArrive(); }
+  if (e.target.id === "client-search") { state.cq = e.target.value; renderClientTable(); }
+  if (e.target.id === "nc-doc" || e.target.id === "nc-name" || e.target.id === "nc-phone") { nc[e.target.id.slice(3)] = e.target.value; $("#nc-next") && ($("#nc-next").disabled = !(nc.doc.trim() && nc.name.trim())); }
+  if (e.target.id === "nc-amount") { nc.amount = Number(e.target.value.replace(/\D/g, "")) || 0; }
+  if (e.target.id === "charge-search") { const q = e.target.value.toLowerCase(); const hit = clients.find((c) => c.name.toLowerCase().includes(q) || c.doc.startsWith(q)); if (q.length > 2 && hit) openCharge(hit.id); }
+  if (e.target.id === "day-notes") { const s = $("#saved"); s.textContent = "Guardando…"; clearTimeout(s._t); s._t = setTimeout(() => (s.textContent = "Guardado"), 700); }
+  if (e.target.id === "palette-input") renderResults();
+});
+document.addEventListener("change", (e) => { if (e.target.id === "nc-trainer") nc.trainer = e.target.value; });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "arrive-input") { $("#arrive-result .btn-primary")?.click(); return; }
+  if (e.key === "Enter" && e.target.classList?.contains("row")) { e.target.click(); return; }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openPalette(); return; }
+  if (e.key === "Escape") { if ($("#palette").classList.contains("open")) closePalette(); else closeSheet(); return; }
+  if ($("#palette").classList.contains("open")) { paletteKeys(e); return; }
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) || $("#sheet").classList.contains("open");
+  if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  const map = { n: () => openNew(), c: () => openCharge(), v: () => openSell(), d: () => openPass(), "/": () => openPalette() };
+  const fn = map[e.key.toLowerCase()]; if (fn) { e.preventDefault(); fn(); }
+});
+$("#scrim").addEventListener("click", closeSheet);
+$("#toast-undo").addEventListener("click", () => { if (undoFn) undoFn(); undoFn = null; $("#toast").classList.remove("show"); });
+$("#notes-switch").addEventListener("click", (e) => { const on = e.currentTarget.getAttribute("aria-checked") !== "true"; e.currentTarget.setAttribute("aria-checked", String(on)); document.body.classList.toggle("notes", on); });
+
+/* ============================ Buscar o hacer (Ctrl+K) ============================ */
+let sel = 0; let flat = [];
+const ACTIONS = [
+  { label: "Registrar nuevo cliente", hint: "N", icon: "user-plus", run: () => openNew() },
+  { label: "Cobrar", hint: "C", icon: "wallet", run: () => openCharge() },
+  { label: "Vender producto", hint: "V", icon: "cart", run: () => openSell() },
+  { label: "Pase de día", hint: "D", icon: "ticket", run: () => openPass() },
+];
+function openPalette() { $("#palette").classList.add("open"); $("#scrim").classList.add("open"); $("#palette-input").value = ""; renderResults(); setTimeout(() => $("#palette-input").focus(), 30); }
+function closePalette() { $("#palette").classList.remove("open"); if (!$("#sheet").classList.contains("open")) $("#scrim").classList.remove("open"); }
+function renderResults() {
+  const q = $("#palette-input").value.trim().toLowerCase();
+  const people = clients.filter((c) => !q || c.name.toLowerCase().includes(q) || c.doc.startsWith(q)).slice(0, q ? 5 : 3);
+  const acts = ACTIONS.filter((a) => !q || a.label.toLowerCase().includes(q));
+  const places = visibleGroups().flatMap((g) => g.items).filter((i) => q && i.label.toLowerCase().includes(q));
+  flat = [];
+  const block = (title, items) => items.length ? `<div class="group-label">${title}</div>` + items.map((it) => { flat.push(it.run); const i = flat.length - 1; return `<button class="result" role="option" data-r="${i}" aria-selected="${i === sel}">${it.html}</button>`; }).join("") : "";
+  sel = Math.min(sel, Math.max(0, people.length + acts.length + places.length - 1));
+  $("#results").innerHTML =
+    block("Clientes", people.map((c) => { const p = primaryFor(c); return { run: () => openClient(c.id), html: `<div class="avatar">${initials(c.name)}</div><span>${esc(c.name)}<small>${planOf(c).name} · ${p.why}</small></span><span class="pill ${c.state}">${STATE_LABEL[c.state]}</span>` }; })) +
+    block("Acciones", acts.map((a) => ({ run: a.run, html: `<div class="ico">${icon(a.icon)}</div><span>${a.label}</span><kbd>${a.hint}</kbd>` }))) +
+    block("Ir a", places.map((p) => ({ run: () => go(p.id), html: `<div class="ico">${icon(p.icon)}</div><span>${p.label}</span><span class="go">Abrir</span>` }))) +
+    (flat.length ? "" : `<div class="empty">Sin resultados para «${esc(q)}». Enter registra un cliente nuevo.</div>`);
+  $("#results").querySelectorAll(".result").forEach((b) => b.addEventListener("click", () => runResult(+b.dataset.r)));
+}
+function runResult(i) { const fn = flat[i]; closePalette(); if (fn) fn(); else openNew($("#palette-input").value); }
+function paletteKeys(e) {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + flat.length) % Math.max(flat.length, 1); $("#results").querySelectorAll(".result").forEach((b) => b.setAttribute("aria-selected", String(+b.dataset.r === sel))); $(`#results [data-r="${sel}"]`)?.scrollIntoView({ block: "nearest" }); }
+  if (e.key === "Enter") { e.preventDefault(); runResult(sel); }
+}
+
+/* ============================ Arranque ============================ */
+go("hoy");
+placeThumb($("#role-seg"));
+window.addEventListener("resize", () => document.querySelectorAll(".segmented").forEach(placeThumb));
+</script>
+</body>
+</html>

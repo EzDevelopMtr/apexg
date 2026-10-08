@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { ClientSectionId } from "@apexg/core";
 import { getClientSection, today } from "@apexg/core";
+import type { ReactNode } from "react";
+import type { ClientsToolbarSlots } from "./clients-list-view";
 import { useClients } from "../hooks/use-clients";
 import ClientsFormView from "./clients-form-view";
 import ClientsListView from "./clients-list-view";
@@ -12,6 +14,10 @@ export interface ClientsPageProps {
   sectionId: ClientSectionId;
   /** Navigates to another section. Supplied by the app, which owns routing. */
   onNavigate: (sectionId: string) => void;
+  /** Prefills the list's search. */
+  initialQuery?: string;
+  /** The app's filters and main action, sharing a row with the search. */
+  toolbar?: (slots: ClientsToolbarSlots) => ReactNode;
 }
 
 /**
@@ -23,6 +29,8 @@ export interface ClientsPageProps {
 export default function ClientsPage({
   sectionId,
   onNavigate,
+  initialQuery,
+  toolbar,
 }: ClientsPageProps) {
   // Resolved here rather than passed in: sections carry predicates, and a
   // function cannot cross the server/client boundary.
@@ -59,6 +67,8 @@ export default function ClientsPage({
           referenceDate={referenceDate}
           onSave={save}
           photoUrl={photoUrl}
+          initialQuery={initialQuery}
+          toolbar={toolbar}
         />
       )}
     </>

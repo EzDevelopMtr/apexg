@@ -13,7 +13,6 @@ const HEADERS = [
   "Membresía",
   "Estado",
   "Vencimiento",
-  "Acción",
 ] as const;
 
 export interface ClientListProps {

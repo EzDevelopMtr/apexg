@@ -14,6 +14,8 @@ export { useCollection, upsertById } from "./hooks/use-collection";
 export type { Collection, LoadState } from "./hooks/use-collection";
 export { useMembershipTypeCatalog } from "./hooks/use-membership-type-catalog";
 export { useGymSettings } from "./hooks/use-gym-settings";
+export { useModulePulse } from "./hooks/use-module-pulse";
+export type { UseModulePulseResult } from "./hooks/use-module-pulse";
 
 export {
   CollectionGate,

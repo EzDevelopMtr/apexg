@@ -1,9 +1,8 @@
 "use client";
 
-import { Pencil } from "lucide-react";
 import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
 import { expiryNotice, resolveStanding } from "@apexg/core";
-import { Avatar, Badge, Button, TableCell, TableRow } from "@apexg/ui";
+import { Avatar, Badge, TableCell, TableRow } from "@apexg/ui";
 import { STANDING_LABELS, STANDING_TONES } from "./client-status";
 
 export interface ClientRowProps {
@@ -39,7 +38,7 @@ export default function ClientRow({
   const soon = standing === "expiringSoon";
 
   return (
-    <TableRow>
+    <TableRow onActivate={() => onEdit(client)} label={`Abrir a ${client.fullName}`}>
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar
@@ -77,17 +76,6 @@ export default function ClientRow({
         )}
       </TableCell>
 
-      <TableCell className="text-right">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onEdit(client)}
-          aria-label={`Editar a ${client.fullName}`}
-          title="Editar cliente"
-        >
-          <Pencil size={17} />
-        </Button>
-      </TableCell>
     </TableRow>
   );
 }

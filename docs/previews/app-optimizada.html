@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>App actual, optimizada — propuesta</title>
+<style>
+/* =====================================================================
+   Propuesta sobre la app ACTUAL: misma composición (logo, selector de
+   módulos en tarjetas, barra superior por módulo, tablas), mismos tokens
+   de packages/ui/src/theme.css y los acentos de cada módulo. Lo que cambia
+   es la jerarquía (lo diario primero y más grande) y la cantidad de botones.
+   ===================================================================== */
+:root {
+  --color-shell: #0b0d10; --color-canvas: #101317; --color-panel: #171a1f; --color-surface: #1c2026;
+  --color-line: #262a30; --color-line-soft: #1e2228;
+  --color-brand: #306e9d; --color-brand-strong: #3880b7; --color-brand-ink: #75acd7; --color-brand-soft: #17354d; --color-brand-contrast: #fff;
+  --color-body: #f2f5f7; --color-body-muted: #c4cbd2; --color-body-soft: #9ba3ab; --color-body-faint: #6e767e;
+  --color-ok-soft: #12331f; --color-ok-ink: #6ee7a0; --color-warn-soft: #3a2e12; --color-warn-ink: #fbd24e;
+  --color-danger-soft: #3a1a1c; --color-danger-ink: #f98a8a;
+  --green: #22c55e; --violet: #8b5cf6; --fuchsia: #d946ef; --orange: #f97316; --teal: #14b8a6; --rose: #f43f5e; --lime: #c6f24e; --amber: #f59e0b;
+  --spring: linear(0, 0.0596, 0.186, 0.3294, 0.4656, 0.584, 0.6819, 0.7601, 0.821, 0.8677, 0.9029, 0.9292, 0.9487, 0.963, 0.9734, 0.9809, 0.9864, 0.9903, 0.9931, 0.9951, 0.9966, 0.9976, 0.9983, 0.9988, 1);
+  --t-spring: 600ms;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body { margin: 0; min-height: 100vh; font: 100%/1.5 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--color-body); background: var(--color-canvas); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.tabular { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-brand-ink); outline-offset: 2px; }
+.ground-grid { background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size: 22px 22px; }
+
+/* ---------- Lockup del gimnasio (igual que hoy) ---------- */
+.logo { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.logo svg { width: 34px; height: 28px; color: var(--color-body); }
+.logo b { font-size: 18px; font-weight: 800; letter-spacing: .18em; line-height: 1; }
+.logo small { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 700; letter-spacing: .3em; color: var(--color-body-soft); }
+.logo small::before, .logo small::after { content: ""; width: 16px; height: 1px; background: var(--color-brand-ink); }
+.logo.sm svg { width: 24px; height: 20px; } .logo.sm b { font-size: 13px; } .logo.sm small { font-size: 7px; }
+
+/* ---------- Selector de módulos ---------- */
+.shell { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+.home { min-height: 100vh; display: flex; flex-direction: column; }
+.home main { margin: auto 0; padding: 56px 0; }
+.greet { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.greet .rule { width: 1px; height: 56px; background: var(--color-line); }
+.greet h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em; }
+.greet p { margin: 4px 0 0; color: var(--color-body-soft); }
+.session { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--color-brand-ink); border: 2px solid var(--color-brand-ink); }
+.session .who b { display: block; font-size: 14px; } .session .who span { font-size: 12px; color: var(--color-body-soft); }
+.linkbtn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 10px; font-size: 14px; color: var(--color-body-soft); transition: background-color 150ms ease, color 150ms ease; }
+.linkbtn:hover { background: var(--fill, rgba(255,255,255,.05)); color: var(--color-body); }
+.find { position: relative; flex: 1; max-width: 380px; margin-left: 12px; }
+.find svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-body-faint); width: 17px; height: 17px; }
+.find input { width: 100%; height: 44px; padding: 0 70px 0 42px; border-radius: 12px; border: 1px solid var(--color-line); background: var(--color-panel); outline: none; font-size: 14px; transition: border-color 150ms ease; }
+.find input:focus { border-color: var(--color-brand); }
+.find kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font: 600 11px ui-monospace, Consolas, monospace; color: var(--color-body-faint); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--color-line); }
+.find .hits { position: absolute; z-index: 10; top: calc(100% + 6px); left: 0; right: 0; padding: 6px; border-radius: 14px; background: var(--color-surface); border: 1px solid var(--color-line); box-shadow: 0 20px 40px rgba(0,0,0,.45); display: none; }
+.find .hits.open { display: block; }
+.hit { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 8px; border-radius: 10px; text-align: left; font-size: 14px; }
+.hit:hover, .hit[aria-selected="true"] { background: rgba(255,255,255,.05); }
+.hit small { display: block; font-size: 12px; color: var(--color-body-faint); }
+
+.tier { margin-top: 40px; }
+.tier-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.tier-head h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--color-body-faint); }
+.tier-head span { font-size: 13px; color: var(--color-body-faint); }
+
+/* Diario: tarjetas grandes, con datos vivos y UN atajo. */
+.daily { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 16px; }
+.mcard { position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 230px; padding: 24px; border-radius: 22px; text-align: left; background: var(--color-panel); border: 1px solid var(--color-line-soft); transition: border-color 200ms ease, transform 120ms ease-out, background-color 200ms ease; }
+.mcard:hover { border-color: color-mix(in srgb, var(--acc) 45%, var(--color-line)); }
+.mcard:active { transform: scale(.985); }
+.mcard::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, color-mix(in srgb, var(--acc) 16%, transparent), transparent 55%); opacity: .55; transition: opacity 300ms ease; pointer-events: none; }
+.mcard:hover::before { opacity: 1; }
+.mcard > * { position: relative; }
+.tile-ico { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: var(--acc); color: #fff; box-shadow: 0 8px 24px color-mix(in srgb, var(--acc) 35%, transparent); }
+.tile-ico.lime, .tile-ico.amber { color: #1a1300; }
+.mcard h3 { margin: 18px 0 2px; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.mcard .desc { font-size: 14px; color: var(--color-body-soft); }
+.live { margin-top: auto; padding-top: 18px; display: flex; gap: 22px; flex-wrap: wrap; }
+.live div { font-size: 12px; color: var(--color-body-faint); }
+.live b { display: block; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; color: var(--color-body); }
+.live .warn b { color: var(--color-warn-ink); } .live .danger b { color: var(--color-danger-ink); }
+.shortcut { position: absolute; top: 22px; right: 22px; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 11px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,.07); color: var(--color-body); transition: background-color 150ms ease, transform 100ms ease-out; }
+.shortcut:hover { background: var(--acc); color: #fff; }
+.mcard.amber .shortcut:hover { color: #1a1300; }
+.shortcut:active { transform: scale(.96); }
+.mcard.featured { min-height: 260px; }
+.mcard.featured h3 { font-size: 26px; }
+.badge-top { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; margin-left: 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: color-mix(in srgb, var(--acc) 22%, transparent); color: var(--acc); vertical-align: 4px; }
+
+/* Gestión: compacta, una fila, sin descripción. */
+.manage { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.small { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; text-align: left; background: var(--color-panel); border: 1px solid var(--color-line-soft); transition: border-color 200ms ease, transform 120ms ease-out; }
+.small:hover { border-color: color-mix(in srgb, var(--acc) 45%, var(--color-line)); }
+.small:active { transform: scale(.98); }
+.small .tile-ico { width: 38px; height: 38px; border-radius: 12px; box-shadow: none; }
+.small .tile-ico svg { width: 18px; height: 18px; }
+.small b { display: block; font-size: 14px; }
+.small span { display: block; font-size: 12px; color: var(--color-body-faint); }
+.small span.flag { color: var(--color-body-muted); }
+.small span.tile-ico { display: grid; color: #fff; } .small span.tile-ico.lime, .small span.tile-ico.amber { color: #1a1300; }
+
+/* ---------- Pantalla de módulo ---------- */
+.topbar { position: sticky; top: 0; z-index: 20; height: 76px; display: flex; align-items: center; gap: 22px; padding: 0 28px; background: var(--color-shell); border-bottom: 1px solid var(--color-line-soft); }
+.topbar .vr { width: 1px; height: 36px; background: var(--color-line); }
+.topbar .title { font-size: 15px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.tabs { display: flex; gap: 4px; }
+.tab { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--color-body-soft); transition: background-color 150ms ease, color 150ms ease; }
+.tab:hover { color: var(--color-body); background: rgba(255,255,255,.04); }
+.tab[aria-current="page"] { background: var(--color-brand); color: #fff; }
+/* Cambio rápido entre los módulos diarios: sin volver al selector. */
+.jump { margin-left: auto; display: flex; align-items: center; gap: 6px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--color-line-soft); }
+.jump button { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--color-body-soft); transition: background-color 150ms ease, color 150ms ease; }
+.jump button:hover { color: var(--color-body); background: rgba(255,255,255,.05); }
+.jump button[aria-current="page"] { color: var(--color-body); background: rgba(255,255,255,.08); }
+.jump .dot { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; background: var(--acc); color: #fff; }
+.jump .dot.amber { color: #1a1300; }
+.jump .dot svg { width: 13px; height: 13px; }
+.jump .sep { width: 1px; height: 22px; background: var(--color-line); margin: 0 2px; }
+.jump .count { position: absolute; top: 2px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; font-size: 10px; font-weight: 800; display: grid; place-items: center; background: var(--color-danger-ink); color: #1a0505; }
+
+.page { max-width: 1240px; margin: 0 auto; padding: 24px 28px 80px; }
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--color-body-soft); border: 1px solid var(--color-line); transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease; }
+.chip:hover { color: var(--color-body); }
+.chip[aria-pressed="true"] { background: color-mix(in srgb, var(--color-brand) 22%, transparent); border-color: var(--color-brand); color: var(--color-body); }
+.chip .n { font-size: 12px; color: var(--color-body-faint); }
+.chip .sd { width: 7px; height: 7px; border-radius: 50%; }
+.inline-search { position: relative; flex: 1; min-width: 220px; max-width: 360px; margin-left: 6px; }
+.inline-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--color-body-faint); }
+.inline-search input { width: 100%; height: 38px; padding: 0 12px 0 38px; border-radius: 11px; border: 1px solid var(--color-line); background: var(--color-panel); outline: none; font-size: 14px; }
+.inline-search input:focus { border-color: var(--color-brand); }
+.primary { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 700; background: var(--color-brand); color: #fff; transition: background-color 150ms ease, transform 100ms ease-out; }
+.primary:hover { background: var(--color-brand-strong); } .primary:active { transform: scale(.97); }
+.ghost { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,.06); }
+.ghost:hover { background: rgba(255,255,255,.1); }
+.table { border-radius: 18px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line-soft); }
+.th, .tr { display: grid; grid-template-columns: minmax(0, 1.7fr) 130px 140px minmax(0, 1.3fr) 120px 120px 18px; align-items: center; gap: 14px; padding: 0 20px; }
+.th { height: 44px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-body-faint); border-bottom: 1px solid var(--color-line-soft); }
+.tr { width: 100%; min-height: 64px; text-align: left; font-size: 14px; border-top: 1px solid var(--color-line-soft); transition: background-color 150ms ease; }
+.th + .tr { border-top: 0; }
+.tr:hover { background: rgba(255,255,255,.03); }
+.tr .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.tr .who b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ini { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; flex: none; font-size: 12px; font-weight: 800; background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+.muted { color: var(--color-body-soft); font-size: 13px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 700; width: max-content; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.active { background: var(--color-ok-soft); color: var(--color-ok-ink); } .pill.expiring { background: var(--color-warn-soft); color: var(--color-warn-ink); } .pill.overdue { background: var(--color-danger-soft); color: var(--color-danger-ink); }
+.chev { color: var(--color-body-faint); }
+
+/* Detalle lateral: la fila lo abre; una acción principal. */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity 250ms ease; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.drawer { position: fixed; z-index: 50; top: 0; right: 0; bottom: 0; width: min(440px, 100vw); display: flex; flex-direction: column; background: var(--color-panel); border-left: 1px solid var(--color-line); box-shadow: -30px 0 80px rgba(0,0,0,.5); transform: translateX(100%); transition: transform var(--t-spring) var(--spring); }
+.drawer.open { transform: none; }
+.dr-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 22px 8px; }
+.dr-head h2 { margin: 0; font-size: 16px; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.06); color: var(--color-body-soft); }
+.icon-btn:hover { background: rgba(255,255,255,.1); color: var(--color-body); }
+.dr-body { flex: 1; overflow: auto; padding: 8px 22px 22px; }
+.dr-foot { display: flex; gap: 10px; padding: 16px 22px 22px; border-top: 1px solid var(--color-line-soft); }
+.dr-foot .primary { margin-left: 0; flex: 1; justify-content: center; height: 46px; }
+.ident { display: flex; align-items: center; gap: 14px; margin: 6px 0 18px; }
+.ident .ini { width: 54px; height: 54px; font-size: 17px; }
+.ident b { display: block; font-size: 20px; }
+.box { border-radius: 14px; padding: 14px; background: rgba(255,255,255,.03); border: 1px solid var(--color-line-soft); margin-top: 12px; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 14px; } .kv span { color: var(--color-body-soft); } .kv b { text-align: right; }
+.bar { height: 7px; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; margin: 10px 0 6px; } .bar i { display: block; height: 100%; background: var(--color-brand); }
+.menu-list { margin-top: 12px; display: grid; gap: 2px; }
+.menu-list button { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 10px; border-radius: 10px; font-size: 14px; text-align: left; color: var(--color-body-muted); }
+.menu-list button:hover { background: rgba(255,255,255,.05); color: var(--color-body); }
+.menu-list svg { width: 16px; height: 16px; }
+
+/* ---------- Apartado diario ---------- */
+.checkin { display: flex; align-items: center; gap: 12px; padding: 18px; border-radius: 20px; background: linear-gradient(135deg, color-mix(in srgb, var(--amber) 14%, var(--color-panel)), var(--color-panel) 60%); border: 1px solid var(--color-line-soft); }
+.checkin .tile-ico { width: 44px; height: 44px; border-radius: 14px; }
+.checkin label { display: block; font-size: 13px; font-weight: 700; color: var(--color-body-soft); margin-bottom: 6px; }
+.checkin input { width: 100%; height: 48px; padding: 0 16px; border-radius: 13px; border: 1px solid var(--color-line); background: rgba(0,0,0,.25); outline: none; font-size: 17px; }
+.checkin input:focus { border-color: var(--amber); }
+.checkin .grow { flex: 1; }
+.found { margin-top: 10px; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: rgba(0,0,0,.2); animation: in 300ms var(--spring) both; }
+@keyframes in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.found .grow b { display: block; }
+.stats { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 14px; margin: 16px 0; }
+.stat { padding: 18px; border-radius: 18px; background: var(--color-panel); border: 1px solid var(--color-line-soft); }
+.stat .lbl { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-body-faint); }
+.stat .val { font-size: 28px; font-weight: 800; letter-spacing: -0.01em; margin-top: 6px; }
+.stat .sub { font-size: 13px; color: var(--color-body-soft); }
+.split { display: flex; height: 8px; border-radius: 999px; overflow: hidden; margin-top: 12px; background: rgba(255,255,255,.06); }
+.split i { display: block; height: 100%; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.panel { border-radius: 18px; background: var(--color-panel); border: 1px solid var(--color-line-soft); }
+.panel h3 { margin: 0; padding: 16px 18px 4px; font-size: 15px; }
+.panel .sub { padding: 0 18px 10px; font-size: 13px; color: var(--color-body-faint); border-bottom: 1px solid var(--color-line-soft); }
+.list-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 11px 18px; font-size: 14px; border-top: 1px solid var(--color-line-soft); }
+.list-row:first-of-type { border-top: 0; }
+.list-row time { font-size: 12px; color: var(--color-body-faint); }
+.list-row .amt { font-weight: 700; }
+.new-note { display: flex; gap: 8px; padding: 12px 18px 16px; }
+.new-note input { flex: 1; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--color-line); background: rgba(0,0,0,.2); outline: none; font-size: 14px; }
+.new-note input:focus { border-color: var(--color-brand); }
+.hint { font-size: 12px; color: var(--color-body-faint); padding: 0 18px 14px; }
+
+/* ---------- Notas de diseño ---------- */
+.note { display: none; gap: 8px; align-items: flex-start; margin-top: 12px; padding: 9px 13px; border-radius: 12px; font-size: 12.5px; line-height: 1.45; color: var(--color-brand-ink); background: color-mix(in srgb, var(--color-brand-soft) 75%, transparent); border: 1px solid color-mix(in srgb, var(--color-brand) 35%, transparent); }
+.note svg { width: 14px; height: 14px; margin-top: 2px; } body.notes .note { display: flex; }
+.ctl { position: fixed; z-index: 90; right: 14px; bottom: 14px; display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; border-radius: 14px; font-size: 12px; color: var(--color-body-soft); background: var(--color-surface); border: 1px solid var(--color-line); box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+.ctl b { color: var(--color-brand-ink); }
+.seg { display: inline-flex; padding: 3px; border-radius: 10px; background: rgba(255,255,255,.06); }
+.seg button { padding: 4px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; color: var(--color-body-soft); }
+.seg button[aria-pressed="true"] { background: rgba(255,255,255,.12); color: var(--color-body); }
+.toast { position: fixed; z-index: 60; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; display: flex; align-items: center; gap: 14px; padding: 10px 10px 10px 16px; border-radius: 14px; background: var(--color-surface); border: 1px solid var(--color-line); box-shadow: 0 16px 40px rgba(0,0,0,.5); font-size: 14px; transition: transform var(--t-spring) var(--spring), opacity 200ms ease; pointer-events: none; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.toast button { height: 32px; padding: 0 12px; border-radius: 9px; font-weight: 700; color: var(--color-brand-ink); }
+.toast button:hover { background: rgba(255,255,255,.06); }
+
+@media (max-width: 960px) {
+  .shell { padding: 0 16px; } .greet .rule, .find kbd { display: none; } .find { max-width: none; margin: 0; flex-basis: 100%; order: 3; } .session .who { display: none; }
+  .daily { grid-template-columns: 1fr; } .manage { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mcard, .mcard.featured { min-height: 0; }
+  .topbar { padding: 0 14px; gap: 12px; height: auto; min-height: 64px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+  .tabs { order: 3; width: 100%; overflow-x: auto; } .jump span.lbl { display: none; }
+  .page { padding: 16px 14px 80px; }
+  .th { display: none; } .tr { grid-template-columns: minmax(0, 1fr) auto 18px; } .tr .c-doc, .tr .c-phone, .tr .c-plan, .tr .c-due { display: none; }
+  .stats, .cols { grid-template-columns: 1fr; }
+  .primary .lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .drawer, .toast { transition: opacity 200ms ease; } .drawer { transform: none; opacity: 0; pointer-events: none; } .drawer.open { opacity: 1; pointer-events: auto; } .found { animation: none; } }
+</style>
+</head>
+<body class="notes">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="peak" viewBox="0 0 120 100"><path d="M60 4 L116 96 L94 96 L60 40 L26 96 L4 96 Z" fill="currentColor"/><path d="M60 54 L78 86 L42 86 Z" fill="var(--color-brand-ink)"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5h11M6.5 17.5h11M3 9v6M21 9v6M6 5v14M18 5v14"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8H8M16 12H8M12 16H8"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-door" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5M15 12H3"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+</defs></svg>
+
+<div id="root"></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside>
+<div class="toast" id="toast" role="status"><span id="toast-msg"></span><button id="toast-undo">Deshacer</button></div>
+<div class="ctl"><b>Propuesta</b> Ver como <div class="seg" id="role"><button data-role="admin" aria-pressed="true">Administración</button><button data-role="reception" aria-pressed="false">Recepción</button></div>
+  Notas <div class="seg" id="notes"><button data-notes="on" aria-pressed="true">Sí</button><button data-notes="off" aria-pressed="false">No</button></div></div>
+
+<script>
+/* ============================ Datos de ejemplo ============================ */
+const MODULES = {
+  dailyLog: { name: "Apartado diario", desc: "Ingresos, ventas y novedades del día", icon: "book", acc: "amber", daily: true },
+  clients: { name: "Clientes", desc: "Gestiona los clientes del gimnasio", icon: "users", acc: "green", daily: true },
+  payments: { name: "Pagos", desc: "Pagos, abonos y saldos", icon: "wallet", acc: "fuchsia", daily: true },
+  memberships: { name: "Membresías", icon: "card", acc: "violet" },
+  trainers: { name: "Entrenadores", icon: "dumbbell", acc: "orange" },
+  inventory: { name: "Inventario", icon: "box", acc: "rose" },
+  expenses: { name: "Egresos", icon: "receipt", acc: "teal" },
+  finances: { name: "Finanzas", icon: "chart", acc: "lime" },
+};
+const LABEL = { active: "Activo", expiring: "Por vencer", overdue: "En mora" };
+let clients = [
+  { id: 1, name: "Ana María Ruiz", doc: "1023456789", phone: "300 112 2334", plan: "Mensualidad (lunes a sábado)", state: "active", due: "2026-11-06", left: 29, debt: 0 },
+  { id: 2, name: "Carlos Pérez", doc: "79845123", phone: "311 445 9902", plan: "Mes 3 veces por semana", state: "active", due: "2026-10-21", left: 13, debt: 0 },
+  { id: 3, name: "María José López", doc: "1032998741", phone: "315 220 1188", plan: "Mensualidad (lunes a sábado)", state: "expiring", due: "2026-10-10", left: 2, debt: 0 },
+  { id: 4, name: "Julián Torres", doc: "1010223344", phone: "320 556 7788", plan: "Personalizado", state: "overdue", due: "2026-09-30", left: -8, debt: 100000 },
+  { id: 5, name: "Valentina Gómez", doc: "1144556677", phone: "301 778 9900", plan: "Quincena", state: "expiring", due: "2026-10-09", left: 1, debt: 0 },
+  { id: 6, name: "Santiago Herrera", doc: "80123456", phone: "312 345 6789", plan: "Mensualidad (lunes a sábado)", state: "overdue", due: "2026-10-02", left: -6, debt: 35000 },
+  { id: 7, name: "Daniela Castro", doc: "1020304050", phone: "316 789 0123", plan: "Mensualidad (lunes a sábado)", state: "active", due: "2026-10-28", left: 20, debt: 0 },
+  { id: 9, name: "Isabella Moreno", doc: "1056789012", phone: "304 567 8901", plan: "Mensualidad (lunes a sábado)", state: "expiring", due: "2026-10-12", left: 4, debt: 0 },
+  { id: 10, name: "Sebastián Ríos", doc: "1077889900", phone: "305 678 9012", plan: "Semipersonalizado", state: "active", due: "2026-11-01", left: 24, debt: 0 },
+];
+let feed = [
+  { time: "5:31", kind: "door", text: "Ingreso · Carlos Pérez" }, { time: "5:48", kind: "wallet", text: "Pago · Daniela Castro", amount: 65000, b: "pagos" },
+  { time: "6:05", kind: "door", text: "Ingreso · Ana María Ruiz" }, { time: "6:20", kind: "cart", text: "Venta · 2 × Agua 600 ml", amount: 4000, b: "ventas" },
+  { time: "6:42", kind: "door", text: "Pase de día · Camilo Ortiz", amount: 6000, b: "pases" },
+];
+let notes = ["Revisar la caminadora 3: hace ruido."];
+const state = { view: "home", role: "admin", filter: "all", q: "" };
+
+/* ============================ Utilidades ============================ */
+const $ = (s) => document.querySelector(s);
+const icon = (id) => `<svg class="i"><use href="#i-${id}"/></svg>`;
+const money = (n) => "$ " + n.toLocaleString("es-CO");
+const ini = (n) => n.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const note = (t) => `<p class="note">${icon("info")}<span>${t}</span></p>`;
+const logo = (cls = "") => `<div class="logo ${cls}"><svg><use href="#peak"/></svg><b>APEX</b><small>GYM</small></div>`;
+const totals = () => feed.reduce((t, e) => (e.b && (t[e.b] += e.amount), t), { pagos: 0, ventas: 0, pases: 0 });
+const now = () => new Date().toLocaleTimeString("es-CO", { hour: "numeric", minute: "2-digit" }).replace(/\s?[ap]\.?\s?m\.?/i, "");
+const allowed = (id) => id === "home" || state.role === "admin" || MODULES[id].daily;
+
+/* ============================ Selector de módulos ============================ */
+function home() {
+  const t = totals(); const ins = feed.filter((e) => e.kind === "door").length;
+  const exp = clients.filter((c) => c.state === "expiring").length, ovd = clients.filter((c) => c.state === "overdue").length;
+  const owed = clients.reduce((s, c) => s + c.debt, 0);
+  const card = (id, live, shortcut, featured = false) => { const m = MODULES[id]; return `
+    <div class="mcard ${m.acc} ${featured ? "featured" : ""}" style="--acc:var(--${m.acc})" role="link" tabindex="0" data-go="${id}">
+      <span class="tile-ico ${m.acc}">${icon(m.icon)}</span>
+      ${shortcut ? `<button class="shortcut" data-short="${shortcut[0]}">${icon(shortcut[1])}${shortcut[2]}</button>` : ""}
+      <h3>${m.name}${featured ? `<span class="badge-top">Lo más usado</span>` : ""}</h3><div class="desc">${m.desc}</div>
+      <div class="live">${live}</div></div>`; };
+  const small = (id, line, flag) => { const m = MODULES[id]; return `<button class="small" style="--acc:var(--${m.acc})" data-go="${id}"><span class="tile-ico ${m.acc}">${icon(m.icon)}</span><span><b>${m.name}</b><span class="${flag ? "flag" : ""}">${line}</span></span></button>`; };
+  return `<div class="home ground-grid"><div class="shell"><main>
+    <header class="greet">${logo()}<span class="rule"></span>
+      <div><h1>¡Hola, ${state.role === "admin" ? "Laura" : "Pedro"}!</h1><p>Selecciona el módulo al que deseas ingresar.</p></div>
+      <label class="find">${icon("search")}<input id="find" placeholder="Buscar cliente por nombre o documento" autocomplete="off" /><kbd>/</kbd><div class="hits" id="hits"></div></label>
+      <div class="session"><span class="av">${state.role === "admin" ? "LG" : "PS"}</span><span class="who"><b>${state.role === "admin" ? "Laura Gómez" : "Pedro Salas"}</b><span>${state.role === "admin" ? "Administrador" : "Recepcionista"}</span></span><button class="linkbtn">${icon("out")}Cerrar sesión</button></div>
+    </header>
+    ${note("La composición es la de hoy: logo, saludo, sesión y tarjetas. Se suma un buscador de clientes, porque buscar a alguien es lo más frecuente y hoy obliga a entrar a Clientes primero.")}
+    <section class="tier"><div class="tier-head"><h2>Para el día a día</h2><span>Lo que se usa en cada turno</span></div>
+      <div class="daily">
+        ${card("dailyLog", `<div><b class="tabular">${money(t.pagos + t.ventas + t.pases)}</b>ingresos del día</div><div><b class="tabular">${ins}</b>ingresos al gym</div><div><b>1</b>cliente nuevo</div>`, ["checkin", "door", "Registrar ingreso"], true)}
+        ${card("clients", `<div class="warn"><b>${exp}</b>por vencer</div><div class="danger"><b>${ovd}</b>en mora</div><div><b>${clients.length}</b>en total</div>`, ["newclient", "plus", "Agregar"])}
+        ${card("payments", `<div><b class="tabular">${money(t.pagos)}</b>cobrado hoy</div><div><b class="tabular">${money(owed)}</b>por cobrar</div>`, ["charge", "plus", "Cobrar"])}
+      </div>
+      ${note("Apartado diario pasa de la última posición a la primera, y es la más grande. Las tres tarjetas diarias muestran datos en vivo (cuánto entró, quién vence, cuánto falta cobrar) para decidir sin entrar. Cada una tiene UN atajo a lo que más se hace en ella; ya no hay una flecha por tarjeta: toda la tarjeta es el botón.")}
+    </section>
+    ${state.role === "admin" ? `<section class="tier"><div class="tier-head"><h2>Gestión del gimnasio</h2><span>Se revisa cada tanto</span></div>
+      <div class="manage">${small("memberships", "9 planes")}${small("trainers", "2 con cupo")}${small("inventory", "2 por reponer", true)}${small("expenses", "$ 2,1 M en octubre")}${small("finances", "Resumen del mes")}</div>
+      ${note("Lo situacional sigue a un clic, pero en tarjetas compactas: sin descripción, con un dato que ayude a decidir si vale la pena entrar (por ejemplo, «2 por reponer»).")}
+    </section>` : note("Recepción solo ve los tres módulos diarios: ya no hay tarjetas de gestión que no puede abrir.")}
+  </main></div></div>`;
+}
+
+/* ============================ Barra superior del módulo ============================ */
+function topbar(id, tabs = "") {
+  const daily = ["dailyLog", "clients", "payments"];
+  const counts = { clients: clients.filter((c) => c.state === "overdue").length };
+  return `<header class="topbar">${logo("sm")}<span class="vr"></span><span class="title">${MODULES[id].name}</span>${tabs}
+    <nav class="jump" aria-label="Módulos del día">${daily.map((d) => { const m = MODULES[d]; return `<button data-go="${d}" ${d === id ? 'aria-current="page"' : ""} title="${m.name}"><span class="dot ${m.acc}" style="--acc:var(--${m.acc})">${icon(m.icon)}</span><span class="lbl">${m.name}</span>${counts[d] && d !== id ? `<span class="count">${counts[d]}</span>` : ""}</button>`; }).join("")}
+      <span class="sep"></span><button data-go="home" title="Todos los módulos">${icon("grid")}<span class="lbl">Todos</span></button></nav></header>`;
+}
+
+/* ============================ Clientes ============================ */
+function clientsView() {
+  const n = (s) => clients.filter((c) => s === "all" || c.state === s).length;
+  const chips = [["all", "Todos"], ["active", "Activos", "var(--color-ok-ink)"], ["expiring", "Por vencer", "var(--color-warn-ink)"], ["overdue", "En mora", "var(--color-danger-ink)"]];
+  return `${topbar("clients")}<div class="page">
+    <div class="toolbar">${chips.map(([id, l, c]) => `<button class="chip" data-filter="${id}" aria-pressed="${state.filter === id}">${c ? `<span class="sd" style="background:${c}"></span>` : ""}${l}<span class="n">${n(id)}</span></button>`).join("")}
+      <label class="inline-search">${icon("search")}<input id="cq" placeholder="Buscar por nombre, documento o teléfono" value="${esc(state.q)}" /></label>
+      <button class="primary" data-short="newclient">${icon("plus")}<span class="lbl">Agregar cliente</span></button></div>
+    <div class="table" id="table"></div>
+    ${note("Mismos filtros de hoy, ahora con su conteo. La búsqueda sube a la misma fila (hoy ocupa su propia tarjeta). Se quita la columna «Acción»: toda la fila abre el detalle, y ahí está la acción que corresponde al estado del cliente.")}
+    ${note("Arriba a la derecha: en vez de «← Cambiar módulo», un salto directo a los tres módulos del día. Pasar de Clientes a Pagos es un clic, no dos. El número rojo avisa clientes en mora desde cualquier módulo.")}
+  </div>`;
+}
+function renderTable() {
+  const q = state.q.toLowerCase();
+  const list = clients.filter((c) => (state.filter === "all" || c.state === state.filter) && (!q || c.name.toLowerCase().includes(q) || c.doc.includes(q) || c.phone.replace(/\s/g, "").includes(q.replace(/\s/g, ""))));
+  $("#table").innerHTML = `<div class="th"><span>Cliente</span><span>Documento</span><span>Teléfono</span><span>Membresía</span><span>Estado</span><span>Vencimiento</span><span></span></div>` +
+    (list.length ? list.map((c) => `<button class="tr" data-client="${c.id}"><span class="who"><span class="ini">${ini(c.name)}</span><b>${esc(c.name)}</b></span><span class="muted tabular c-doc">${c.doc}</span><span class="muted c-phone">${c.phone}</span><span class="muted c-plan">${c.plan}</span><span class="pill ${c.state}">${LABEL[c.state]}</span><span class="tabular c-due">${c.due}</span><span class="chev">${icon("chev")}</span></button>`).join("")
+    : `<div style="padding:36px;text-align:center" class="muted">No encontramos clientes. Intenta cambiar los filtros o la búsqueda.</div>`);
+}
+function action(c) {
+  if (c.state === "overdue") return { label: `Cobrar ${money(c.debt)}`, run: "pay" };
+  if (c.state === "expiring") return { label: "Renovar membresía", run: "pay" };
+  return { label: "Registrar ingreso", run: "in" };
+}
+function openClient(id) {
+  const c = clients.find((x) => x.id === +id); const a = action(c);
+  $("#drawer").innerHTML = `<div class="dr-head"><h2>Detalle del cliente</h2><button class="icon-btn" data-close aria-label="Cerrar">${icon("x")}</button></div>
+    <div class="dr-body"><div class="ident"><span class="ini">${ini(c.name)}</span><div><b>${esc(c.name)}</b><span class="muted">CC ${c.doc} · ${c.phone}</span><div style="margin-top:6px"><span class="pill ${c.state}">${LABEL[c.state]}</span></div></div></div>
+      <div class="box"><div class="kv"><span>Membresía</span><b>${c.plan}</b></div><div class="bar"><i style="width:${Math.max(0, Math.min(100, (c.left / 30) * 100))}%"></i></div><span class="muted">${c.left >= 0 ? `Vence el ${c.due} · quedan ${c.left} días` : `Venció el ${c.due}`}</span></div>
+      <div class="box kv"><span>Saldo</span><b>${c.debt ? money(c.debt) : "Al día"}</b><span>Último ingreso</span><b>Hoy, 6:05</b></div>
+      <div class="menu-list"><button>${icon("pen")}Editar datos</button><button>${icon("repeat")}Cambiar membresía</button><button>${icon("dumbbell")}Asignar entrenador</button><button>${icon("clock")}Historial de pagos e ingresos</button></div>
+      ${note("Las acciones ocasionales quedan como lista tranquila; solo una lleva color.")}</div>
+    <div class="dr-foot"><button class="primary" data-do="${a.run}" data-id="${c.id}">${a.label}</button></div>`;
+  $("#drawer").classList.add("open"); $("#scrim").classList.add("open");
+}
+const closeDrawer = () => { $("#drawer").classList.remove("open"); $("#scrim").classList.remove("open"); };
+
+/* ============================ Apartado diario ============================ */
+function dailyView() {
+  const t = totals(); const sum = t.pagos + t.ventas + t.pases || 1; const ins = feed.filter((e) => e.kind === "door").length;
+  const tabs = `<nav class="tabs"><button class="tab" aria-current="page">${icon("sun")}Hoy</button><button class="tab">${icon("clock")}Historial</button></nav>`;
+  return `${topbar("dailyLog", tabs)}<div class="page">
+    <section class="checkin"><span class="tile-ico amber" style="--acc:var(--amber)">${icon("door")}</span><div class="grow"><label for="ci">Registrar ingreso</label><input id="ci" placeholder="Documento o nombre de quien llega" autocomplete="off" /><div id="found"></div></div>
+      <button class="ghost" data-short="sell">${icon("cart")}Registrar venta</button></section>
+    ${note("Registrar el ingreso es lo que más se hace en recepción; hoy vive en otra pestaña. Aquí está arriba de todo y se resuelve con Enter. «Registrar venta» deja de ser pestaña: es una acción al lado.")}
+    <div class="stats">
+      <div class="stat"><div class="lbl">Ingresos del día</div><div class="val tabular">${money(t.pagos + t.ventas + t.pases)}</div>
+        <div class="split"><i style="width:${(t.pagos / sum) * 100}%;background:var(--fuchsia)"></i><i style="width:${(t.ventas / sum) * 100}%;background:var(--rose)"></i><i style="width:${(t.pases / sum) * 100}%;background:var(--amber)"></i></div>
+        <div class="sub" style="margin-top:8px">Pagos ${money(t.pagos)} · Ventas ${money(t.ventas)} · Pases ${money(t.pases)}</div></div>
+      <div class="stat"><div class="lbl">Ingresos al gym</div><div class="val tabular">${ins}</div><div class="sub">personas hoy</div></div>
+      <div class="stat"><div class="lbl">Clientes nuevos</div><div class="val">1</div><div class="sub">Laura Restrepo · Mensualidad</div></div>
+    </div>
+    ${note("Las tres tarjetas apiladas de hoy (ingresos, clientes nuevos, novedades) pasan a una fila de resumen: todo el día se ve sin desplazarse.")}
+    <div class="cols">
+      <section class="panel"><h3>Movimientos</h3><div class="sub">Ingresos, pagos y ventas, en orden.</div><div id="feed">${feed.slice().reverse().map((e) => `<div class="list-row"><time>${e.time}</time><span style="display:flex;align-items:center;gap:8px">${icon(e.kind)}${esc(e.text)}</span><span class="amt tabular">${e.amount ? money(e.amount) : ""}</span></div>`).join("")}</div></section>
+      <section class="panel"><h3>Novedades del día</h3><div class="sub">Observaciones e incidentes.</div><div id="notes">${notes.map((n) => `<div class="list-row" style="grid-template-columns:1fr"><span>${esc(n)}</span></div>`).join("")}</div>
+        <div class="new-note"><input id="nn" placeholder="Ej. Se dañó una caminadora — Enter para agregar" /></div><div class="hint">Enter agrega la novedad: sin botón aparte.</div></section>
+    </div></div>`;
+}
+function renderFound() {
+  const q = $("#ci").value.trim().toLowerCase(); const box = $("#found"); if (!q) { box.innerHTML = ""; return; }
+  const c = clients.find((x) => x.name.toLowerCase().includes(q) || x.doc.startsWith(q));
+  if (!c) { box.innerHTML = `<div class="found"><span class="ini">?</span><span class="grow"><b>No está registrado</b><span class="muted">¿Primera vez?</span></span><button class="primary" style="margin:0">Agregar cliente</button></div>`; return; }
+  const a = action(c);
+  box.innerHTML = `<div class="found"><span class="ini">${ini(c.name)}</span><span class="grow"><b>${esc(c.name)}</b><span class="muted">${c.plan} · </span><span class="pill ${c.state}">${LABEL[c.state]}</span></span><button class="primary" style="margin:0" data-do="${a.run}" data-id="${c.id}">${a.label}</button></div>`;
+}
+
+/* ============================ Módulos sin detalle en la vista previa ============================ */
+function placeholder(id) {
+  return `${topbar(id)}<div class="page"><div class="panel" style="padding:40px;text-align:center"><span class="tile-ico ${MODULES[id].acc}" style="--acc:var(--${MODULES[id].acc});margin:0 auto">${icon(MODULES[id].icon)}</span><h2 style="margin:16px 0 4px">${MODULES[id].name}</h2><p class="muted" style="margin:0">En esta vista previa solo están detallados Clientes y Apartado diario. El resto sigue el mismo patrón: filtros con conteo, búsqueda en la misma fila, una acción principal y filas que abren el detalle.</p></div></div>`;
+}
+
+/* ============================ Render y acciones ============================ */
+function render() {
+  const v = state.view;
+  $("#root").innerHTML = v === "home" ? home() : v === "clients" ? clientsView() : v === "dailyLog" ? dailyView() : placeholder(v);
+  if (v === "clients") renderTable();
+  window.scrollTo(0, 0);
+}
+let undoFn = null, tt = 0;
+function toast(msg, undo) { undoFn = undo; $("#toast-msg").textContent = msg; $("#toast").classList.add("show"); clearTimeout(tt); tt = setTimeout(() => $("#toast").classList.remove("show"), 4500); }
+function checkin(id) {
+  const c = clients.find((x) => x.id === +id); const e = { time: now(), kind: "door", text: `Ingreso · ${c.name}` }; feed.push(e);
+  closeDrawer(); if (state.view !== "home") render();
+  toast(`Ingreso registrado: ${c.name.split(" ")[0]}`, () => { feed = feed.filter((x) => x !== e); if (state.view !== "home") render(); });
+}
+function pay(id) {
+  const c = clients.find((x) => x.id === +id); const before = { ...c }; const amount = c.debt || 65000;
+  const e = { time: now(), kind: "wallet", text: `Pago · ${c.name}`, amount, b: "pagos" }; feed.push(e);
+  Object.assign(c, { debt: 0, state: "active", left: 30, due: "2026-11-08" }); closeDrawer(); render();
+  toast(`Cobrado ${money(amount)} a ${c.name.split(" ")[0]}`, () => { Object.assign(c, before); feed = feed.filter((x) => x !== e); render(); });
+}
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-go],[data-short],[data-filter],[data-client],[data-close],[data-do],[data-role],[data-notes],[data-hit]");
+  if (!t) { $("#hits")?.classList.remove("open"); return; }
+  const d = t.dataset;
+  if (d.short) { ev.stopPropagation(); const map = { checkin: () => { state.view = "dailyLog"; render(); $("#ci").focus(); }, newclient: () => toast("Abre el formulario de cliente (igual al de hoy)"), charge: () => { state.view = "payments"; render(); }, sell: () => toast("Abre «Registrar venta» (igual al de hoy)") }; map[d.short]?.(); return; }
+  if (d.go) { if (!allowed(d.go) && d.go !== "home") return; state.view = d.go; render(); return; }
+  if (d.filter) { state.filter = d.filter; document.querySelectorAll("[data-filter]").forEach((b) => b.setAttribute("aria-pressed", String(b === t))); renderTable(); return; }
+  if (d.client) { openClient(d.client); return; }
+  if (d.hit) { state.view = "clients"; render(); openClient(d.hit); return; }
+  if (d.close !== undefined) { closeDrawer(); return; }
+  if (d.do) { d.do === "in" ? checkin(d.id) : pay(d.id); return; }
+  if (d.role) { state.role = d.role; document.querySelectorAll("[data-role]").forEach((b) => b.setAttribute("aria-pressed", String(b === t))); if (!allowed(state.view) && state.view !== "home") state.view = "home"; render(); return; }
+  if (d.notes) { document.body.classList.toggle("notes", d.notes === "on"); document.querySelectorAll("[data-notes]").forEach((b) => b.setAttribute("aria-pressed", String(b === t))); }
+});
+document.addEventListener("input", (ev) => {
+  if (ev.target.id === "cq") { state.q = ev.target.value; renderTable(); }
+  if (ev.target.id === "ci") renderFound();
+  if (ev.target.id === "find") { const q = ev.target.value.trim().toLowerCase(); const hits = $("#hits");
+    const list = q ? clients.filter((c) => c.name.toLowerCase().includes(q) || c.doc.startsWith(q)).slice(0, 5) : [];
+    hits.innerHTML = list.map((c) => `<button class="hit" data-hit="${c.id}"><span class="ini">${ini(c.name)}</span><span>${esc(c.name)}<small>${c.plan}</small></span><span class="pill ${c.state}">${LABEL[c.state]}</span></button>`).join("") || (q ? `<div class="muted" style="padding:10px">Nadie con ese nombre o documento.</div>` : "");
+    hits.classList.toggle("open", !!q); }
+});
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape") closeDrawer();
+  if (ev.key === "Enter" && ev.target.id === "ci") $("#found .primary")?.click();
+  if (ev.key === "Enter" && ev.target.id === "find") $("#hits .hit")?.click();
+  if (ev.key === "Enter" && ev.target.id === "nn" && ev.target.value.trim()) { notes.push(ev.target.value.trim()); const v = ev.target.value; render(); toast("Novedad agregada", () => { notes = notes.filter((n) => n !== v.trim()); render(); }); }
+  if (ev.key === "/" && state.view === "home" && document.activeElement?.tagName !== "INPUT") { ev.preventDefault(); $("#find").focus(); }
+});
+$("#scrim").addEventListener("click", closeDrawer);
+$("#toast-undo").addEventListener("click", () => { undoFn?.(); $("#toast").classList.remove("show"); });
+render();
+</script>
+</body>
+</html>

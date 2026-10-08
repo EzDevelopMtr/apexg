@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  panelActionsFor,
   NAV_SECTIONS,
   listFiltersFor,
   navSectionsFor,
@@ -35,12 +36,12 @@ describe("navTabsFor", () => {
   it("sin listado, cada sección —formularios incluidos— es su pestaña", () => {
     // Finanzas quedó en una sola vista: sin pestañas.
     expect(navTabsFor("finances")).toEqual([]);
-    expect(ids(navTabsFor("dailyLog"))).toEqual([
-      "today",
-      "checkin",
-      "history",
-      "sell",
-    ]);
+    expect(ids(navTabsFor("dailyLog"))).toEqual(["today", "history"]);
+  });
+
+  it("una sección marcada tab: false no es pestaña: es un botón del panel", () => {
+    expect(ids(panelActionsFor("dailyLog"))).toEqual(["sell"]);
+    expect(panelActionsFor("clients")).toEqual([]);
   });
 
   it("ninguna sección se pierde: toda queda alcanzable por pestaña, filtro, acción o como portada", () => {
@@ -51,6 +52,7 @@ describe("navTabsFor", () => {
       ]);
       const accion = primaryActionFor(moduleId);
       if (accion) alcanzables.add(accion.id);
+      for (const boton of panelActionsFor(moduleId)) alcanzables.add(boton.id);
       // La primera sección es a donde lleva la tarjeta del selector.
       const portada = navSectionsFor(moduleId)[0];
       if (portada) alcanzables.add(portada.id);

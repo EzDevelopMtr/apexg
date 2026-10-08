@@ -27,6 +27,11 @@ export interface ModuleSection<Id extends string, T> {
   readonly title: string;
   readonly icon: IconName;
   readonly view: SectionView<T>;
+  /**
+   * `false`: not a place of its own but a task opened from a button in the
+   * module's panel (see `panelActionsFor`), so it never becomes a tab.
+   */
+  readonly tab?: false;
 }
 
 export interface SectionCatalog<Id extends string, T> {
