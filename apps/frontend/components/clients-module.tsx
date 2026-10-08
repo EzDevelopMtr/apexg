@@ -28,10 +28,7 @@ export default function ClientsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="clients"
-          sectionId={sectionId}
-          title={getClientSection(sectionId).title}
+        <SectionHeading title={getClientSection(sectionId).title}
         />
         <ClientsPage
           sectionId={sectionId}

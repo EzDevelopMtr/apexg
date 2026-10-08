@@ -15,10 +15,7 @@ export default function FinancesModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="finances"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <FinancesPage />
       </div>

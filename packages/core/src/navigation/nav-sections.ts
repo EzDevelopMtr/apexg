@@ -7,6 +7,7 @@ import { membershipSections } from "./membership-sections";
 import { paymentSections } from "./payment-sections";
 import { trainerSections } from "./trainer-sections";
 import type { IconName } from "./icons";
+import { opensAsDialog } from "./section-catalog";
 import type { ModuleSection, SectionView } from "./section-catalog";
 
 /**
@@ -23,6 +24,8 @@ export interface NavigableSection {
   readonly kind: SectionView<never>["kind"];
   /** `false` when it opens from a button in the panel rather than as a tab. */
   readonly tab: boolean;
+  /** Opens as a dialog over the module's first section (see `opensAsDialog`). */
+  readonly dialog: boolean;
 }
 
 /**
@@ -42,12 +45,13 @@ export interface NavTab {
 function toNavigable(
   sections: readonly ModuleSection<string, never>[],
 ): readonly NavigableSection[] {
-  return sections.map(({ id, label, icon, view, tab }) => ({
-    id,
-    label,
-    icon,
-    kind: view.kind,
-    tab: tab !== false,
+  return sections.map((section) => ({
+    id: section.id,
+    label: section.label,
+    icon: section.icon,
+    kind: section.view.kind,
+    tab: section.tab !== false,
+    dialog: opensAsDialog(section),
   }));
 }
 
@@ -159,16 +163,11 @@ export function listFiltersFor(
 }
 
 /**
- * Si la vista necesita un título visible.
- *
- * Solo cuando nada más en pantalla dice dónde se está: un formulario abierto
- * con el botón de acción. Un listado ya lo dice su filtro activo, y un panel
- * o un formulario con pestaña, la pestaña marcada — ahí un título grande
- * repetía la misma palabra dos veces.
+ * La sección que se ve en pantalla para `sectionId`: ella misma, o —si se abre
+ * como diálogo— la primera del módulo, que queda detrás.
  */
-export function needsVisibleTitle(
-  moduleId: string,
-  sectionId: string,
-): boolean {
-  return primaryActionFor(moduleId)?.id === sectionId;
+export function sectionBehindId(moduleId: string, sectionId: string): string {
+  const sections = navSectionsFor(moduleId);
+  const section = sections.find((candidate) => candidate.id === sectionId);
+  return section?.dialog ? (sections[0]?.id ?? sectionId) : sectionId;
 }

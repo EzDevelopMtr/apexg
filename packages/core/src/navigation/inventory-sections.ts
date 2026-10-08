@@ -54,5 +54,7 @@ export const inventorySections = createSectionCatalog<
     title: "Categorías de inventario",
     icon: "package",
     view: { kind: "panel" },
+    // Una lista corta con un campo para agregar: se abre sobre el listado.
+    tab: false,
   },
 ]);

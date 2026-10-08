@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import type { ClientSectionId } from "@apexg/core";
-import { getClientSection, today } from "@apexg/core";
+import { clientSections, getClientSection, today } from "@apexg/core";
 import type { ReactNode } from "react";
 import type { ClientsToolbarSlots } from "./clients-list-view";
 import { useClients } from "../hooks/use-clients";
-import ClientsFormView from "./clients-form-view";
+import { Modal } from "@apexg/ui";
+import ClientForm from "./client-form";
 import ClientsListView from "./clients-list-view";
 import { ErrorState, LoadingState } from "./load-state";
 
@@ -24,7 +25,8 @@ export interface ClientsPageProps {
  * Entry point of the module.
  *
  * Dispatches on the section's view kind instead of comparing URL strings, so a
- * new section needs no change here.
+ * new section needs no change here. Adding a client opens as a dialog over the
+ * list, which stays on screen and shows the new client when it closes.
  */
 export default function ClientsPage({
   sectionId,
@@ -34,7 +36,9 @@ export default function ClientsPage({
 }: ClientsPageProps) {
   // Resolved here rather than passed in: sections carry predicates, and a
   // function cannot cross the server/client boundary.
-  const section = getClientSection(sectionId);
+  const requested = getClientSection(sectionId);
+  const section = clientSections.sectionBehind(sectionId);
+  const close = () => onNavigate(section.id);
 
   const { items: clients, state, error, save, photoUrl, reload } =
     useClients();
@@ -42,15 +46,6 @@ export default function ClientsPage({
   // Pinned once per mount: recomputing "today" on every render would make the
   // derived statuses flicker across a midnight boundary mid-session.
   const [referenceDate] = useState(today);
-
-  if (section.view.kind === "form") {
-    return (
-      <ClientsFormView
-        onSave={(draft, _existing, photo) => save(draft, undefined, photo)}
-        onDone={() => onNavigate("all")}
-      />
-    );
-  }
 
   return (
     <>
@@ -71,6 +66,16 @@ export default function ClientsPage({
           toolbar={toolbar}
         />
       )}
+
+      <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
+        <ClientForm
+          onSave={async (draft, _existing, photo) => {
+            await save(draft, undefined, photo);
+            close();
+          }}
+          onCancel={close}
+        />
+      </Modal>
     </>
   );
 }

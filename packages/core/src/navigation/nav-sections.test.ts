@@ -6,7 +6,7 @@ import {
   listFiltersFor,
   navSectionsFor,
   navTabsFor,
-  needsVisibleTitle,
+  sectionBehindId,
   primaryActionFor,
 } from "./nav-sections";
 
@@ -22,15 +22,16 @@ describe("navTabsFor", () => {
   });
 
   it("el formulario no es pestaña si el módulo tiene listado", () => {
-    expect(ids(navTabsFor("inventory"))).toEqual(["all", "categories"]);
     expect(ids(navTabsFor("trainers"))).toEqual(["all", "commissions"]);
-    expect(ids(navTabsFor("expenses"))).toEqual(["all", "categories"]);
+    // Categorías se abre como diálogo: queda un solo lugar, sin pestañas.
+    expect(navTabsFor("expenses")).toEqual([]);
+    expect(navTabsFor("inventory")).toEqual([]);
   });
 
   it("la pestaña del listado se rotula 'Listado' y cubre todos sus filtros", () => {
-    const listado = navTabsFor("inventory")[0];
+    const listado = navTabsFor("trainers")[0];
     expect(listado?.label).toBe("Listado");
-    expect(listado?.matches).toEqual(["all", "lowStock", "outOfStock"]);
+    expect(listado?.matches).toEqual(["all", "available"]);
   });
 
   it("sin listado, cada sección —formularios incluidos— es su pestaña", () => {
@@ -89,15 +90,20 @@ describe("listFiltersFor", () => {
   });
 });
 
-describe("needsVisibleTitle", () => {
-  it("solo el formulario abierto desde el botón lleva título visible", () => {
-    expect(needsVisibleTitle("clients", "add")).toBe(true);
-    expect(needsVisibleTitle("clients", "all")).toBe(false);
-    expect(needsVisibleTitle("clients", "overdue")).toBe(false);
+describe("sectionBehindId", () => {
+  it("un formulario se abre sobre la primera sección del módulo", () => {
+    expect(sectionBehindId("clients", "add")).toBe("all");
+    expect(sectionBehindId("payments", "record")).toBe("all");
+    expect(sectionBehindId("dailyLog", "sell")).toBe("today");
   });
 
-  it("un formulario con pestaña no repite título: la pestaña ya lo dice", () => {
-    expect(needsVisibleTitle("dailyLog", "sell")).toBe(false);
-    expect(needsVisibleTitle("finances", "dashboard")).toBe(false);
+  it("categorías, marcada tab: false, también es un diálogo", () => {
+    expect(sectionBehindId("expenses", "categories")).toBe("all");
+    expect(sectionBehindId("inventory", "categories")).toBe("all");
+  });
+
+  it("un listado o un panel se muestran a sí mismos", () => {
+    expect(sectionBehindId("clients", "overdue")).toBe("overdue");
+    expect(sectionBehindId("trainers", "commissions")).toBe("commissions");
   });
 });

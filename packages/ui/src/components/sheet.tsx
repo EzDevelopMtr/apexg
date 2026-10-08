@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { useDismissable } from "../hooks/use-dismissable";
+import { useScrollLock } from "../hooks/use-scroll-lock";
 import { materialButton } from "./material-button-classes";
 
 export interface SheetProps {
@@ -33,6 +34,7 @@ const CLOSED = "md:translate-x-[calc(100%+28px)] max-md:translate-y-full motion-
 /** A modal side sheet: the page behind dims and steps back (see `pushedBack`). */
 export default function Sheet({ open, title, onClose, children, footer }: SheetProps) {
   const panel = useDismissable(open, onClose);
+  useScrollLock(open);
 
   return (
     <>

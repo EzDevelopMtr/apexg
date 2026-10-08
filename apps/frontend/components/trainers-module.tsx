@@ -22,10 +22,7 @@ export default function TrainersModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="trainers"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <ListToolbar moduleId="trainers" basePath={BASE_PATH} />
         <TrainersPage

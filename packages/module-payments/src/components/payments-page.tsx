@@ -9,7 +9,7 @@ import {
   today,
 } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { Card, CardBody } from "@apexg/ui";
+import { Modal } from "@apexg/ui";
 import { useClientDirectory, usePayments } from "../hooks/use-payments";
 import PaymentForm from "./payment-form";
 import { usePaymentFilter } from "../hooks/use-payment-filter";
@@ -34,6 +34,7 @@ export interface PaymentsPageProps {
  * Entry point of the Payments module.
  *
  * Dispatches on the section's view kind rather than comparing URL strings.
+ * Recording a payment opens as a dialog over the list, which stays on screen.
  */
 export default function PaymentsPage({
   sectionId,
@@ -41,7 +42,9 @@ export default function PaymentsPage({
   onNavigate,
   initialClientId = "",
 }: PaymentsPageProps) {
-  const section = paymentSections.getSection(sectionId);
+  const requested = paymentSections.getSection(sectionId);
+  const section = paymentSections.sectionBehind(sectionId);
+  const close = () => onNavigate(section.id);
   const payments = usePayments();
   const clients = useClientDirectory();
   const [referenceDate] = useState(today);
@@ -50,7 +53,7 @@ export default function PaymentsPage({
     if (section.view.kind !== "list") return [];
 
     const scoped =
-      sectionId === "outstanding"
+      section.id === "outstanding"
         ? cyclesWithBalance(payments.items)
         : payments.items;
 
@@ -58,7 +61,7 @@ export default function PaymentsPage({
     return [...scoped]
       .filter((payment: Payment) => includes(payment, referenceDate))
       .sort((a, b) => b.paidOn.localeCompare(a.paidOn));
-  }, [payments.items, section, sectionId, referenceDate]);
+  }, [payments.items, section, referenceDate]);
 
   // Sobre lo que ya dejó pasar la sección ("Con saldo pendiente"), no sobre
   // todos los pagos: los filtros de columna afinan la vista, no la reemplazan.
@@ -67,32 +70,6 @@ export default function PaymentsPage({
     () => settlementDates(payments.items),
     [payments.items],
   );
-
-  if (section.view.kind === "form") {
-    return (
-      <CollectionGate
-        collection={clients}
-        loadingMessage="Cargando clientes..."
-        errorMessage="No pudimos cargar los clientes."
-      >
-        <Card>
-          <CardBody>
-            <PaymentForm
-              clients={clients.items}
-              payments={payments.items}
-              recordedBy={recordedBy}
-              initialClientId={initialClientId}
-              onRenew={clients.renew}
-              onRecord={async (draft, receipt) => {
-                await payments.record(draft, receipt);
-              }}
-              onDone={() => onNavigate("all")}
-            />
-          </CardBody>
-        </Card>
-      </CollectionGate>
-    );
-  }
 
   return (
     <CollectionGate
@@ -107,6 +84,26 @@ export default function PaymentsPage({
         receiptUrl={payments.receiptUrl}
         settlements={settlements}
       />
+
+      <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
+        <CollectionGate
+          collection={clients}
+          loadingMessage="Cargando clientes..."
+          errorMessage="No pudimos cargar los clientes."
+        >
+          <PaymentForm
+            clients={clients.items}
+            payments={payments.items}
+            recordedBy={recordedBy}
+            initialClientId={initialClientId}
+            onRenew={clients.renew}
+            onRecord={async (draft, receipt) => {
+              await payments.record(draft, receipt);
+            }}
+            onDone={close}
+          />
+        </CollectionGate>
+      </Modal>
     </CollectionGate>
   );
 }

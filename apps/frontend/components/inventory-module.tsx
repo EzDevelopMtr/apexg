@@ -22,10 +22,7 @@ export default function InventoryModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="inventory"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <ListToolbar moduleId="inventory" basePath={BASE_PATH} />
         <InventoryPage

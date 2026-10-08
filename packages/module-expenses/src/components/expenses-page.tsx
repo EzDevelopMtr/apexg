@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { ExpenseSectionId } from "@apexg/core";
 import { expenseSections, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { CategoryPanel, Card, CardBody } from "@apexg/ui";
+import { CategoryPanel, Modal } from "@apexg/ui";
 import { useExpenseCategories, useExpenses } from "../hooks/use-expenses";
 
 import ExpenseForm from "./expense-form";
@@ -16,15 +16,22 @@ export interface ExpensesPageProps {
   onNavigate: (sectionId: string) => void;
 }
 
+/**
+ * The list is always on screen. Registering an expense and managing the
+ * categories open as dialogs over it — each is a short form, not a place — and
+ * closing one returns to the list, already showing what was just saved.
+ */
 export default function ExpensesPage({
   sectionId,
   recordedBy,
   onNavigate,
 }: ExpensesPageProps) {
-  const section = expenseSections.getSection(sectionId);
+  const requested = expenseSections.getSection(sectionId);
+  const section = expenseSections.sectionBehind(sectionId);
   const expenses = useExpenses();
   const categories = useExpenseCategories();
   const [referenceDate] = useState(today);
+  const close = () => onNavigate(section.id);
 
   const visible = useMemo(() => {
     if (section.view.kind !== "list") return [];
@@ -34,57 +41,51 @@ export default function ExpensesPage({
       .sort((a, b) => b.spentOn.localeCompare(a.spentOn));
   }, [expenses.items, section, referenceDate]);
 
-  if (section.view.kind === "form") {
-    return (
+  return (
+    <>
       <CollectionGate
-        collection={categories}
-        loadingMessage="Cargando categorías..."
-        errorMessage="No pudimos cargar las categorías."
+        collection={expenses}
+        loadingMessage="Cargando egresos..."
+        errorMessage="No pudimos cargar los egresos."
       >
-        <Card>
-          <CardBody>
-            <ExpenseForm
-              categories={categories.items}
-              recordedBy={recordedBy}
-              onCreate={expenses.create}
-              onDone={() => onNavigate("all")}
-            />
-          </CardBody>
-        </Card>
-      </CollectionGate>
-    );
-  }
-
-  if (section.view.kind === "panel") {
-    return (
-      <CollectionGate
-        collection={categories}
-        loadingMessage="Cargando categorías..."
-        errorMessage="No pudimos cargar las categorías."
-      >
-        <CategoryPanel
-          placeholder="Ej. Publicidad"
+        <ExpenseList
+          expenses={visible}
           categories={categories.items}
-          onCreate={categories.create}
-          onToggle={(category) =>
-            categories.save({ ...category, active: !category.active })
-          }
+          receiptUrl={expenses.receiptUrl}
         />
       </CollectionGate>
-    );
-  }
 
-  return (
-    <CollectionGate
-      collection={expenses}
-      loadingMessage="Cargando egresos..."
-      errorMessage="No pudimos cargar los egresos."
-    >
-      <ExpenseList
-        expenses={visible}
-        categories={categories.items}
-        receiptUrl={expenses.receiptUrl}
-      />
-    </CollectionGate>
+      <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
+        <CollectionGate
+          collection={categories}
+          loadingMessage="Cargando categorías..."
+          errorMessage="No pudimos cargar las categorías."
+        >
+          <ExpenseForm
+            categories={categories.items}
+            recordedBy={recordedBy}
+            onCreate={expenses.create}
+            onDone={close}
+          />
+        </CollectionGate>
+      </Modal>
+
+      <Modal open={requested.view.kind === "panel"} title={requested.title} onClose={close}>
+        <CollectionGate
+          collection={categories}
+          loadingMessage="Cargando categorías..."
+          errorMessage="No pudimos cargar las categorías."
+        >
+          <CategoryPanel
+            placeholder="Ej. Publicidad"
+            categories={categories.items}
+            onCreate={categories.create}
+            onToggle={(category) =>
+              categories.save({ ...category, active: !category.active })
+            }
+          />
+        </CollectionGate>
+      </Modal>
+    </>
   );
 }

@@ -27,10 +27,7 @@ export default function DailyLogModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="dailyLog"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <DailyLogPage
           sectionId={sectionId}

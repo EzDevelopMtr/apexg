@@ -34,6 +34,14 @@ export interface ModuleSection<Id extends string, T> {
   readonly tab?: false;
 }
 
+/**
+ * A form, or a task marked `tab: false`, opens as a dialog over the module
+ * instead of replacing it: the list stays behind, and closing returns to it.
+ */
+export function opensAsDialog(section: { readonly view: { readonly kind: string }; readonly tab?: false }): boolean {
+  return section.view.kind === "form" || section.tab === false;
+}
+
 export interface SectionCatalog<Id extends string, T> {
   readonly sections: readonly ModuleSection<Id, T>[];
   readonly defaultSectionId: Id;
@@ -41,6 +49,8 @@ export interface SectionCatalog<Id extends string, T> {
   readonly isSectionId: (value: string) => value is Id;
   /** Total by construction: `Id` is the union of the ids in `sections`. */
   readonly getSection: (id: Id) => ModuleSection<Id, T>;
+  /** What shows on screen for `id`: itself, or — for a dialog — the module's first section behind it. */
+  readonly sectionBehind: (id: Id) => ModuleSection<Id, T>;
 }
 
 /**
@@ -68,6 +78,11 @@ export function createSectionCatalog<Id extends string, T>(
         throw new Error(`Unknown section: ${id}`);
       }
       return section;
+    },
+
+    sectionBehind(id: Id): ModuleSection<Id, T> {
+      const section = this.getSection(id);
+      return opensAsDialog(section) ? sections[0] : section;
     },
   };
 }

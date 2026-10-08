@@ -29,10 +29,7 @@ export default function PaymentsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="payments"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <ListToolbar moduleId="payments" basePath={BASE_PATH} />
         <PaymentsPage

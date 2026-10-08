@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { MembershipSectionId, MembershipType, Role } from "@apexg/core";
 import { canManageMemberships, membershipSections, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { Card, CardBody, Modal } from "@apexg/ui";
+import { Modal } from "@apexg/ui";
 import { useMembershipTypes } from "../hooks/use-membership-types";
 import MembershipForm from "./membership-form";
 import { emptyMembershipType } from "./empty-membership-type";
@@ -20,18 +20,21 @@ export interface MembershipsPageProps {
 /**
  * Entry point of the Memberships module.
  *
- * Dispatches on the section's view kind rather than comparing URL strings, so
- * a new section needs no change here.
+ * The list is always on screen; creating a plan opens as a dialog over it,
+ * like editing one already did.
  */
 export default function MembershipsPage({
   sectionId,
   role,
   onNavigate,
 }: MembershipsPageProps) {
-  const section = membershipSections.getSection(sectionId);
+  const requested = membershipSections.getSection(sectionId);
+  const section = membershipSections.sectionBehind(sectionId);
+  const creating = requested.view.kind === "form";
   const collection = useMembershipTypes();
   const [editing, setEditing] = useState<MembershipType | null>(null);
   const [referenceDate] = useState(today);
+  const close = () => onNavigate(section.id);
 
   const visible = useMemo(() => {
     if (section.view.kind !== "list") return [];
@@ -42,22 +45,8 @@ export default function MembershipsPage({
   const handleSave = async (type: MembershipType) => {
     await collection.save(type);
     setEditing(null);
-    if (section.view.kind === "form") onNavigate("all");
+    if (creating) close();
   };
-
-  if (section.view.kind === "form") {
-    return (
-      <Card>
-        <CardBody>
-          <MembershipForm
-            type={emptyMembershipType()}
-            onSave={handleSave}
-            onCancel={() => onNavigate("all")}
-          />
-        </CardBody>
-      </Card>
-    );
-  }
 
   return (
     <CollectionGate
@@ -69,6 +58,10 @@ export default function MembershipsPage({
         types={visible}
         onEdit={canManageMemberships(role) ? setEditing : undefined}
       />
+
+      <Modal open={creating} title={requested.title} onClose={close}>
+        <MembershipForm type={emptyMembershipType()} onSave={handleSave} onCancel={close} />
+      </Modal>
 
       <Modal
         open={editing !== null}

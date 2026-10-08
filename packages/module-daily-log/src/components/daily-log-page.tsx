@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import type { ClientId, DailyLogSectionId } from "@apexg/core";
-import { today } from "@apexg/core";
+import { dailyLogSections, today } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
+import { Modal } from "@apexg/ui";
 import { useDailyLog } from "../hooks/use-daily-log";
 import { useProductSales } from "../hooks/use-product-sales";
 import { useSaleCatalogs } from "../hooks/use-sale-catalogs";
@@ -30,6 +31,9 @@ export interface DailyLogPageProps {
  *
  * Its own module rather than a section of Finances: §2.2 grants the
  * receptionist the daily log while denying her Finances.
+ *
+ * Registering a sale opens as a dialog over "Hoy", like the day pass. Sales
+ * come from the hook that records them, so the day's income moves at once.
  */
 export default function DailyLogPage({
   sectionId,
@@ -41,34 +45,21 @@ export default function DailyLogPage({
   const sales = useProductSales();
   const catalogs = useSaleCatalogs();
   const [referenceDate] = useState(today);
-
-  if (sectionId === "sell") {
-    return (
-      <CollectionGate
-        collection={catalogs.gate}
-        loadingMessage="Cargando productos y clientes..."
-        errorMessage="No pudimos cargar los productos disponibles."
-      >
-        <RegisterSaleForm
-          items={catalogs.items}
-          clients={catalogs.clients}
-          onCreate={sales.create}
-          onDone={() => onNavigate("today")}
-        />
-      </CollectionGate>
-    );
-  }
+  const requested = dailyLogSections.getSection(sectionId);
+  const section = dailyLogSections.sectionBehind(sectionId);
+  const close = () => onNavigate(section.id);
 
   return (
+    <>
     <CollectionGate
       collection={log.gate}
       loadingMessage="Cargando el apartado diario..."
       errorMessage="No pudimos cargar el apartado diario."
     >
-      {sectionId === "today" ? (
+      {section.id === "today" ? (
         <TodayPanel
           payments={log.payments}
-          productSales={log.productSales}
+          productSales={sales.items}
           clients={log.clients}
           notes={log.notes}
           on={referenceDate}
@@ -80,5 +71,21 @@ export default function DailyLogPage({
         <DailyLogHistory notes={log.notes} />
       )}
     </CollectionGate>
+
+    <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
+      <CollectionGate
+        collection={catalogs.gate}
+        loadingMessage="Cargando productos y clientes..."
+        errorMessage="No pudimos cargar los productos disponibles."
+      >
+        <RegisterSaleForm
+          items={catalogs.items}
+          clients={catalogs.clients}
+          onCreate={sales.create}
+          onDone={close}
+        />
+      </CollectionGate>
+    </Modal>
+    </>
   );
 }

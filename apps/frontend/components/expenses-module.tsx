@@ -28,10 +28,7 @@ export default function ExpensesModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="expenses"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <ListToolbar moduleId="expenses" basePath={BASE_PATH} />
         <ExpensesPage

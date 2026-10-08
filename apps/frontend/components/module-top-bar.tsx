@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { findModule, navTabsFor } from "@apexg/core";
+import { findModule, navTabsFor, sectionBehindId } from "@apexg/core";
 import { Icon, TopBarShell, topBarTabClasses } from "@apexg/ui";
 import { useGymPath } from "../lib/gym-path";
 import ModuleJump from "./module-jump";
@@ -30,7 +30,8 @@ export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) 
   // Inalcanzable en la práctica: RequireModule ya rechazó un id desconocido.
   if (!module) return null;
 
-  const currentSection = currentPath.slice(base.length + 1);
+  // Con un diálogo abierto, la pestaña marcada es la del lugar de atrás.
+  const currentSection = sectionBehindId(moduleId, currentPath.slice(base.length + 1));
   const tabs = navTabsFor(moduleId);
 
   return (

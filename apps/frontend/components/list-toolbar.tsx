@@ -4,8 +4,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
-import { listFiltersFor, navSectionsFor, primaryActionFor } from "@apexg/core";
-import { FilterBar, buttonClasses, filterChipClasses } from "@apexg/ui";
+import { listFiltersFor, navSectionsFor, panelActionsFor, primaryActionFor, sectionBehindId } from "@apexg/core";
+import { FilterBar, Icon, buttonClasses, filterChipClasses } from "@apexg/ui";
 import { useGymPath } from "../lib/gym-path";
 
 export interface ListToolbarProps {
@@ -27,11 +27,14 @@ export interface ListToolbarProps {
  * lo mismo que esa pestaña—. Cada filtro sigue siendo su propia URL
  * (/modules/clients/overdue): un enlace guardado abre la tabla ya filtrada.
  *
- * Fuera de un listado —en un formulario o un panel— no se muestra.
+ * Fuera de un listado —en un panel— no se muestra. Con un formulario abierto
+ * encima sigue la del listado de atrás: el formulario es un diálogo, no un
+ * lugar. Las tareas marcadas `tab: false` (Categorías) van como botones al
+ * lado de la acción principal.
  */
 export default function ListToolbar({ moduleId, basePath, search, counts }: ListToolbarProps) {
   const base = useGymPath()(basePath);
-  const currentSection = usePathname().slice(base.length + 1);
+  const currentSection = sectionBehindId(moduleId, usePathname().slice(base.length + 1));
   const isList = navSectionsFor(moduleId).some(
     (section) => section.id === currentSection && section.kind === "list",
   );
@@ -39,7 +42,8 @@ export default function ListToolbar({ moduleId, basePath, search, counts }: List
 
   const filters = listFiltersFor(moduleId);
   const action = primaryActionFor(moduleId);
-  if (filters.length === 0 && !action && !search) return null;
+  const extras = panelActionsFor(moduleId);
+  if (filters.length === 0 && !action && !search && extras.length === 0) return null;
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -65,15 +69,20 @@ export default function ListToolbar({ moduleId, basePath, search, counts }: List
       )}
       {search}
 
-      {action && (
-        <Link
-          href={`${base}/${action.id}`}
-          className={`${buttonClasses("primary", "sm")} ml-auto`}
-        >
-          <Plus size={18} />
-          {action.label}
-        </Link>
-      )}
+      <div className="ml-auto flex flex-wrap items-center gap-2">
+        {extras.map((extra) => (
+          <Link key={extra.id} href={`${base}/${extra.id}`} className={buttonClasses("secondary", "sm")}>
+            <Icon name={extra.icon} size={17} />
+            {extra.label}
+          </Link>
+        ))}
+        {action && (
+          <Link href={`${base}/${action.id}`} className={buttonClasses("primary", "sm")}>
+            <Plus size={18} />
+            {action.label}
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

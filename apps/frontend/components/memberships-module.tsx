@@ -28,10 +28,7 @@ export default function MembershipsModule({
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          moduleId="memberships"
-          sectionId={sectionId}
-          title={section.title}
+        <SectionHeading title={section.title}
         />
         <ListToolbar moduleId="memberships" basePath={BASE_PATH} />
         <MembershipsPage

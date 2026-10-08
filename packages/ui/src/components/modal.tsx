@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
+import { useScrollLock } from "../hooks/use-scroll-lock";
 
 export interface ModalProps {
   open: boolean;
@@ -20,6 +21,7 @@ export default function Modal({
   onClose,
   children,
 }: ModalProps) {
+  useScrollLock(open);
   // Escape closes the dialog. Without it a keyboard user has to tab to the
   // close button, which the previous hand-rolled modal did not support.
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-panel"
+        className="relative z-10 max-h-[90vh] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-line bg-panel"
       >
         <div className="flex items-start justify-between border-b border-line px-6 py-4">
           <div>

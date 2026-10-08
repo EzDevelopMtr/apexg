@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Trainer, TrainerSectionId } from "@apexg/core";
 import { today, trainerSections } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
-import { Card, CardBody, Modal } from "@apexg/ui";
+import { Modal } from "@apexg/ui";
 import { useVisibleTrainers } from "../hooks/use-available-trainers";
 import {
   useAssignedClients,
@@ -24,12 +24,15 @@ export interface TrainersPageProps {
  * Entry point of the Trainers module (RF-22 to RF-25).
  *
  * Dispatches on the section's view kind rather than comparing URL strings.
+ * Adding a trainer opens as a dialog over the list, like editing one.
  */
 export default function TrainersPage({
   sectionId,
   onNavigate,
 }: TrainersPageProps) {
-  const section = trainerSections.getSection(sectionId);
+  const requested = trainerSections.getSection(sectionId);
+  const section = trainerSections.sectionBehind(sectionId);
+  const close = () => onNavigate(section.id);
   const trainers = useTrainers();
   const clients = useAssignedClients();
   const commissions = useCommissions();
@@ -42,22 +45,6 @@ export default function TrainersPage({
     section,
     referenceDate,
   );
-
-  if (section.view.kind === "form") {
-    return (
-      <Card>
-        <CardBody>
-          <TrainerForm
-            onSave={async (draft) => {
-              await trainers.save(draft);
-              onNavigate("all");
-            }}
-            onCancel={() => onNavigate("all")}
-          />
-        </CardBody>
-      </Card>
-    );
-  }
 
   if (section.view.kind === "panel") {
     return (
@@ -88,6 +75,16 @@ export default function TrainersPage({
         clients={clients.items}
         onEdit={setEditing}
       />
+
+      <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
+        <TrainerForm
+          onSave={async (draft) => {
+            await trainers.save(draft);
+            close();
+          }}
+          onCancel={close}
+        />
+      </Modal>
 
       <Modal
         open={editing !== null}
