@@ -118,7 +118,8 @@ test.describe("F16 · Inventario, a fondo", () => {
     await page.getByLabel("Cantidad").fill("3");
     await page.getByLabel("Valor cobrado (COP)").fill("15000");
     await page.getByLabel("Forma de pago").selectOption("cash");
-    await page.getByRole("button", { name: /registrar venta/i }).click();
+    // En la ventana: «Registrar venta» también es el botón del apartado de atrás.
+    await page.getByRole("dialog").getByRole("button", { name: /registrar venta/i }).click();
 
     await irA(page, RUTAS.inventarioTodos);
     const fila = page.locator("tr", { hasText: ITEM_NORMAL }).first();
@@ -136,7 +137,7 @@ test.describe("F16 · Inventario, a fondo", () => {
     await page.getByLabel("Cantidad").fill("1");
     await page.getByLabel("Valor cobrado (COP)").fill("5000");
     await page.getByLabel("Forma de pago").selectOption("cash");
-    await page.getByRole("button", { name: /registrar venta/i }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /registrar venta/i }).click();
 
     await expect(page.locator("p[role=alert]")).toContainText(
       /negativo|no hay existencia/i,
@@ -159,7 +160,7 @@ test.describe("F16 · Inventario, a fondo", () => {
     await elegirOpcion(page, "Producto", ITEM_NORMAL);
     await page.getByLabel("Cantidad").fill("0");
     await page.getByLabel("Valor cobrado (COP)").fill("5000");
-    await page.getByRole("button", { name: /registrar venta/i }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /registrar venta/i }).click();
 
     await expect(page.locator("p[role=alert]")).toContainText(/cantidad/i);
     expect(peticiones).toHaveLength(0);
@@ -191,7 +192,7 @@ test.describe("F16 · Inventario, a fondo", () => {
     await page.getByLabel("Valor cobrado (COP)").fill("10000");
     await page.getByLabel("Forma de pago").selectOption("cash");
     await elegirOpcion(page, "Cliente", cliente);
-    await page.getByRole("button", { name: /registrar venta/i }).click();
+    await page.getByRole("dialog").getByRole("button", { name: /registrar venta/i }).click();
 
     await irA(page, RUTAS.inventarioTodos);
     const fila = page.locator("tr", { hasText: ITEM_NORMAL }).first();

@@ -1,7 +1,7 @@
 import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { caso, expect } from "../support/caso";
-import { RUTAS, irA } from "../support/app";
+import { NOMBRE_GIMNASIO, RUTAS, irA } from "../support/app";
 
 test.describe.configure({ mode: "serial" });
 
@@ -27,7 +27,7 @@ test.describe("F18 · Navegación sin menú lateral ni redundancias", () => {
     ] as const) {
       await irA(page, ruta);
       const barra = page.locator("header");
-      await expect(barra.getByRole("img", { name: "APEX GYM" })).toBeVisible();
+      await expect(barra.getByRole("img", { name: NOMBRE_GIMNASIO })).toBeVisible();
       await expect(barra).toContainText(modulo);
       await expect(page.locator("aside")).toHaveCount(0);
     }
@@ -93,15 +93,16 @@ test.describe("F18 · Navegación sin menú lateral ni redundancias", () => {
 
   caso("CP-81", "Los filtros quedan sobre la tabla y cada uno navega", async ({ page }, info) => {
     await irA(page, RUTAS.clientesTodos);
+    // Cada filtro lleva a su lado cuántos clientes tiene.
     await expect(filtros(page).getByRole("link")).toHaveText([
-      "Todos",
-      "Clientes activos",
-      "Por vencer",
-      "En mora",
+      /^Todos\d+$/,
+      /^Clientes activos\d+$/,
+      /^Por vencer\d+$/,
+      /^En mora\d+$/,
     ]);
-    await filtros(page).getByRole("link", { name: "En mora" }).click();
+    await filtros(page).getByRole("link", { name: /^En mora/ }).click();
     await page.waitForURL("**/modules/clients/overdue");
-    await expect(filtros(page).getByRole("link", { name: "En mora" })).toHaveAttribute(
+    await expect(filtros(page).getByRole("link", { name: /^En mora/ })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -128,26 +129,34 @@ test.describe("F18 · Navegación sin menú lateral ni redundancias", () => {
   });
 
   caso("CP-82", "Las pestañas quedan solo donde hay lugares distintos", async ({ page }) => {
+    // Categorías ya no es un lugar: es una lista corta que se abre como ventana
+    // sobre el listado, desde un botón junto a la acción principal.
     await irA(page, RUTAS.inventarioTodos);
-    await expect(pestanas(page).getByRole("link")).toHaveText(["Listado", "Categorías"]);
-    await pestanas(page).getByRole("link", { name: "Categorías" }).click();
+    await expect(pestanas(page)).toHaveCount(0);
+    await page.getByRole("link", { name: "Categorías" }).click();
     await page.waitForURL("**/modules/inventory/categories");
-    // En un panel no hay filtros ni acción de tabla.
-    await expect(filtros(page)).toHaveCount(0);
+    await expect(page.getByRole("dialog", { name: /categorías de inventario/i })).toBeVisible();
+    // El listado sigue detrás, con sus filtros.
+    await expect(filtros(page)).toHaveCount(1);
 
     await irA(page, RUTAS.entrenadoresTodos);
     await pestanas(page).getByRole("link", { name: "Comisiones" }).click();
     await page.waitForURL("**/modules/trainers/commissions");
 
-    // Sin listado, el formulario conserva su pestaña.
+    // Registrar una venta tampoco es pestaña: es un botón de «Hoy» que abre una ventana.
     await irA(page, RUTAS.hoy);
-    await pestanas(page).getByRole("link", { name: "Registrar venta" }).click();
+    await expect(pestanas(page).getByRole("link")).toHaveText(["Hoy", "Historial"]);
+    await page.getByRole("button", { name: "Registrar venta" }).click();
     await page.waitForURL("**/modules/daily-log/sell");
+    await expect(page.getByRole("dialog", { name: /registrar venta de producto/i })).toBeVisible();
   });
 
-  caso("CP-83", "Cambiar módulo vuelve al selector", async ({ page }) => {
+  caso("CP-83", "Desde un módulo se salta a otro del día, o a todos, sin pasar por el selector", async ({ page }) => {
     await irA(page, RUTAS.pagosTodos);
-    await page.locator("header").getByRole("link", { name: /cambiar módulo/i }).click();
+    const saltos = page.locator("header").getByRole("navigation", { name: /cambiar de módulo/i });
+    await saltos.getByRole("link", { name: /clientes/i }).click();
+    await page.waitForURL("**/modules/clients/all");
+    await saltos.getByRole("link", { name: /todos/i }).click();
     await page.waitForURL("**/modules");
   });
 });

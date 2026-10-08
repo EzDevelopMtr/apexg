@@ -6,10 +6,7 @@ import { RUTAS, esperarPost, irA, marca, API_BACKEND } from "../support/app";
 const ID = marca();
 const EFECTIVO = `E2E Visitante efectivo ${ID}`;
 const TRANSFERENCIA = `E2E Visitante transferencia ${ID}`;
-const FRECUENTE = `E2E Visitante frecuente ${ID}`;
-// Un documento propio de la corrida: el aviso de frecuente cuenta los pases
-// del mes por documento, y uno fijo acumularía los de corridas anteriores.
-const DOCUMENTO = `9${ID}`;
+const VALOR_PASE = "6000";
 const COMPROBANTE = new URL("../fixtures/comprobante.png", import.meta.url)
   .pathname.slice(1);
 
@@ -23,12 +20,11 @@ async function abrirPase(page: Page) {
   await expect(dialogo(page)).toBeVisible();
 }
 
-async function venderEnEfectivo(page: Page, nombre: string, contacto = "") {
+async function venderEnEfectivo(page: Page, nombre: string) {
   await abrirPase(page);
   await dialogo(page).getByLabel("Nombre").fill(nombre);
-  if (contacto) {
-    await dialogo(page).getByLabel(/documento o teléfono/i).fill(contacto);
-  }
+  // El valor es libre: el pase de un día no tiene plan ni precio de catálogo.
+  await dialogo(page).getByLabel(/valor/i).fill(VALOR_PASE);
   const venta = esperarPost(page, "/day-passes");
   await dialogo(page).getByRole("button", { name: /^cobrar/i }).click();
   expect((await venta).status()).toBe(201);
@@ -42,11 +38,10 @@ function filaDe(page: Page, nombre: string) {
 test.describe.configure({ mode: "serial" });
 
 test.describe("F20 · Pase de día para visitantes", () => {
-  caso("CP-89", "El nombre es obligatorio y el precio sale del plan de un día", async ({ page }, info) => {
+  caso("CP-89", "El nombre es obligatorio y el valor del pase se escribe", async ({ page }, info) => {
     await abrirPase(page);
-    // El precio no se escribe: lo trae el catálogo.
-    await expect(dialogo(page)).toContainText(/día · \$\s*[\d.]+/i);
-    await expect(dialogo(page).getByLabel(/valor|monto/i)).toHaveCount(0);
+    // El pase de un día no tiene plan: el valor lo pone quien cobra.
+    await expect(dialogo(page).getByLabel(/valor/i)).toBeVisible();
 
     await dialogo(page).getByRole("button", { name: /^cobrar/i }).click();
     await expect(dialogo(page)).toContainText("Escribe el nombre del visitante.");
@@ -77,6 +72,7 @@ test.describe("F20 · Pase de día para visitantes", () => {
   caso("CP-91", "Por transferencia exige la foto del comprobante, y queda para verla", async ({ page }, info) => {
     await abrirPase(page);
     await dialogo(page).getByLabel("Nombre").fill(TRANSFERENCIA);
+    await dialogo(page).getByLabel(/valor/i).fill(VALOR_PASE);
     await dialogo(page).getByLabel("Método de pago").selectOption("transfer");
     await dialogo(page).getByRole("button", { name: /^cobrar/i }).click();
     await expect(dialogo(page)).toContainText(/adjunta la foto del comprobante/i);
@@ -103,41 +99,25 @@ test.describe("F20 · Pase de día para visitantes", () => {
     });
   });
 
-  caso("CP-92", "La API no acepta una transferencia sin comprobante ni un precio propio", async ({ page }) => {
+  caso("CP-92", "La API no acepta una transferencia sin comprobante ni un pase sin valor", async ({ page }) => {
     await irA(page, RUTAS.ingreso);
     const sinComprobante = await page.request.post(`${API_BACKEND}/day-passes`, {
-      data: { visitorName: "E2E API", paymentMethod: "transfer" },
+      data: { visitorName: "E2E API", paymentMethod: "transfer", amount: "6000.00" },
     });
     expect(sinComprobante.status()).toBe(400);
 
-    const conPrecio = await page.request.post(`${API_BACKEND}/day-passes`, {
-      data: { visitorName: "E2E API", paymentMethod: "cash", amount: "1.00" },
+    const sinValor = await page.request.post(`${API_BACKEND}/day-passes`, {
+      data: { visitorName: "E2E API", paymentMethod: "cash" },
     });
-    expect(conPrecio.status()).toBe(400);
-  });
-
-  caso("CP-93", "Al tercer pase del mes con el mismo documento sugiere un plan", async ({ page }, info) => {
-    await venderEnEfectivo(page, FRECUENTE, DOCUMENTO);
-    await venderEnEfectivo(page, FRECUENTE, DOCUMENTO);
-
-    await abrirPase(page);
-    // Con otro formato: espacios y puntos no lo vuelven otra persona.
-    await dialogo(page)
-      .getByLabel(/documento o teléfono/i)
-      .fill(DOCUMENTO.replace(/(\d{3})(?=\d)/g, "$1."));
-    await expect(dialogo(page)).toContainText(/ya compró 2 pases este mes/i);
-    await expect(dialogo(page)).toContainText(/puede salirle mejor/i);
-    await info.attach("visitante-frecuente", {
-      body: await page.screenshot(),
-      contentType: "image/png",
-    });
+    expect(sinValor.status()).toBe(400);
   });
 
   caso("CP-94", "El pase suma al ingreso del día y a Finanzas como rubro propio", async ({ page }, info) => {
     await irA(page, RUTAS.hoy);
     await page.getByRole("button", { name: /movimiento/i }).click();
     await expect(page.getByText(/pases de día \(\d+\)/i)).toBeVisible();
-    await expect(page.getByText(new RegExp(EFECTIVO))).toBeVisible();
+    // Aparece en el detalle de movimientos y en la lista de pases: basta con ver uno.
+    await expect(page.getByText(new RegExp(EFECTIVO)).first()).toBeVisible();
 
     await irA(page, RUTAS.finanzasPanel);
     const origen = page.getByRole("list", { name: /ingresos del periodo por origen/i });

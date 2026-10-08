@@ -10,7 +10,7 @@ test.describe("F7 · Cierre del día", () => {
   caso("CP-25", "Una venta descuenta el stock del producto", async ({ page }, info) => {
     await irA(page, RUTAS.venta);
 
-    const producto = page.getByLabel("Producto");
+    const producto = page.getByRole("dialog").getByLabel("Producto", { exact: true });
     const opciones = await producto.locator("option").allTextContents();
     test.skip(opciones.length < 2, "No hay productos con existencias cargadas.");
 

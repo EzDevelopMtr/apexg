@@ -58,7 +58,8 @@ test.describe("F6 · Administrar planes", () => {
 
   caso("CP-23", "Cambiar de plan abre un periodo nuevo", async ({ page }) => {
     await irA(page, RUTAS.clientesTodos);
-    await page.getByRole("button", { name: `Editar a ${CLIENTE}` }).click();
+    // La fila entera abre la edición: ya no hay un botón de lápiz por fila.
+    await page.getByRole("row", { name: `Abrir a ${CLIENTE}` }).click();
 
     await elegirOpcion(page, "Tipo de membresía", PLAN_DOS);
     // Cambiar de plan son dos peticiones: los datos del cliente y la

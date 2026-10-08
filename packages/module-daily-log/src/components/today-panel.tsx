@@ -63,7 +63,8 @@ export default function TodayPanel({ payments, productSales, clients, notes, on,
     <div className="space-y-6">
       <CheckInCard attendance={attendance} onCharge={onCharge} actions={actions} />
       <TodaySummary log={log} checkIns={attendance.today.items.length} />
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      {/* minmax(0, 1fr): a single column must be able to shrink below its widest row. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <DailyIncomeCard log={log} payments={payments} productSales={productSales} dayPasses={dayPasses} clients={clients} on={on} />
           <AttendanceList entries={attendance.today.items} onCheckOut={attendance.checkOut} />

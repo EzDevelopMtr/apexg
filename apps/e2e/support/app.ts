@@ -4,6 +4,8 @@ import type { Locator, Page } from "@playwright/test";
 /** El gimnasio que se prueba: cada gimnasio vive bajo su propia direccion. */
 export const GIMNASIO = process.env.E2E_GYM ?? "apex-gym";
 /** Su proxy al backend y sus rutas de sesion: la cookie de sesion solo viaja ahi. */
+/** El nombre del gimnasio que se prueba: lo dice su logo. */
+export const NOMBRE_GIMNASIO = process.env.E2E_GYM_NAME ?? "APEX GYM";
 export const API_BACKEND = `/${GIMNASIO}/api/backend`;
 export const API_AUTH = `/${GIMNASIO}/api/auth`;
 
@@ -181,7 +183,11 @@ export async function elegirOpcion(
   etiqueta: string,
   parte: string,
 ): Promise<void> {
-  const select = page.getByLabel(etiqueta);
+  // Los formularios se abren como ventana sobre su listado, y el listado tiene
+  // sus propios filtros ("Buscar por cliente"): con una ventana abierta se
+  // busca dentro de ella, y el texto de la etiqueta debe ser exacto.
+  const enVentana = (await page.getByRole("dialog").count()) > 0;
+  const select = (enVentana ? page.getByRole("dialog") : page).getByLabel(etiqueta, { exact: true });
   const valor = await select
     .locator("option", { hasText: parte })
     .first()

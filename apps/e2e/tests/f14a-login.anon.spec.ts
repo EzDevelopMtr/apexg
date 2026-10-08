@@ -7,7 +7,9 @@ const ID = marca();
 // puede probar una vez logueado, porque /login redirige antes de que el
 // formulario llegue a aparecer.
 caso("CP-49", "Contraseña incorrecta rechaza el login sin decir cuál campo falló", async ({ page }, info) => {
-  await irA(page, "/login");
+  // Por la entrada del gimnasio que se prueba: /login lleva al de DEFAULT_GYM_SLUG,
+  // que en otro entorno puede ser otro.
+  await irA(page, `/${GIMNASIO}`);
   await page.getByLabel("Usuario").fill(process.env.E2E_USERNAME ?? "apexg");
   await page
     .getByRole("textbox", { name: "Contraseña" })
@@ -19,7 +21,7 @@ caso("CP-49", "Contraseña incorrecta rechaza el login sin decir cuál campo fal
   // Genérico: no debe distinguir "usuario no existe" de "clave incorrecta",
   // porque eso le regalaría a un atacante cuáles usuarios sí existen.
   await expect(alerta).not.toContainText(/usuario/i);
-  // Sin gimnasio recordado, /login lleva al de DEFAULT_GYM_SLUG: el que se prueba.
+  // Un rechazo no saca al visitante de la entrada del gimnasio.
   expect(page.url()).toContain(`/${GIMNASIO}`);
 
   await info.attach("login-rechazado", {
