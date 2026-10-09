@@ -25,9 +25,11 @@ Wait-Docker
 # Primera vez: los volúmenes del stack NO pueden existir todavía. Si existen,
 # o son de un intento anterior o (peor) de otra cosa con el mismo nombre: el
 # 2026-10-03 un nombre repetido montó la base del piloto en el contenedor nuevo.
+# Se listan en vez de `docker volume inspect`: con stderr redirigido, PowerShell
+# 5.1 convierte el "no such volume" (el caso bueno) en un error que detiene todo.
+$existentes = docker volume ls -q
 foreach ($volumen in "${Proyecto}_stack_db", "${Proyecto}_stack_files") {
-  docker volume inspect $volumen *> $null
-  if ($LASTEXITCODE -eq 0) { throw "El volumen $volumen ya existe: revisar antes de seguir. No se tocó nada." }
+  if ($existentes -contains $volumen) { throw "El volumen $volumen ya existe: revisar antes de seguir. No se tocó nada." }
 }
 
 Step "1. Respaldo de la producción actual"
