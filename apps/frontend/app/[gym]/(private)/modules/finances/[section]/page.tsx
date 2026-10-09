@@ -5,7 +5,6 @@ import type { SectionRouteParams } from "../../../../../../lib/module-route";
 
 const route = createSectionRoute(financeSections, "Finanzas");
 
-export const generateStaticParams = route.generateStaticParams;
 export const generateMetadata = route.generateMetadata;
 
 export default async function FinancesSectionPage(props: SectionRouteParams) {

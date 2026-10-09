@@ -9,19 +9,19 @@ export interface SectionRouteParams {
 /**
  * The route plumbing every module page repeats.
  *
- * Six modules need the same static params, the same title lookup and the same
- * 404 for an unknown segment. Only the id crosses to the client: sections
- * carry predicates, and a function cannot cross the server/client boundary.
+ * Every module needs the same title lookup and the same 404 for an unknown
+ * segment. Only the id crosses to the client: sections carry predicates, and a
+ * function cannot cross the server/client boundary.
+ *
+ * No `generateStaticParams`: under `/[gym]` the page reads the session, so
+ * it is rendered per request. Declaring static params made a production build
+ * treat it as static and answer 500 (DYNAMIC_SERVER_USAGE); `next dev` hid it.
  */
 export function createSectionRoute<Id extends string>(
   catalog: SectionCatalog<Id, never>,
   fallbackTitle: string,
 ) {
   return {
-    generateStaticParams(): { section: string }[] {
-      return catalog.sections.map((section) => ({ section: section.id }));
-    },
-
     async generateMetadata({ params }: SectionRouteParams): Promise<Metadata> {
       const { section } = await params;
       const title = catalog.isSectionId(section)

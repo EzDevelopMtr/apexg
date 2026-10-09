@@ -5,7 +5,6 @@ import type { SectionRouteParams } from "../../../../../../lib/module-route";
 
 const route = createSectionRoute(membershipSections, "Membresías");
 
-export const generateStaticParams = route.generateStaticParams;
 export const generateMetadata = route.generateMetadata;
 
 export default async function MembershipSectionPage(props: SectionRouteParams) {
