@@ -7,18 +7,51 @@ volcado encuentra la fila que debe llenar.
 
 ## Antes de correrlas
 
-1. Backend y frontend arriba (`pnpm dev`), y Postgres con datos.
-2. Credenciales en `apps/e2e/.env` (copia de `.env.example`). Ese archivo está
-   en `.gitignore`: la contraseña no viaja al repositorio.
+1. Backend y frontend de **desarrollo** arriba (web 3100, backend 3101, base
+   `apexg_work`). Nunca producción: desde el 2026-10-08 producción es el puerto
+   3000 y el link público, y la suite se niega a arrancar contra ellos
+   (`playwright.config.ts`; solo con `E2E_PERMITIR_PRODUCCION=1`).
+2. Destino y credenciales en `apps/e2e/.env.dev.local` (gitignored, manda sobre
+   `.env`): `E2E_BASE_URL`, `E2E_GYM`, `E2E_GYM_NAME`, `COOKIE_PREFIX`,
+   `E2E_USERNAME`/`E2E_PASSWORD` (administrador del gimnasio de pruebas) y
+   `E2E_PLATFORM_EMAIL`/`E2E_PLATFORM_PASSWORD` (super admin de plataforma de
+   desarrollo, para las pruebas del panel `/admin`).
 3. Navegador: `pnpm --filter @apexg/e2e install:browsers`.
 
 ## Correrlas
 
 ```bash
-pnpm --filter @apexg/e2e test:e2e      # ejecuta y graba evidencia
+pnpm --filter @apexg/e2e test:e2e -- --headed   # con ventana visible y evidencia
 pnpm --filter @apexg/e2e report        # abre el reporte HTML
 py apps/e2e/scripts/volcar-resultados.py   # llena el xlsx
 ```
+
+## Flujos por rol (F23 a F29)
+
+Recorridos de punta a punta, cada uno con la persona que los haría:
+
+| Archivo | Quién | Qué recorre |
+| --- | --- | --- |
+| `f23-usuarios-del-gimnasio` | Plataforma | Entrar al panel, crear un usuario (con clave de un solo uso), restablecerla, desactivar, reactivar, cambiar su perfil, la guarda del único administrador. |
+| `f24-jornada-de-la-cajera` | Recepcionista | El usuario lo crea el panel; la cajera entra, ve solo sus tres módulos, el servidor le niega lo demás, da de alta, cobra (efectivo y transferencia), cierra turno, y opera el Apartado diario. |
+| `f25-ciclo-de-un-plan` | Administrador | Crear, validar, editar y cobrar un plan; promociones. |
+| `f26-ciclo-de-un-cliente` | Administrador | Alta completa, documento repetido, edición, estados y conteos, búsqueda, mora que paga. |
+| `f27-entrenadores-y-comisiones` | Administrador | Cupo, asignación, comisión pendiente, pago con comprobante. |
+| `f28-egresos` | Administrador | Categorías, validaciones, efectivo y transferencia con comprobante. |
+| `f29-el-dia-cuadra` | Administrador | Cobro + venta + pase + egreso, y que Hoy y Finanzas sumen lo mismo. |
+
+Quien no es el administrador de la prueba trabaja en su **propio navegador**
+(`support/roles.ts`): entra por el formulario, y cada uno graba su video y lo
+adjunta al caso (la página de la prueba se queda en blanco mientras tanto).
+
+Defectos del producto que estos flujos dejan a la vista (fallan a propósito
+hasta que se corrijan):
+
+- **CP-115 a CP-118:** el Apartado diario no carga para el perfil Recepcionista
+  (`GET /product-sales` exige `inventario.read`, que ese perfil no tiene).
+- **CP-123:** el cobro usa el precio actual del catálogo y no el pactado al
+  inscribirse (`cycleFor` en `module-payments` usa `type.price`), aunque la
+  base guarda `client_memberships.agreed_price` y el servidor sí lo usa.
 
 ## Evidencia
 

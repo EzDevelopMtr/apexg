@@ -1,5 +1,5 @@
 import { test as base, expect } from "@playwright/test";
-import type { Page, TestInfo } from "@playwright/test";
+import type { Browser, Page, TestInfo } from "@playwright/test";
 
 export { expect };
 
@@ -19,9 +19,9 @@ const SESION = new URL("../reports/session.json", import.meta.url).pathname.slic
 export function caso(
   id: string,
   titulo: string,
-  cuerpo: (args: { page: Page }, testInfo: TestInfo) => Promise<void>,
+  cuerpo: (args: { page: Page; browser: Browser }, testInfo: TestInfo) => Promise<void>,
 ): void {
-  base(`${id} · ${titulo}`, async ({ page }, testInfo) => {
+  base(`${id} · ${titulo}`, async ({ page, browser }, testInfo) => {
     testInfo.annotations.push({ type: "caso", description: id });
     // El token dura 15 minutos y cada caso abre su navegador desde la sesión
     // guardada al inicio: en una corrida larga (con ventana visible, 15 o más)
@@ -29,7 +29,7 @@ export function caso(
     // siguiente arranca con una vigente. Sin sesión (login) no hace nada.
     const renovada = await page.request.post(`/${GIMNASIO}/api/auth/refresh`, { failOnStatusCode: false });
     if (renovada.ok()) await page.context().storageState({ path: SESION });
-    await cuerpo({ page }, testInfo);
+    await cuerpo({ page, browser }, testInfo);
   });
 }
 

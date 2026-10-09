@@ -1,7 +1,28 @@
 import { defineConfig, devices } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
 
-loadEnv({ path: new URL(".env", import.meta.url).pathname.slice(1) });
+// dotenv no pisa lo que ya está definido: el archivo de desarrollo va primero y
+// manda sobre .env (que quedó con las credenciales del piloto).
+for (const archivo of [".env.dev.local", ".env"]) {
+  loadEnv({ path: new URL(archivo, import.meta.url).pathname.slice(1) });
+}
+
+/**
+ * Las pruebas crean y borran datos: jamás contra producción.
+ *
+ * Desde 2026-10-08 producción es el puerto 3000 y el link público; desarrollo,
+ * el 3100, y el entorno de pruebas, el 3200. Sin destino explícito la suite se
+ * negaba a arrancar contra el 3000 por defecto, así que ahora se niega a
+ * hacerlo salvo que se pida con E2E_PERMITIR_PRODUCCION=1.
+ */
+const destino = new URL(process.env.E2E_BASE_URL ?? "http://localhost:3000");
+const esLocal = ["localhost", "127.0.0.1", "[::1]"].includes(destino.hostname);
+if (!process.env.E2E_PERMITIR_PRODUCCION && (!esLocal || destino.port === "3000" || destino.port === "")) {
+  throw new Error(
+    `E2E_BASE_URL=${destino.origin} es producción (3000 o un link público). ` +
+      "Apunta a desarrollo (http://localhost:3100) en apps/e2e/.env.dev.local.",
+  );
+}
 
 /**
  * Evidencia por defecto, no bajo demanda.

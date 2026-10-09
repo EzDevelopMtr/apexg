@@ -138,6 +138,8 @@ export async function crearItemInventario(
 export interface EntrenadorNuevo {
   nombre: string;
   documento: string;
+  /** Cuántos clientes puede llevar a la vez. Por defecto, 20. */
+  cupo?: number;
 }
 
 export async function crearEntrenador(
@@ -150,7 +152,7 @@ export async function crearEntrenador(
   await page.getByLabel("Teléfono").fill("3000000000");
   await page.getByLabel("Fecha de contratación").fill(new Date().toISOString().slice(0, 10));
   await page.getByLabel("Sueldo (COP)").fill("1500000");
-  await page.getByLabel("Cupo máximo").fill("20");
+  await page.getByLabel("Cupo máximo").fill(String(entrenador.cupo ?? 20));
   await page.getByRole("button", { name: /guardar entrenador/i }).click();
   await expect(page.getByText(entrenador.nombre).first()).toBeVisible();
 }
