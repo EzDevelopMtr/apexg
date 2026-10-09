@@ -33,7 +33,7 @@ Recorridos de punta a punta, cada uno con la persona que los haría:
 | Archivo | Quién | Qué recorre |
 | --- | --- | --- |
 | `f23-usuarios-del-gimnasio` | Plataforma | Entrar al panel, crear un usuario (con clave de un solo uso), restablecerla, desactivar, reactivar, cambiar su perfil, la guarda del único administrador. |
-| `f24-jornada-de-la-cajera` | Recepcionista | El usuario lo crea el panel; la cajera entra, ve solo sus tres módulos, el servidor le niega lo demás, da de alta, cobra (efectivo y transferencia), cierra turno, y opera el Apartado diario. |
+| `f24-jornada-de-la-cajera` | Recepcionista | El usuario lo crea el panel; la cajera entra, ve solo sus tres módulos, el servidor le niega lo demás, da de alta, cobra (efectivo y transferencia), opera el Apartado diario (ingreso, pase, novedad, venta) y cierra turno. |
 | `f25-ciclo-de-un-plan` | Administrador | Crear, validar, editar y cobrar un plan; promociones. |
 | `f26-ciclo-de-un-cliente` | Administrador | Alta completa, documento repetido, edición, estados y conteos, búsqueda, mora que paga. |
 | `f27-entrenadores-y-comisiones` | Administrador | Cupo, asignación, comisión pendiente, pago con comprobante. |
@@ -44,14 +44,13 @@ Quien no es el administrador de la prueba trabaja en su **propio navegador**
 (`support/roles.ts`): entra por el formulario, y cada uno graba su video y lo
 adjunta al caso (la página de la prueba se queda en blanco mientras tanto).
 
-Defectos del producto que estos flujos dejan a la vista (fallan a propósito
-hasta que se corrijan):
+Dos defectos que estos flujos encontraron, ya corregidos (2026-10-09):
 
-- **CP-115 a CP-118:** el Apartado diario no carga para el perfil Recepcionista
-  (`GET /product-sales` exige `inventario.read`, que ese perfil no tiene).
-- **CP-123:** el cobro usa el precio actual del catálogo y no el pactado al
-  inscribirse (`cycleFor` en `module-payments` usa `type.price`), aunque la
-  base guarda `client_memberships.agreed_price` y el servidor sí lo usa.
+- **CP-115 a CP-118, CP-151:** el Apartado diario no cargaba para el perfil
+  Recepcionista; vender ahora exige `apartado_diario.*` y el formulario lee
+  `GET /product-sales/catalog`, sin abrirle Inventario.
+- **CP-123:** el cobro usaba el precio actual del catálogo y no el pactado al
+  inscribirse; ahora usa `client_memberships.agreed_price` (`cyclePrice`).
 
 ## Evidencia
 

@@ -7,6 +7,7 @@ import {
   RUTAS,
   buscarParaIngreso,
   crearCliente,
+  crearItemInventario,
   crearPlan,
   elegirOpcion,
   esperarPost,
@@ -25,6 +26,7 @@ const CLIENTE_NUEVO = `E2E Caja Nuevo ${ID}`;
 const CLIENTE_MORA = `E2E Caja Mora ${ID}`;
 const VISITANTE = `E2E Caja Visitante ${ID}`;
 const NOVEDAD = `Se dañó una caminadora ${ID}`;
+const PRODUCTO = `E2E Caja Agua ${ID}`;
 const COMPROBANTE = new URL("../fixtures/comprobante.png", import.meta.url).pathname.slice(1);
 
 /** Lo que el panel le entregó a la cajera. */
@@ -54,6 +56,7 @@ test.describe("F24 · La jornada de la cajera", () => {
     const admin = await browser.newPage();
     await crearPlan(admin, { nombre: PLAN, precioPesos: 60_000, diasPorSemana: 6 });
     await crearCliente(admin, { nombre: CLIENTE_MORA, documento: `51${ID}1`, plan: PLAN, inicio: haceMeses(6) });
+    await crearItemInventario(admin, { nombre: PRODUCTO, stock: 5, minimo: 1 });
     await admin.close();
 
     // Y la plataforma le crea su usuario, como se haría con una persona nueva.
@@ -222,7 +225,10 @@ test.describe("F24 · La jornada de la cajera", () => {
     await page.reload();
     await expect(page.getByText(NOVEDAD)).toBeVisible();
     // Quién la escribió queda al lado: no es una nota anónima.
-    await expect(page.getByRole("listitem").filter({ hasText: NOVEDAD })).toContainText(NOMBRE_CAJERA);
+    // Las novedades guardan el usuario; los pagos y los pases, el nombre.
+    await expect(page.getByRole("listitem").filter({ hasText: NOVEDAD })).toContainText(
+      new RegExp(`${NOMBRE_CAJERA}|${cajera.usuario.replace(".", "\\.")}`),
+    );
     await info.attach("novedad-del-dia", { body: await page.screenshot(), contentType: "image/png" });
     await turno.cerrar();
   });
@@ -240,4 +246,23 @@ test.describe("F24 · La jornada de la cajera", () => {
     await turno.cerrar();
   });
 
+
+  caso("CP-151", "Vende un producto en el mostrador sin tener acceso a Inventario", async ({ browser }, info) => {
+    const turno = await iniciarTurno(browser, cajera);
+    const { page } = turno;
+    await abrirHoy(page);
+    await page.getByRole("button", { name: "Registrar venta" }).click();
+    const dialogo = page.getByRole("dialog", { name: /registrar venta de producto/i });
+    await elegirOpcion(page, "Producto", PRODUCTO);
+    await dialogo.getByLabel("Cantidad").fill("1");
+    await dialogo.getByLabel("Valor cobrado (COP)").fill("4000");
+    await dialogo.getByLabel("Forma de pago").selectOption("cash");
+    const venta = esperarPost(page, "/product-sales");
+    await dialogo.getByRole("button", { name: /registrar venta/i }).click();
+    expect((await venta).status()).toBe(201);
+    // Vender no le abre Inventario: el módulo sigue cerrado para ella.
+    expect((await page.request.get(`${API_BACKEND}/inventory-items`, { failOnStatusCode: false })).status()).toBe(403);
+    await info.attach("venta-de-la-cajera", { body: await page.screenshot(), contentType: "image/png" });
+    await turno.cerrar();
+  });
 });
