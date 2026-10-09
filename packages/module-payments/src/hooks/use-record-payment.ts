@@ -16,6 +16,7 @@ import {
   requiresReceipt,
   formatCOP,
   fromPesos,
+  cyclePrice,
   outstandingBalance,
   paymentsInCycle,
   resolveStatus,
@@ -93,12 +94,13 @@ function cycleFor(
   const renews = resolveStatus(client, today(), graceDays) === "overdue";
   const startsOn = renews ? today() : client.startDate;
   const cycleId = toCycleId(client.id, startsOn);
+  const agreedPrice = cyclePrice(type.price, client.agreedPrice, renews);
 
   return {
     client,
     planName: type.name,
-    agreedPrice: type.price,
-    balanceBefore: outstandingBalance(payments, cycleId, type.price),
+    agreedPrice,
+    balanceBefore: outstandingBalance(payments, cycleId, agreedPrice),
     previousCount: paymentsInCycle(payments, cycleId).length,
     renews,
     startsOn,
