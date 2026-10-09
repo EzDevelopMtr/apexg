@@ -2,6 +2,7 @@ import type { IsoDate } from "./calendar";
 import { calculateExpirationDate, daysBetween } from "./calendar";
 import type { MembershipType, MembershipTypeId } from "./membership";
 import type { TrainerId } from "./trainer";
+import type { Money } from "./money";
 
 declare const clientIdBrand: unique symbol;
 
@@ -56,6 +57,11 @@ export interface Client {
   readonly startDate: IsoDate;
   /** Derived from `startDate` and the membership term (RF-07). */
   readonly expirationDate: IsoDate;
+  /**
+   * Price agreed when the current membership began. A later change to the
+   * plan's price does not touch it (see {@link cyclePrice}).
+   */
+  readonly agreedPrice?: Money;
   /**
    * Assigned trainer (RF-24). Present only on the personal and semi-personal
    * plans, which are the ones `requiresTrainer` identifies.

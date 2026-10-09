@@ -1,4 +1,4 @@
-import type { PaymentMethod, ProductSale } from "@apexg/core";
+import type { InventoryItem, PaymentMethod, ProductSale } from "@apexg/core";
 import {
   fromApiString,
   toApiString,
@@ -9,6 +9,8 @@ import {
 } from "@apexg/core";
 import type { ProductSaleRepository } from "../repositories";
 import { apiFetch } from "./http-client";
+import type { ApiInventoryItemResult } from "./http-inventory-repository";
+import { fromInventoryItemResult } from "./http-inventory-repository";
 
 interface ApiProductSaleResult {
   id: string;
@@ -51,6 +53,11 @@ export class HttpProductSaleRepository implements ProductSaleRepository {
   async list(): Promise<readonly ProductSale[]> {
     const rows = await apiFetch<ApiProductSaleResult[]>("/product-sales");
     return rows.map(fromResult);
+  }
+
+  async catalog(): Promise<readonly InventoryItem[]> {
+    const rows = await apiFetch<ApiInventoryItemResult[]>("/product-sales/catalog");
+    return rows.map(fromInventoryItemResult);
   }
 
   async create(

@@ -11,7 +11,7 @@ import { ApiError, apiFetch } from "./http-client";
 
 type ApiItemState = 1 | 2;
 
-interface ApiInventoryItemResult {
+export interface ApiInventoryItemResult {
   id: string;
   name: string;
   unitOfMeasure: string;
@@ -45,7 +45,8 @@ function toQuantityString(value: number): string {
   return (Math.round(value * 1000) / 1000).toString();
 }
 
-function fromResult(row: ApiInventoryItemResult): InventoryItem {
+/** Shared with `HttpProductSaleRepository.catalog()`: the same item, read from the sale catalog. */
+export function fromInventoryItemResult(row: ApiInventoryItemResult): InventoryItem {
   return {
     id: toInventoryItemId(row.id),
     name: row.name,
@@ -70,7 +71,7 @@ function fromCategoryResult(
 export class HttpInventoryRepository implements InventoryRepository {
   async list(): Promise<readonly InventoryItem[]> {
     const rows = await apiFetch<ApiInventoryItemResult[]>("/inventory-items");
-    return rows.map(fromResult);
+    return rows.map(fromInventoryItemResult);
   }
 
   async findById(id: InventoryItemId): Promise<InventoryItem | undefined> {
@@ -78,7 +79,7 @@ export class HttpInventoryRepository implements InventoryRepository {
       const row = await apiFetch<ApiInventoryItemResult>(
         `/inventory-items/${id}`,
       );
-      return fromResult(row);
+      return fromInventoryItemResult(row);
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
         return undefined;
@@ -98,7 +99,7 @@ export class HttpInventoryRepository implements InventoryRepository {
         categoryId: draft.categoryId,
       },
     });
-    return fromResult(row);
+    return fromInventoryItemResult(row);
   }
 
   /**
@@ -140,7 +141,7 @@ export class HttpInventoryRepository implements InventoryRepository {
         },
       },
     );
-    return fromResult(row);
+    return fromInventoryItemResult(row);
   }
 
   async listCategories(): Promise<readonly InventoryCategory[]> {

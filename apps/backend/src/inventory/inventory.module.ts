@@ -12,8 +12,9 @@ import { InventoryService } from './inventory.service.js';
   imports: [AuthModule],
   controllers: [InventoryController],
   providers: [InventoryService, InventoryMovementService, InventoryCategoryService],
-  // InventoryMovementService.applyMovement() se reutiliza desde
-  // ProductSalesModule para descontar stock dentro de su propia transacción.
-  exports: [InventoryMovementService],
+  // ProductSalesModule reutiliza InventoryMovementService.applyMovement() para
+  // descontar stock dentro de su transacción, e InventoryService para ofrecer
+  // el catálogo de lo que se vende en el mostrador.
+  exports: [InventoryMovementService, InventoryService],
 })
 export class InventoryModule {}

@@ -200,6 +200,8 @@ export interface DailyLogRepository {
 
 export interface ProductSaleRepository {
   list(): Promise<readonly ProductSale[]>;
+  /** The active items that can be sold — readable with the daily log, not inventory, permission. */
+  catalog(): Promise<readonly InventoryItem[]>;
   /** Records a sale and discounts the item's stock (RF-28/29), atomically on the backend. */
   create(
     draft: Omit<ProductSale, "id" | "itemName" | "clientName" | "recordedBy">,

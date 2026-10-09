@@ -27,6 +27,10 @@ export class InMemoryProductSaleRepository implements ProductSaleRepository {
     return this.#store.list();
   }
 
+  catalog(): Promise<readonly InventoryItem[]> {
+    return Promise.resolve(this.#items.filter((item) => item.active));
+  }
+
   async create(
     draft: Omit<ProductSale, "id" | "itemName" | "clientName">,
   ): Promise<ProductSale> {

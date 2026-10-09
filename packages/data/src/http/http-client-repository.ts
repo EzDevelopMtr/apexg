@@ -5,7 +5,7 @@ import type {
   ClientStatus,
   IsoDate,
 } from "@apexg/core";
-import { toClientId, toMembershipTypeId, toTrainerId } from "@apexg/core";
+import { fromApiString, toClientId, toMembershipTypeId, toTrainerId } from "@apexg/core";
 import type { ClientRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
 import { apiBase, ApiError, apiFetch } from "./http-client";
@@ -64,10 +64,8 @@ function fromResult(row: ApiClientResult): Client {
     status: STATE_TO_STATUS[row.state],
     startDate: membership.startDate as IsoDate,
     expirationDate: membership.endDate as IsoDate,
-    trainerId:
-      membership.trainerId === null
-        ? undefined
-        : toTrainerId(membership.trainerId),
+    agreedPrice: fromApiString(membership.agreedPrice),
+    trainerId: membership.trainerId === null ? undefined : toTrainerId(membership.trainerId),
     emergencyContactName: row.emergencyContactName ?? "",
     emergencyContactPhone: row.emergencyContactPhone ?? "",
     bloodType: row.bloodType ?? "",

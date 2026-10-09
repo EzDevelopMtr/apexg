@@ -16,9 +16,11 @@ export interface UseSaleCatalogsResult {
 
 /** The pickers "Registrar venta" needs: which products, which clients. */
 export function useSaleCatalogs(): UseSaleCatalogsResult {
-  const { inventory, clients } = useRepositories();
+  const { productSales, clients } = useRepositories();
 
-  const loadItems = useCallback(() => inventory.list(), [inventory]);
+  // From the sale catalog, not Inventory: the receptionist sells without
+  // having the Inventory module (SRS §2.2).
+  const loadItems = useCallback(() => productSales.catalog(), [productSales]);
   const loadClients = useCallback(() => clients.list(), [clients]);
 
   const itemCollection = useCollection<InventoryItem>(loadItems);
