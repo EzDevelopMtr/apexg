@@ -26,6 +26,8 @@ $repo = Split-Path -Parent $PSScriptRoot
 $compose = @("compose", "--env-file", (Join-Path $repo $EnvFile), "-p", $Proyecto, "-f", (Join-Path $repo "docker-compose.yml"))
 
 function Invoke-Docker {
+  # docker escribe su progreso en stderr; en PowerShell 5.1 eso no es un error.
+  $ErrorActionPreference = "Continue"
   $salida = & docker @args 2>&1
   if ($LASTEXITCODE -ne 0) { throw "docker $($args -join ' ') falló: $salida" }
   $salida
@@ -47,11 +49,13 @@ try {
   Invoke-Docker cp "${postgres}:/tmp/respaldo.dump" (Join-Path $carpeta "base.dump") | Out-Null
   Invoke-Docker @compose exec -T postgres rm -f /tmp/respaldo.dump | Out-Null
 
-  # Archivos: el volumen /data del backend, empaquetado.
-  Invoke-Docker @compose exec -T backend tar -czf /tmp/archivos.tgz -C /data . | Out-Null
-  $backend = (Invoke-Docker @compose ps -q backend | Out-String).Trim()
-  Invoke-Docker cp "${backend}:/tmp/archivos.tgz" (Join-Path $carpeta "archivos.tgz") | Out-Null
-  Invoke-Docker @compose exec -T backend rm -f /tmp/archivos.tgz | Out-Null
+  # Archivos: el volumen /data del backend, leído directo para no depender de
+  # que el backend esté corriendo (restaurar.ps1 respalda con él detenido).
+  $backend = (Invoke-Docker @compose ps -aq backend | Out-String).Trim()
+  $montajes = Invoke-Docker inspect -f '{{json .Mounts}}' $backend | Out-String | ConvertFrom-Json
+  $volumen = ($montajes | Where-Object Destination -eq '/data').Name
+  if (-not $volumen) { throw "No se encontró el volumen /data del backend." }
+  Invoke-Docker run --rm -v "${volumen}:/data:ro" -v "${carpeta}:/salida" postgres:16 tar -czf /salida/archivos.tgz -C /data . | Out-Null
 
   $verificacion = & (Join-Path $PSScriptRoot "verificar-respaldo.ps1") -Carpeta $carpeta
   $tamano = (Get-ChildItem $carpeta | Measure-Object Length -Sum).Sum / 1MB

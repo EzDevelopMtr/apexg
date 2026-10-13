@@ -12,6 +12,8 @@ param([Parameter(Mandatory)][string]$Carpeta)
 $ErrorActionPreference = "Stop"
 
 function Invoke-Docker {
+  # docker escribe su progreso en stderr; en PowerShell 5.1 eso no es un error.
+  $ErrorActionPreference = "Continue"
   $salida = & docker @args 2>&1
   if ($LASTEXITCODE -ne 0) { throw "docker $($args -join ' ') falló: $salida" }
   $salida

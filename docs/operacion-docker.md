@@ -57,6 +57,22 @@ Programarlo a diario (lo corre el dueño del equipo una vez):
 powershell -ExecutionPolicy Bypass -File ops\programar-respaldo.ps1 -Hora 23:00
 ```
 
+### Restaurar (si se perdió información)
+
+Lo corre quien tenga acceso al equipo de producción:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ops\restaurar.ps1 -Carpeta <carpeta del respaldo> -EnvFile ops\produccion.env -Proyecto apexg
+```
+
+`<carpeta del respaldo>` es la del último día bueno, local o en
+`G:\Mi unidad\apexg-respaldos\`. Reemplaza la base y los archivos de
+**todos** los gimnasios: lo registrado después de ese respaldo se pierde y
+hay que volver a ingresarlo. Antes de tocar nada comprueba el respaldo, pide
+escribir `apexg` y guarda el estado actual en `docker\antes-de-restaurar\`
+(para deshacer, restaurar esa carpeta). Al final comprueba que `/apex-gym`
+responda. Mejor fuera del horario del gimnasio.
+
 Exportar un gimnasio (para entregarle sus datos o darlo de baja):
 
 ```powershell
