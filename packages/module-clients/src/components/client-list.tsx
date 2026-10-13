@@ -44,7 +44,7 @@ export default function ClientList({
   return (
     <>
     <Card className="overflow-hidden">
-      <Table headers={HEADERS}>
+      <Table headers={HEADERS} centered={["Recordatorio"]}>
         {clients.length === 0 ? (
           <TableEmpty
             columns={HEADERS.length}

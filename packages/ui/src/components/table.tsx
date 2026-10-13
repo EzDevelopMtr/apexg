@@ -3,10 +3,12 @@ import type { ReactNode } from "react";
 export interface TableProps {
   /** Column headings, in Spanish. */
   headers: readonly string[];
+  /** Headings whose column is centred: a lone icon reads better under a centred title. */
+  centered?: readonly string[];
   children: ReactNode;
 }
 
-export default function Table({ headers, children }: TableProps) {
+export default function Table({ headers, centered = [], children }: TableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
@@ -19,7 +21,7 @@ export default function Table({ headers, children }: TableProps) {
               <th
                 key={header}
                 scope="col"
-                className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-body-soft"
+                className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider text-body-soft ${centered.includes(header) ? "text-center" : ""}`}
               >
                 {header}
               </th>

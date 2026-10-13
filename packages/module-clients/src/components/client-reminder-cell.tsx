@@ -39,7 +39,7 @@ export default function ClientReminderCell({
 
   const { last } = reminder;
   return (
-    <TableCell className="text-sm">
+    <TableCell className="text-center text-sm">
       <ReminderLink
         href={whatsAppLink(
           client.phone,
