@@ -26,20 +26,44 @@ export interface RenewalReminderInput {
 }
 
 /**
- * The renewal reminder for a client, in Spanish.
+ * The two reminder texts a gym can word its own way. Each may use
+ * `{nombre}` (first name), `{plan}`, `{gimnasio}` and `{fecha}` ("hoy" or
+ * "el 15 oct"); anything else in braces is sent as written.
+ */
+export interface ReminderTemplates {
+  /** Before or on the expiry day. */
+  readonly upcoming: string;
+  /** Once the plan lapsed. */
+  readonly lapsed: string;
+}
+
+/** What every gym sends until it words its own. Mirrored in the backend catalog. */
+export const DEFAULT_REMINDER_TEMPLATES: ReminderTemplates = {
+  upcoming: "Hola {nombre}, tu plan {plan} en {gimnasio} vence {fecha}. ¡Te esperamos para renovar!",
+  lapsed:
+    "Hola {nombre}, tu plan {plan} en {gimnasio} venció {fecha}. ¡Te extrañamos! Renueva y sigue entrenando con nosotros.",
+};
+
+/**
+ * The renewal reminder for a client.
  *
  * Lives here, not in the button, because whether the plan already lapsed
- * changes the whole sentence, and that is a reading of the date.
+ * picks the whole text, and that is a reading of the date.
  */
-export function renewalReminder(input: RenewalReminderInput, on: IsoDate): string {
-  const firstName = input.fullName.trim().split(/\s+/)[0] ?? "";
-  const date = formatDayMonth(input.expirationDate);
+export function renewalReminder(
+  input: RenewalReminderInput,
+  on: IsoDate,
+  templates: ReminderTemplates = DEFAULT_REMINDER_TEMPLATES,
+): string {
   const remaining = daysBetween(on, input.expirationDate);
-  if (remaining < 0) {
-    return `Hola ${firstName}, tu plan ${input.planName} en ${input.gymName} venció el ${date}. ¡Te extrañamos! Renueva y sigue entrenando con nosotros.`;
-  }
-  const when = remaining === 0 ? "vence hoy" : `vence el ${date}`;
-  return `Hola ${firstName}, tu plan ${input.planName} en ${input.gymName} ${when}. ¡Te esperamos para renovar!`;
+  const values: Record<string, string> = {
+    "{nombre}": input.fullName.trim().split(/\s+/)[0] ?? "",
+    "{plan}": input.planName,
+    "{gimnasio}": input.gymName,
+    "{fecha}": remaining === 0 ? "hoy" : `el ${formatDayMonth(input.expirationDate)}`,
+  };
+  const template = remaining < 0 ? templates.lapsed : templates.upcoming;
+  return template.replace(/\{(nombre|plan|gimnasio|fecha)\}/g, (token) => values[token] ?? token);
 }
 
 /**

@@ -7,6 +7,8 @@ interface ApiSettings {
   "clients.graceDays": number;
   "clients.expiringSoonDays": number;
   "modules.enabled": string[];
+  "clients.reminderUpcoming": string;
+  "clients.reminderLapsed": string;
 }
 
 export class HttpSettingsRepository implements SettingsRepository {
@@ -16,6 +18,10 @@ export class HttpSettingsRepository implements SettingsRepository {
       graceDays: api["clients.graceDays"],
       expiringSoonDays: api["clients.expiringSoonDays"],
       enabledModules: api["modules.enabled"],
+      reminderTemplates: {
+        upcoming: api["clients.reminderUpcoming"],
+        lapsed: api["clients.reminderLapsed"],
+      },
     };
   }
 }

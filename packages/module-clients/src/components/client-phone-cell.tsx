@@ -1,6 +1,6 @@
 "use client";
 
-import type { Client, ClientStanding, IsoDate, ReminderRecord } from "@apexg/core";
+import type { Client, ClientStanding, IsoDate, ReminderRecord, ReminderTemplates } from "@apexg/core";
 import { reminderNotice, renewalReminder, whatsAppLink } from "@apexg/core";
 import { TableCell, useBrand } from "@apexg/ui";
 import ReminderLink from "./reminder-link";
@@ -10,6 +10,8 @@ export interface ClientPhoneCellProps {
   standing: ClientStanding;
   planName: string;
   referenceDate: IsoDate;
+  /** The gym's own wording. */
+  templates: ReminderTemplates;
   lastReminder: ReminderRecord | undefined;
   onRemind: () => void;
 }
@@ -20,6 +22,7 @@ export default function ClientPhoneCell({
   standing,
   planName,
   referenceDate,
+  templates,
   lastReminder,
   onRemind,
 }: ClientPhoneCellProps) {
@@ -38,6 +41,7 @@ export default function ClientPhoneCell({
             renewalReminder(
               { fullName: client.fullName, planName, gymName, expirationDate: client.expirationDate },
               referenceDate,
+              templates,
             ),
           )}
           clientName={client.fullName}

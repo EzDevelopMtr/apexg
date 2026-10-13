@@ -42,6 +42,20 @@ describe("renewalReminder", () => {
   });
 });
 
+describe("renewalReminder with the gym's own wording", () => {
+  const templates = { upcoming: "{nombre}: {plan} {fecha} ({gimnasio}) {otro}", lapsed: "Venció {fecha}, {nombre}" };
+
+  it("fills every placeholder and leaves unknown ones as written", () => {
+    expect(renewalReminder(input, on, templates)).toBe("Juan: Mensual el 15 oct (APEX GYM) {otro}");
+  });
+
+  it("uses the lapsed text once the plan lapsed", () => {
+    expect(renewalReminder({ ...input, expirationDate: "2026-10-10" as IsoDate }, on, templates)).toBe(
+      "Venció el 10 oct, Juan",
+    );
+  });
+});
+
 describe("whatsAppLink", () => {
   it("encodes the message into a wa.me link", () => {
     expect(whatsAppLink("3001234567", "¡Hola Ana!")).toBe(

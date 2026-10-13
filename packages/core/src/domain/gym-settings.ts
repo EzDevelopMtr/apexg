@@ -1,4 +1,6 @@
 import { DEFAULT_GRACE_DAYS, EXPIRING_SOON_DAYS } from "./client";
+import { DEFAULT_REMINDER_TEMPLATES } from "./renewal-reminder";
+import type { ReminderTemplates } from "./renewal-reminder";
 
 /**
  * The settings in force for the gym being served, as the super admin left
@@ -12,6 +14,8 @@ export interface GymSettings {
   readonly expiringSoonDays: number;
   /** Module ids this gym may open. */
   readonly enabledModules: readonly string[];
+  /** How this gym words the WhatsApp renewal reminder. */
+  readonly reminderTemplates: ReminderTemplates;
 }
 
 /** What a gym gets while its settings load, or with no backend at all. */
@@ -28,6 +32,7 @@ export const DEFAULT_GYM_SETTINGS: GymSettings = {
     "finances",
     "dailyLog",
   ],
+  reminderTemplates: DEFAULT_REMINDER_TEMPLATES,
 };
 
 export function isModuleEnabled(settings: GymSettings, moduleId: string): boolean {

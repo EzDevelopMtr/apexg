@@ -51,7 +51,9 @@ export interface CompanyChange {
 export type PlatformSettingKey =
   | "clients.graceDays"
   | "clients.expiringSoonDays"
-  | "modules.enabled";
+  | "modules.enabled"
+  | "clients.reminderUpcoming"
+  | "clients.reminderLapsed";
 
 /** A setting seen from the panel: default, general value and each gym's exception. */
 export interface PlatformSetting {

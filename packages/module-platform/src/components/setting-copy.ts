@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, Hourglass, LayoutGrid } from "lucide-react";
+import { Bell, Hourglass, LayoutGrid, MessageCircle } from "lucide-react";
 import { MODULES } from "@apexg/core";
 import type { PlatformSettingKey } from "@apexg/core";
 
@@ -7,7 +7,7 @@ interface SettingCopy {
   readonly title: string;
   readonly help: string;
   readonly icon: LucideIcon;
-  readonly kind: "days" | "modules";
+  readonly kind: "days" | "modules" | "text";
   /** Stepper bounds. The backend catalog (setting-definitions.ts) enforces the same. */
   readonly min?: number;
   readonly max?: number;
@@ -37,6 +37,18 @@ export const SETTING_COPY: Record<PlatformSettingKey, SettingCopy> = {
     icon: LayoutGrid,
     kind: "modules",
   },
+  "clients.reminderUpcoming": {
+    title: "Recordatorio: por vencer",
+    help: "Mensaje de WhatsApp para quien está por vencer. Puede usar {nombre}, {plan}, {gimnasio} y {fecha} («hoy» o «el 15 oct»).",
+    icon: MessageCircle,
+    kind: "text",
+  },
+  "clients.reminderLapsed": {
+    title: "Recordatorio: en mora",
+    help: "Mensaje de WhatsApp para quien ya venció. Puede usar {nombre}, {plan}, {gimnasio} y {fecha} («el 10 oct»).",
+    icon: MessageCircle,
+    kind: "text",
+  },
 };
 
 export const days = (count: number): string => (count === 1 ? "1 día" : `${count} días`);
@@ -44,6 +56,7 @@ export const days = (count: number): string => (count === 1 ? "1 día" : `${coun
 /** A setting value in words: "3 días", "Todos", "6 de 8". */
 export function describeValue(value: unknown): string {
   if (typeof value === "number") return days(value);
+  if (typeof value === "string") return value.length > 40 ? `«${value.slice(0, 40)}…»` : `«${value}»`;
   if (Array.isArray(value)) {
     const on = MODULES.filter((m) => value.includes(m.id)).length;
     return on === MODULES.length ? "Todos" : `${on} de ${MODULES.length}`;

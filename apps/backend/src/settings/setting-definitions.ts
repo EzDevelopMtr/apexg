@@ -27,6 +27,10 @@ export interface CompanySettings {
   'clients.expiringSoonDays': number;
   /** Módulos que el gimnasio puede abrir. Apagar uno también lo cierra en la API. */
   'modules.enabled': ModuleId[];
+  /** Recordatorio de WhatsApp antes del vencimiento o ese mismo día. */
+  'clients.reminderUpcoming': string;
+  /** Recordatorio de WhatsApp cuando el plan ya venció. */
+  'clients.reminderLapsed': string;
 }
 
 export type SettingKey = keyof CompanySettings;
@@ -51,6 +55,13 @@ function moduleList(value: unknown): string | null {
   return unknownIds.length > 0 ? `Módulos desconocidos: ${unknownIds.join(', ')}.` : null;
 }
 
+/** Un texto que cabe en un mensaje y no está vacío. */
+function messageText(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= 500
+    ? null
+    : 'Debe ser un texto de 1 a 500 caracteres.';
+}
+
 export const SETTING_DEFINITIONS: { [K in SettingKey]: SettingDefinition<K> } = {
   'clients.graceDays': { key: 'clients.graceDays', defaultValue: 0, problem: wholeDays(0, 30) },
   'clients.expiringSoonDays': {
@@ -59,6 +70,20 @@ export const SETTING_DEFINITIONS: { [K in SettingKey]: SettingDefinition<K> } = 
     problem: wholeDays(1, 60),
   },
   'modules.enabled': { key: 'modules.enabled', defaultValue: [...MODULE_IDS], problem: moduleList },
+  // Los textos por defecto repiten DEFAULT_REMINDER_TEMPLATES de @apexg/core
+  // (renewal-reminder.ts): este backend no depende de ese paquete.
+  'clients.reminderUpcoming': {
+    key: 'clients.reminderUpcoming',
+    defaultValue:
+      'Hola {nombre}, tu plan {plan} en {gimnasio} vence {fecha}. ¡Te esperamos para renovar!',
+    problem: messageText,
+  },
+  'clients.reminderLapsed': {
+    key: 'clients.reminderLapsed',
+    defaultValue:
+      'Hola {nombre}, tu plan {plan} en {gimnasio} venció {fecha}. ¡Te extrañamos! Renueva y sigue entrenando con nosotros.',
+    problem: messageText,
+  },
 };
 
 export function isSettingKey(value: string): value is SettingKey {

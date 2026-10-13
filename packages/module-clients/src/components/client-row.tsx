@@ -65,6 +65,7 @@ export default function ClientRow({
         standing={standing}
         planName={membershipType?.name ?? ""}
         referenceDate={referenceDate}
+        templates={settings.reminderTemplates}
         lastReminder={lastReminder}
         onRemind={onRemind}
       />
