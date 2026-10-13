@@ -1,0 +1,84 @@
+/*
+  APEX GYM — light theme.
+
+  The same tokens as `theme.css`, re-valued for a pale page. Dark stays the
+  default: this applies only while <html data-theme="light">.
+
+  What does not change: the brand blue fill, the module accents and the chart
+  series. What does: surfaces, text, and the status inks, which are darkened
+  so "Activo" or "Vencido" still clear 4.5:1 on white.
+*/
+
+:root {
+  /* A gym's brand overrides these on its BrandScope (see `deriveBrandPalette`). */
+  --color-brand-ink-light: #2a6491;
+  --color-brand-soft-light: #dbe8f3;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --color-shell: #e9edf1;
+  --color-shell-soft: #dde3e9;
+  --color-shell-line: #d3dae0;
+  --color-shell-muted: #5b6570;
+
+  --color-canvas: #f5f7f9;
+  --color-panel: #ffffff;
+  --color-surface: #eef1f4;
+  --color-line: #dde2e7;
+  --color-line-soft: #e8ecef;
+
+  --color-brand-strong: #285d85;
+
+  --color-body: #0f1215;
+  --color-body-muted: #3a424b;
+  --color-body-soft: #5b646d;
+  --color-body-faint: #7d868f;
+
+  --color-ok-soft: #dcf3e5;
+  --color-ok-ink: #15703a;
+  --color-warn-soft: #fbf0cf;
+  --color-warn-ink: #8a5a00;
+  --color-warn-line: #ecd796;
+  --color-danger-soft: #fbe3e3;
+  --color-danger-ink: #b42323;
+  --color-danger-line: #f0c2c2;
+  --color-danger-strong: #991b1b;
+  --color-idle-soft: #e8ebee;
+  --color-idle-ink: #555e67;
+
+  /* Overlays flip to black: white at low alpha vanishes on a white page. */
+  --color-fill-1: rgb(15 18 21 / 0.035);
+  --color-fill-2: rgb(15 18 21 / 0.06);
+  --color-fill-3: rgb(15 18 21 / 0.1);
+  --color-hairline: rgb(15 18 21 / 0.08);
+  --color-scrim: rgb(15 18 21 / 0.3);
+
+  --shadow-sheet: 0 30px 80px rgb(15 18 21 / 0.18), 0 0 0 1px rgb(15 18 21 / 0.06);
+  --shadow-float: 0 16px 40px rgb(15 18 21 / 0.14), 0 0 0 1px rgb(15 18 21 / 0.05);
+  --shadow-raised: 0 1px 2px rgb(15 18 21 / 0.12), 0 0 0 1px rgb(15 18 21 / 0.04);
+  --shadow-tile: 0 0 0 1px rgb(15 18 21 / 0.05);
+}
+
+/*
+  Brand ink and soft are per gym, set inline on the BrandScope. Re-pointing
+  them on every element lets each one pick up the gym's light variant it
+  inherits, which a single rule on <html> could not see.
+*/
+[data-theme="light"],
+[data-theme="light"] * {
+  --color-brand-ink: var(--color-brand-ink-light);
+  --color-brand-soft: var(--color-brand-soft-light);
+}
+
+[data-theme="light"] .ground-grid {
+  background-image: radial-gradient(circle, #d3dae0 1.1px, transparent 1.1px);
+}
+
+/* The theme switch cross-fades the page on the same spring as everything else. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 450ms;
+  animation-timing-function: var(--ease-spring-fast);
+}

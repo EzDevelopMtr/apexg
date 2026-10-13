@@ -65,6 +65,11 @@ describe("deriveBrandPalette", () => {
     ).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
   });
 
+  it.each(samples)("light brand-ink stays readable on the light canvas (%s)", (color) => {
+    const ink = deriveBrandPalette(color)["--color-brand-ink-light"];
+    expect(contrastRatio(ink, hex("#f5f7f9"))).toBeGreaterThanOrEqual(MIN_TEXT_CONTRAST);
+  });
+
   it("puts dark text on a pale brand and white on a deep one", () => {
     expect(deriveBrandPalette(hex("#a5f3fc"))["--color-brand-contrast"]).toBe("#0f1215");
     expect(deriveBrandPalette(hex("#1e1b4b"))["--color-brand-contrast"]).toBe("#ffffff");

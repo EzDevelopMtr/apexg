@@ -16,10 +16,15 @@ export interface BrandPalette {
   readonly "--color-brand-ink": HexColor;
   readonly "--color-brand-soft": HexColor;
   readonly "--color-brand-contrast": HexColor;
+  /** `brand-ink` and `brand-soft` for the light theme, which swaps them in. */
+  readonly "--color-brand-ink-light": HexColor;
+  readonly "--color-brand-soft-light": HexColor;
 }
 
 /** `--color-canvas`: the surface brand text sits on. */
 const CANVAS = "#0f1215" as HexColor;
+/** `--color-canvas` of the light theme. */
+const LIGHT_CANVAS = "#f5f7f9" as HexColor;
 const WHITE = "#ffffff" as HexColor;
 /** `--color-ink-on-light`, for fills too bright to carry white. */
 const DARK_INK = "#0f1215" as HexColor;
@@ -113,7 +118,16 @@ function readableOnCanvas(base: Hsl, ratio: number): HexColor {
   return fromHsl(candidate);
 }
 
-/** The five brand tokens for a gym whose colour is `brand`. */
+/** Lowers lightness until the colour clears `ratio` against the light canvas. */
+function readableOnLightCanvas(base: Hsl, ratio: number): HexColor {
+  let candidate = { ...base, l: Math.min(base.l, 0.45) };
+  while (contrastRatio(fromHsl(candidate), LIGHT_CANVAS) < ratio && candidate.l > 0.03) {
+    candidate = { ...candidate, l: candidate.l - 0.02 };
+  }
+  return fromHsl(candidate);
+}
+
+/** The brand tokens for a gym whose colour is `brand`. */
 export function deriveBrandPalette(brand: HexColor): BrandPalette {
   const hsl = toHsl(brand);
   const contrast = contrastRatio(brand, WHITE) >= MIN_TEXT_CONTRAST ? WHITE : DARK_INK;
@@ -123,5 +137,7 @@ export function deriveBrandPalette(brand: HexColor): BrandPalette {
     "--color-brand-ink": readableOnCanvas(hsl, MIN_TEXT_CONTRAST + 1.5),
     "--color-brand-soft": fromHsl({ ...hsl, s: hsl.s * 0.55, l: 0.2 }),
     "--color-brand-contrast": contrast,
+    "--color-brand-ink-light": readableOnLightCanvas(hsl, MIN_TEXT_CONTRAST + 1.5),
+    "--color-brand-soft-light": fromHsl({ ...hsl, s: hsl.s * 0.55, l: 0.92 }),
   };
 }

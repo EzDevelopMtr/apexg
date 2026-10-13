@@ -5,6 +5,7 @@
   the product resolves through this file.
 */
 @import "../../../packages/ui/src/theme.css";
+@import "../../../packages/ui/src/theme-light.css";
 
 /*
   Tailwind v4 finds the app's classes on its own, but in a monorepo it has to
@@ -41,7 +42,7 @@ body {
 }
 
 /*
-  The product only ships a dark theme. Declaring it lets the browser draw its
+  Dark by default (theme-light.css flips it). Declaring it lets the browser draw its
   own chrome to match — date pickers, scrollbars and autofill would otherwise
   render as light boxes dropped onto a near-black page.
 */

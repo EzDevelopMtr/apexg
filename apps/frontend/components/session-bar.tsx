@@ -4,11 +4,13 @@ import { LogOut } from "lucide-react";
 import { ROLE_LABELS } from "@apexg/core";
 import { Button } from "@apexg/ui";
 import type { Session } from "../lib/session-context";
+import ThemeSwitch from "./theme-switch";
 
 /** Who is signed in, and the way out. */
 export default function SessionBar({ session, onSignOut }: { session: Session; onSignOut: () => void }) {
   return (
     <div className="flex items-center gap-3">
+      <ThemeSwitch />
       <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-brand-ink text-sm font-bold uppercase text-brand-ink">
         {session.username.slice(0, 2)}
       </span>

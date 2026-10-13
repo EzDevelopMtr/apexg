@@ -6,6 +6,7 @@ import { findModule, navTabsFor, sectionBehindId } from "@apexg/core";
 import { Icon, TopBarShell, topBarTabClasses } from "@apexg/ui";
 import { useGymPath } from "../lib/gym-path";
 import ModuleJump from "./module-jump";
+import ThemeSwitch from "./theme-switch";
 
 export interface ModuleTopBarProps {
   /** Module id, e.g. `clients`. Its name and sections are looked up from it. */
@@ -37,7 +38,12 @@ export default function ModuleTopBar({ moduleId, basePath }: ModuleTopBarProps) 
   return (
     <TopBarShell
       title={module.name}
-      trailing={<ModuleJump current={moduleId} />}
+      trailing={
+        <div className="flex items-center gap-3">
+          <ThemeSwitch />
+          <ModuleJump current={moduleId} />
+        </div>
+      }
     >
       {tabs.length > 0
         ? tabs.map((tab) => {
