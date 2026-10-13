@@ -22,10 +22,9 @@ export default function ReminderLink({ href, clientName, onOpen }: ReminderLinkP
       onClick={onOpen}
       aria-label={`Recordar renovación a ${clientName} por WhatsApp`}
       title="Recordar renovación por WhatsApp"
-      className="-ml-2 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-body transition hover:bg-fill-2"
+      className="-ml-1.5 inline-grid size-9 place-items-center rounded-lg transition hover:bg-fill-2 active:scale-90"
     >
-      <WhatsAppGlyph size={16} />
-      Recordar
+      <WhatsAppGlyph size={24} />
     </a>
   );
 }
