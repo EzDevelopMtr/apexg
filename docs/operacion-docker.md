@@ -45,8 +45,17 @@ powershell -ExecutionPolicy Bypass -File ops\respaldar.ps1 -EnvFile ops\producci
 
 Base completa + archivos de todos los gimnasios en
 `Downloads\apexg-respaldos\docker\<fecha-hora>\`; guarda los últimos 14.
-**Programarlo a diario** en el Programador de tareas de Windows (lo crea el
-dueño del equipo).
+Cada respaldo se restaura de prueba en un Postgres desechable
+(`ops\verificar-respaldo.ps1`) y el resultado queda en
+`docker\respaldos.log`. Si algo falla, la carpeta queda como
+`<fecha-hora>-FALLIDO` y no se borra ningún respaldo viejo. `-Copia <ruta>`
+deja una segunda copia (otro disco o carpeta sincronizada).
+
+Programarlo a diario (lo corre el dueño del equipo una vez):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File ops\programar-respaldo.ps1 -Hora 23:00
+```
 
 Exportar un gimnasio (para entregarle sus datos o darlo de baja):
 
