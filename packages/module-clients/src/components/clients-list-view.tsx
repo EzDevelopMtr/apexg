@@ -71,8 +71,7 @@ export default function ClientsListView({
         photoUrl={photoUrl}
         onEdit={setEditing}
         settings={settings}
-        reminders={reminders.latest}
-        onRemind={reminders.record}
+        reminders={reminders}
       />
 
       <Modal

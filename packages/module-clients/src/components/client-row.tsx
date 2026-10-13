@@ -1,10 +1,11 @@
 "use client";
 
-import type { Client, GymSettings, IsoDate, MembershipType, ReminderRecord } from "@apexg/core";
+import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
 import { expiryNotice, resolveStanding } from "@apexg/core";
 import { Avatar, Badge, TableCell, TableRow } from "@apexg/ui";
 import { STANDING_LABELS, STANDING_TONES } from "./client-status";
-import ClientPhoneCell from "./client-phone-cell";
+import ClientReminderCell from "./client-reminder-cell";
+import type { RowReminder } from "./client-reminder-cell";
 
 export interface ClientRowProps {
   client: Client;
@@ -17,9 +18,7 @@ export interface ClientRowProps {
   onOpenPhoto: () => void;
   /** The gym's grace and "por vencer" window. */
   settings: GymSettings;
-  /** Latest renewal reminder sent to this client, if any. */
-  lastReminder: ReminderRecord | undefined;
-  onRemind: () => void;
+  reminder: RowReminder;
 }
 
 export default function ClientRow({
@@ -30,8 +29,7 @@ export default function ClientRow({
   onEdit,
   onOpenPhoto,
   settings,
-  lastReminder,
-  onRemind,
+  reminder,
 }: ClientRowProps) {
   // Derived rather than read from the record, so the row cannot show "active"
   // for a membership that lapsed overnight (RF-21).
@@ -60,15 +58,7 @@ export default function ClientRow({
       </TableCell>
 
       <TableCell className="text-sm">{client.idNumber}</TableCell>
-      <ClientPhoneCell
-        client={client}
-        standing={standing}
-        planName={membershipType?.name ?? ""}
-        referenceDate={referenceDate}
-        templates={settings.reminderTemplates}
-        lastReminder={lastReminder}
-        onRemind={onRemind}
-      />
+      <TableCell className="text-sm">{client.phone}</TableCell>
       <TableCell className="text-sm">
         {membershipType?.name ?? client.membershipTypeId}
       </TableCell>
@@ -89,6 +79,14 @@ export default function ClientRow({
           <p className="text-warn-ink">{expiryNotice(client, referenceDate)}</p>
         )}
       </TableCell>
+      <ClientReminderCell
+        client={client}
+        standing={standing}
+        planName={membershipType?.name ?? ""}
+        referenceDate={referenceDate}
+        templates={settings.reminderTemplates}
+        reminder={reminder}
+      />
 
     </TableRow>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import type { Client, GymSettings, IsoDate, MembershipType, ReminderRecord } from "@apexg/core";
+import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
+import type { UseClientRemindersResult } from "../hooks/use-client-reminders";
 import { useState } from "react";
 import type { ClientId } from "@apexg/core";
 import { Card, PhotoViewer, Table, TableEmpty } from "@apexg/ui";
@@ -13,6 +14,7 @@ const HEADERS = [
   "Membresía",
   "Estado",
   "Vencimiento",
+  "Recordatorio",
 ] as const;
 
 export interface ClientListProps {
@@ -23,9 +25,7 @@ export interface ClientListProps {
   photoUrl: (clientId: ClientId) => string;
   onEdit: (client: Client) => void;
   settings: GymSettings;
-  /** Latest reminder per client. */
-  reminders: ReadonlyMap<ClientId, ReminderRecord>;
-  onRemind: (clientId: ClientId) => void;
+  reminders: UseClientRemindersResult;
 }
 
 export default function ClientList({
@@ -36,7 +36,6 @@ export default function ClientList({
   onEdit,
   settings,
   reminders,
-  onRemind,
 }: ClientListProps) {
   // Una sola foto abierta a la vez, y por eso vive aquí: si cada fila tuviera
   // la suya, dos se podrían apilar una encima de otra.
@@ -64,8 +63,10 @@ export default function ClientList({
               onEdit={onEdit}
               settings={settings}
               onOpenPhoto={() => setViewing(client)}
-              lastReminder={reminders.get(client.id)}
-              onRemind={() => onRemind(client.id)}
+              reminder={{
+                last: reminders.latest.get(client.id),
+                onOpen: () => reminders.record(client.id),
+              }}
             />
           ))
         )}

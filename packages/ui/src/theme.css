@@ -104,6 +104,13 @@
   --color-idle-ink: #a8b0b8;
 
   /*
+    Third-party marks — a logo's own colour, not a decision of this palette.
+    WhatsApp's green is the one green outside the status family: it only ever
+    paints the WhatsApp glyph, never a background, text or a state.
+  */
+  --color-whatsapp: #25d366;
+
+  /*
     Neutral overlays — white at low alpha, so a fill or a hairline reads the
     same over any surface. No hue: they carry neither brand nor status.
   */

@@ -14,10 +14,11 @@
   },
   "dependencies": {
     "@apexg/core": "workspace:*",
+    "@apexg/data": "workspace:*",
+    "@apexg/module-kit": "workspace:*",
     "@apexg/ui": "workspace:*",
     "lucide-react": "^1.32.0",
-    "@apexg/data": "workspace:*",
-    "@apexg/module-kit": "workspace:*"
+    "simple-icons": "^16.35.0"
   },
   "devDependencies": {
     "@apexg/typescript-config": "workspace:*",
