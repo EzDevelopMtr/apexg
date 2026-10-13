@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IsoDate } from "./calendar";
-import { renewalReminder, toWhatsAppNumber, whatsAppLink } from "./renewal-reminder";
+import { reminderNotice, renewalReminder, toWhatsAppNumber, whatsAppLink } from "./renewal-reminder";
 
 const on = "2026-10-13" as IsoDate;
 const input = {
@@ -51,5 +51,15 @@ describe("whatsAppLink", () => {
 
   it("is null for an unusable phone", () => {
     expect(whatsAppLink("123", "Hola")).toBeNull();
+  });
+});
+
+describe("reminderNotice", () => {
+  it.each([
+    ["2026-10-13", "Recordado hoy"],
+    ["2026-10-12", "Recordado ayer"],
+    ["2026-10-08", "Recordado el 8 oct"],
+  ])("reads %s as %j", (sentOn, notice) => {
+    expect(reminderNotice(sentOn as IsoDate, on)).toBe(notice);
   });
 });

@@ -11,6 +11,7 @@ import { HttpProductSaleRepository } from "./http-product-sale-repository";
 import { HttpSavingsRepository } from "./http-savings-repository";
 import { HttpSettingsRepository } from "./http-settings-repository";
 import { HttpTrainerRepository } from "./http-trainer-repository";
+import { HttpClientReminderRepository } from "./http-client-reminder-repository";
 
 export { HttpPlatformRepository } from "./http-platform-repository";
 
@@ -29,6 +30,7 @@ export function createHttpRepositories(): Repositories {
     dayPasses: new HttpDayPassRepository(),
     savings: new HttpSavingsRepository(),
     settings: new HttpSettingsRepository(),
+    clientReminders: new HttpClientReminderRepository(),
   };
 }
 

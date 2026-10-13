@@ -1,6 +1,7 @@
 import { InMemorySettingsRepository } from "./in-memory-settings-repository";
 import type { Repositories } from "../repositories";
 import { InMemoryAttendanceRepository } from "./attendance-repository";
+import { InMemoryClientReminderRepository } from "./client-reminder-repository";
 import { InMemoryClientRepository } from "./client-repository";
 import { InMemoryDailyLogRepository } from "./daily-log-repository";
 import { InMemoryDayPassRepository } from "./day-pass-repository";
@@ -47,6 +48,7 @@ export function createInMemoryRepositories(): Repositories {
     dayPasses: new InMemoryDayPassRepository(),
     savings: new InMemorySavingsRepository(),
     settings: new InMemorySettingsRepository(),
+    clientReminders: new InMemoryClientReminderRepository(),
   };
 }
 

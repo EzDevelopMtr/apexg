@@ -13,6 +13,7 @@ import { countClientsBySection } from "@apexg/core";
 import { useGymSettings, useMembershipTypeCatalog } from "@apexg/module-kit";
 import { Modal } from "@apexg/ui";
 import { useVisibleClients } from "../hooks/use-visible-clients";
+import { useClientReminders } from "../hooks/use-client-reminders";
 import ClientForm from "./client-form";
 import ClientList from "./client-list";
 import ClientSearch from "./client-search";
@@ -55,6 +56,7 @@ export default function ClientsListView({
   const settings = useGymSettings();
   const visible = useVisibleClients(clients, section, { query, referenceDate, settings });
   const membershipTypes = useMembershipTypeCatalog();
+  const reminders = useClientReminders();
   const counts = useMemo(() => countClientsBySection(clients, referenceDate, settings), [clients, referenceDate, settings]);
   const search = <ClientSearch value={query} onChange={setQuery} />;
 
@@ -69,6 +71,8 @@ export default function ClientsListView({
         photoUrl={photoUrl}
         onEdit={setEditing}
         settings={settings}
+        reminders={reminders.latest}
+        onRemind={reminders.record}
       />
 
       <Modal

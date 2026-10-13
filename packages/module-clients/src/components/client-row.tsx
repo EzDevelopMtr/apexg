@@ -1,10 +1,10 @@
 "use client";
 
-import type { Client, GymSettings, IsoDate, MembershipType } from "@apexg/core";
-import { expiryNotice, renewalReminder, resolveStanding, whatsAppLink } from "@apexg/core";
-import { Avatar, Badge, TableCell, TableRow, useBrand } from "@apexg/ui";
+import type { Client, GymSettings, IsoDate, MembershipType, ReminderRecord } from "@apexg/core";
+import { expiryNotice, resolveStanding } from "@apexg/core";
+import { Avatar, Badge, TableCell, TableRow } from "@apexg/ui";
 import { STANDING_LABELS, STANDING_TONES } from "./client-status";
-import ReminderLink from "./reminder-link";
+import ClientPhoneCell from "./client-phone-cell";
 
 export interface ClientRowProps {
   client: Client;
@@ -17,6 +17,9 @@ export interface ClientRowProps {
   onOpenPhoto: () => void;
   /** The gym's grace and "por vencer" window. */
   settings: GymSettings;
+  /** Latest renewal reminder sent to this client, if any. */
+  lastReminder: ReminderRecord | undefined;
+  onRemind: () => void;
 }
 
 export default function ClientRow({
@@ -27,6 +30,8 @@ export default function ClientRow({
   onEdit,
   onOpenPhoto,
   settings,
+  lastReminder,
+  onRemind,
 }: ClientRowProps) {
   // Derived rather than read from the record, so the row cannot show "active"
   // for a membership that lapsed overnight (RF-21).
@@ -37,24 +42,6 @@ export default function ClientRow({
     settings.graceDays,
   );
   const soon = standing === "expiringSoon";
-  const gymName = useBrand().name;
-  // Only those with a renewal pending get the reminder: an active client has
-  // nothing to renew, and a retired one already left.
-  const reminder =
-    soon || standing === "overdue"
-      ? whatsAppLink(
-          client.phone,
-          renewalReminder(
-            {
-              fullName: client.fullName,
-              planName: membershipType?.name ?? "",
-              gymName,
-              expirationDate: client.expirationDate,
-            },
-            referenceDate,
-          ),
-        )
-      : undefined;
 
   return (
     <TableRow onActivate={() => onEdit(client)} label={`Abrir a ${client.fullName}`}>
@@ -73,12 +60,14 @@ export default function ClientRow({
       </TableCell>
 
       <TableCell className="text-sm">{client.idNumber}</TableCell>
-      <TableCell className="text-sm">
-        <p>{client.phone}</p>
-        {reminder !== undefined && (
-          <ReminderLink href={reminder} clientName={client.fullName} />
-        )}
-      </TableCell>
+      <ClientPhoneCell
+        client={client}
+        standing={standing}
+        planName={membershipType?.name ?? ""}
+        referenceDate={referenceDate}
+        lastReminder={lastReminder}
+        onRemind={onRemind}
+      />
       <TableCell className="text-sm">
         {membershipType?.name ?? client.membershipTypeId}
       </TableCell>

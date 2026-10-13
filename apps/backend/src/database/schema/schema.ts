@@ -869,3 +869,28 @@ export const companySettings = pgTable("company_settings", {
 			name: "company_settings_updated_by_fkey"
 		}),
 ]);
+
+export const clientReminders = pgTable("client_reminders", {
+	id: uuid().defaultRandom().primaryKey().notNull(),
+	companyId: uuid("company_id").notNull(),
+	clientId: uuid("client_id").notNull(),
+	sentBy: uuid("sent_by"),
+	sentAt: timestamp("sent_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_client_reminders_company_sent").using("btree", table.companyId.asc().nullsLast().op("uuid_ops"), table.sentAt.asc().nullsLast().op("timestamptz_ops")),
+	foreignKey({
+			columns: [table.clientId],
+			foreignColumns: [clients.id],
+			name: "client_reminders_client_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.companyId],
+			foreignColumns: [companies.id],
+			name: "client_reminders_company_id_fkey"
+		}),
+	foreignKey({
+			columns: [table.sentBy],
+			foreignColumns: [users.id],
+			name: "client_reminders_sent_by_fkey"
+		}),
+]);

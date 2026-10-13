@@ -1,4 +1,6 @@
 import type { SettingsRepository } from "./settings";
+import type { ClientReminderRepository } from "./reminders";
+export type { ClientReminderRepository } from "./reminders";
 import type {
   Attendance,
   Client,
@@ -264,6 +266,7 @@ export interface Repositories {
   readonly dayPasses: DayPassRepository;
   readonly savings: SavingsRepository;
   readonly settings: SettingsRepository;
+  readonly clientReminders: ClientReminderRepository;
 }
 
 /** Raised when a write targets a record that no longer exists. */

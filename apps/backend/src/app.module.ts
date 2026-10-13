@@ -16,6 +16,7 @@ import { FinanceModule } from "./finance/finance.module.js";
 import { InventoryModule } from "./inventory/inventory.module.js";
 import { MembershipTypesModule } from "./membership-types/membership-types.module.js";
 import { AttendancesModule } from "./attendances/attendances.module.js";
+import { ClientRemindersModule } from "./client-reminders/client-reminders.module.js";
 import { PaymentsModule } from "./payments/payments.module.js";
 import { PlatformModule } from "./platform/platform.module.js";
 import { ProductSalesModule } from "./product-sales/product-sales.module.js";
@@ -35,6 +36,7 @@ import { TrainersModule } from "./trainers/trainers.module.js";
     ClientsModule,
     MembershipTypesModule,
     AttendancesModule,
+    ClientRemindersModule,
     PaymentsModule,
     TrainersModule,
     SharedModule,

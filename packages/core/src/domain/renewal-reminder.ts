@@ -1,5 +1,6 @@
 import type { IsoDate } from "./calendar";
 import { daysBetween, formatDayMonth } from "./calendar";
+import type { ClientId } from "./client";
 
 /** Colombia's calling code: every phone the gym registers is a local mobile. */
 const COUNTRY_CODE = "57";
@@ -49,4 +50,24 @@ export function renewalReminder(input: RenewalReminderInput, on: IsoDate): strin
 export function whatsAppLink(phone: string, message: string): string | null {
   const number = toWhatsAppNumber(phone);
   return number === null ? null : `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+/** The latest reminder sent to a client, as the list needs it. */
+export interface ReminderRecord {
+  readonly clientId: ClientId;
+  /** Local calendar day it was sent. */
+  readonly sentOn: IsoDate;
+  /** Who opened the chat; `null` if that user was since removed. */
+  readonly sentByName: string | null;
+}
+
+/**
+ * "Recordado hoy", "Recordado ayer" or "Recordado el 12 oct": enough for the
+ * desk to decide whether to write again without opening anything.
+ */
+export function reminderNotice(sentOn: IsoDate, on: IsoDate): string {
+  const ago = daysBetween(sentOn, on);
+  if (ago <= 0) return "Recordado hoy";
+  if (ago === 1) return "Recordado ayer";
+  return `Recordado el ${formatDayMonth(sentOn)}`;
 }
