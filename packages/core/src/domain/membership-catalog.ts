@@ -81,7 +81,7 @@ export const DEFAULT_MEMBERSHIP_TYPES: readonly MembershipType[] = [
     name: "Promo amigos/familiar",
     price: fromPesos(60_000),
     term: { unit: "month", amount: 1 },
-    minimumInstallment: null,
+    minimumInstallment: fromPesos(30_000),
     isPromotional: true,
     trainerSplit: null,
     weeklyVisits: 6,

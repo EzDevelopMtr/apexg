@@ -80,8 +80,8 @@ INSERT INTO membership_types (
     (:'company_id'::uuid, 'Promo amigos/familiar', 60000,
         'Tarifa por persona para grupos de tres o más clientes que pagan juntos el mismo día',
         1, 'month',
-        NULL, NULL, NULL,
-        FALSE, TRUE, 1),
+        30000, NULL, NULL,
+        TRUE, TRUE, 1),
 
     (:'company_id'::uuid, 'Promo folleto físico', 55000,
         'Promoción para clientes nuevos que presentan folleto físico; aplica al primer mes',

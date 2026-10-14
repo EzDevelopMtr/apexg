@@ -79,11 +79,12 @@ describe("trainer split (SRS §4.4)", () => {
 });
 
 describe("installments (SRS §4.3, RF-19)", () => {
-  it("allows installments only on the four plans that define a minimum", () => {
+  it("allows installments only on the five plans that define a minimum", () => {
     const payable = DEFAULT_MEMBERSHIP_TYPES.filter(allowsInstallments);
     expect(payable.map((type) => type.id)).toEqual([
       "monthly",
       "monthlyThreeDays",
+      "friendsPromo",
       "personalTraining",
       "semiPersonal",
     ]);

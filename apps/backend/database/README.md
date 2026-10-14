@@ -238,7 +238,7 @@ El seed usa `ON CONFLICT` y `granted_at` se omite en el `INSERT` para que tome s
 | Quincena | 45 000 | No | No |
 | Semana | 25 000 | No | No |
 | Día | 6 000 | No | No |
-| Promo amigos/familiar | 60 000 | No | Sí |
+| Promo amigos/familiar | 60 000 | Sí | Sí |
 | Promo folleto físico | 55 000 | No | Sí |
 | Personalizado | 200 000 | Sí | No |
 | Semipersonalizado | 150 000 | Sí | No |
