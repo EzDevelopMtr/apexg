@@ -29,6 +29,8 @@ Rationale: without a fixed glossary, eight modules would independently invent
 | Pase de día         | `DayPass`         | One day sold to a visitor with no client record behind it                 |
 | Visitante           | `Visitor`         | Whoever holds a day pass. **Never** a `Client`                            |
 | Fila de Pagos       | `LedgerEntry`     | A row of the Payments list: a membership payment or a day pass            |
+| Pago de comisiones  | `CommissionPayout` | The commissions settled to one trainer together, as one outgoing          |
+| Fila de Egresos     | `OutgoingEntry`   | A row of the Expenses list: a recorded expense or a commission payout     |
 
 ## Client state (SRS §4.2)
 

@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Eye } from "lucide-react";
-import type { Expense, ExpenseCategory, ExpenseId } from "@apexg/core";
+import type {
+  CommissionPayout,
+  Expense,
+  ExpenseCategory,
+  ExpenseId,
+  OutgoingEntry,
+  TrainerId,
+} from "@apexg/core";
 import { PAYMENT_METHOD_LABELS, findCategory, formatCOP } from "@apexg/core";
 import {
   Card,
@@ -12,6 +19,7 @@ import {
   TableEmpty,
   TableRow,
 } from "@apexg/ui";
+import PayoutRow from "./payout-row";
 
 const HEADERS = [
   "Concepto",
@@ -23,9 +31,18 @@ const HEADERS = [
 ] as const;
 
 export interface ExpenseListProps {
-  expenses: readonly Expense[];
+  entries: readonly OutgoingEntry[];
   categories: readonly ExpenseCategory[];
   receiptUrl: (id: ExpenseId) => string;
+  payoutReceiptUrl: (payout: CommissionPayout) => string;
+  trainerName: (id: TrainerId) => string;
+}
+
+/** What the preview needs, resolved once when the eye is clicked. */
+interface OpenReceipt {
+  url: string;
+  fileName: string;
+  subject: string;
 }
 
 function MethodCell({
@@ -57,57 +74,89 @@ function MethodCell({
   );
 }
 
+function ExpenseRow({
+  expense,
+  categories,
+  onView,
+}: {
+  expense: Expense;
+  categories: readonly ExpenseCategory[];
+  onView: () => void;
+}) {
+  return (
+    <TableRow>
+      <TableCell>
+        <p className="font-semibold text-body">{expense.description}</p>
+      </TableCell>
+      <TableCell className="text-sm">
+        {findCategory(categories, expense.categoryId)?.name ?? "Sin categoría"}
+      </TableCell>
+      <TableCell className="font-semibold">{formatCOP(expense.amount)}</TableCell>
+      <TableCell className="text-sm">{expense.spentOn}</TableCell>
+      <MethodCell expense={expense} onView={onView} />
+      <TableCell className="text-sm">{expense.recordedBy}</TableCell>
+    </TableRow>
+  );
+}
+
 export default function ExpenseList({
-  expenses,
+  entries,
   categories,
   receiptUrl,
+  payoutReceiptUrl,
+  trainerName,
 }: ExpenseListProps) {
-  const [open, setOpen] = useState<Expense | null>(null);
+  const [open, setOpen] = useState<OpenReceipt | null>(null);
 
   return (
     <>
       <Card className="overflow-hidden">
         <Table headers={HEADERS}>
-          {expenses.length === 0 ? (
+          {entries.length === 0 ? (
             <TableEmpty
               columns={HEADERS.length}
               message="No hay egresos registrados."
             />
           ) : (
-            expenses.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell>
-                  <p className="font-semibold text-body">
-                    {expense.description}
-                  </p>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {findCategory(categories, expense.categoryId)?.name ??
-                    "Sin categoría"}
-                </TableCell>
-                <TableCell className="font-semibold">
-                  {formatCOP(expense.amount)}
-                </TableCell>
-                <TableCell className="text-sm">{expense.spentOn}</TableCell>
-                <MethodCell expense={expense} onView={() => setOpen(expense)} />
-                <TableCell className="text-sm">{expense.recordedBy}</TableCell>
-              </TableRow>
-            ))
+            entries.map((entry) => {
+              if (entry.kind === "commissions") {
+                const { payout } = entry;
+                const name = trainerName(payout.trainerId);
+                return (
+                  <PayoutRow
+                    key={entry.id}
+                    payout={payout}
+                    trainerName={name}
+                    onViewReceipt={() =>
+                      setOpen({
+                        url: payoutReceiptUrl(payout),
+                        fileName: payout.receiptPath,
+                        subject: `Pago de comisiones a ${name}`,
+                      })
+                    }
+                  />
+                );
+              }
+              const { expense } = entry;
+              return (
+                <ExpenseRow
+                  key={entry.id}
+                  expense={expense}
+                  categories={categories}
+                  onView={() =>
+                    setOpen({
+                      url: receiptUrl(expense.id),
+                      fileName: expense.receiptPath,
+                      subject: `Egreso: ${expense.description}`,
+                    })
+                  }
+                />
+              );
+            })
           )}
         </Table>
       </Card>
-      <ReceiptPreview
-        receipt={
-          open
-            ? {
-                url: receiptUrl(open.id),
-                fileName: open.receiptPath,
-                subject: `Egreso: ${open.description}`,
-              }
-            : null
-        }
-        onClose={() => setOpen(null)}
-      />
+      <ReceiptPreview receipt={open} onClose={() => setOpen(null)} />
     </>
   );
 }

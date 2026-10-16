@@ -1,10 +1,13 @@
-import type { Expense } from "../domain/expense";
+import type { OutgoingEntry } from "../domain/outgoing-ledger";
 import { createSectionCatalog } from "./section-catalog";
 
 export type ExpenseSectionId = "all" | "add" | "categories";
 
-/** Sections of the Expenses module (RF-26, RF-27). */
-export const expenseSections = createSectionCatalog<ExpenseSectionId, Expense>([
+/**
+ * Sections of the Expenses module (RF-26, RF-27). Lists work over
+ * {@link OutgoingEntry}: payouts to trainers are outgoings too.
+ */
+export const expenseSections = createSectionCatalog<ExpenseSectionId, OutgoingEntry>([
   {
     id: "all",
     label: "Todos los egresos",
