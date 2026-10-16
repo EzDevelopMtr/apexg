@@ -53,6 +53,7 @@ const REGISTROS: FinancialRecords = {
   expenses: [],
   clients: [],
   savings: [],
+  commissions: [],
 };
 
 describe("FINANCE_PERIODS", () => {

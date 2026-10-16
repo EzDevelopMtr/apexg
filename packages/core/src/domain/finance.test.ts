@@ -125,7 +125,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up only the day in question", () => {
     const balance = calculateBalance(
-      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [], commissions: [] },
       "day",
       TODAY,
     );
@@ -147,7 +147,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments, productSales, dayPasses: [], expenses, clients: [], savings },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings, commissions: [] },
       "day",
       TODAY,
     );
@@ -173,7 +173,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments, productSales, dayPasses: [], expenses, clients: [], savings },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings, commissions: [] },
       "day",
       TODAY,
     );
@@ -184,7 +184,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the Monday-to-Sunday week", () => {
     const balance = calculateBalance(
-      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [], commissions: [] },
       "week",
       TODAY,
     );
@@ -194,7 +194,7 @@ describe("calculateBalance (RF-31)", () => {
 
   it("adds up the month and excludes the previous one", () => {
     const balance = calculateBalance(
-      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [] },
+      { payments, productSales, dayPasses: [], expenses, clients: [], savings: [], commissions: [] },
       "month",
       TODAY,
     );
@@ -216,6 +216,7 @@ describe("calculateBalance (RF-31)", () => {
         expenses,
         clients: [],
         savings: [],
+        commissions: [],
       },
       "day",
       TODAY,
@@ -233,7 +234,7 @@ describe("calculateBalance (RF-31)", () => {
     ];
 
     const balance = calculateBalance(
-      { payments: [], productSales: [], dayPasses: [], expenses: [], clients, savings: [] },
+      { payments: [], productSales: [], dayPasses: [], expenses: [], clients, savings: [], commissions: [] },
       "month",
       TODAY,
     );
@@ -250,7 +251,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
     ];
 
     const comparison = compareWithPreviousMonth(
-      { payments, productSales: [], dayPasses: [], expenses: [], clients: [], savings: [] },
+      { payments, productSales: [], dayPasses: [], expenses: [], clients: [], savings: [], commissions: [] },
       TODAY,
     );
     expect(comparison.current.income).toBe(fromPesos(100_000));
@@ -261,7 +262,7 @@ describe("compareWithPreviousMonth (RF-32)", () => {
   it("steps back correctly from the 31st", () => {
     // previousMonth clamps, so this must not land in March.
     const comparison = compareWithPreviousMonth(
-      { payments: [], productSales: [], dayPasses: [], expenses: [], clients: [], savings: [] },
+      { payments: [], productSales: [], dayPasses: [], expenses: [], clients: [], savings: [], commissions: [] },
       date("2026-03-31"),
     );
     expect(comparison.previous.range.from).toBe("2026-02-01");

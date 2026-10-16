@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import type {
   Client,
+  Commission,
   DayPass,
   Expense,
   FinancialRecords,
@@ -10,7 +11,11 @@ import type {
   ProductSale,
   SavingsContribution,
 } from "@apexg/core";
-import { useCollection, useRepositories } from "@apexg/module-kit";
+import {
+  forbiddenAsEmpty,
+  useCollection,
+  useRepositories,
+} from "@apexg/module-kit";
 import type { Collection, LoadState } from "@apexg/module-kit";
 
 export interface UseFinancialRecordsResult {
@@ -18,6 +23,8 @@ export interface UseFinancialRecordsResult {
   readonly state: LoadState;
   readonly error: string | null;
   readonly reload: () => void;
+  /** Re-reads the commissions alone, without the page going to "loading". */
+  readonly refreshCommissions: () => void;
   /** Exposed so `CollectionGate` can drive the loading and error states. */
   readonly gate: Collection<Payment>;
 }
@@ -26,13 +33,15 @@ export interface UseFinancialRecordsResult {
  * Loads every collection a financial figure needs.
  *
  * They are fetched together because a balance is meaningless with only some of
- * them: income comes from payments, sales and day passes, outgoings from expenses, lo apartado a
+ * them: income comes from payments, sales and day passes, outgoings from
+ * expenses and commissions paid to trainers, lo apartado a
  * bolsillos baja la utilidad, y los conteos de clientes se derivan, no se
  * leen (RF-33).
  */
 export function useFinancialRecords(): UseFinancialRecordsResult {
-  const { payments, productSales, dayPasses, expenses, clients, savings } =
-    useRepositories();
+  const repositories = useRepositories();
+  const { payments, productSales, dayPasses, expenses, clients } = repositories;
+  const { savings, trainers } = repositories;
 
   const loadPayments = useCallback(() => payments.list(), [payments]);
   const loadSales = useCallback(() => productSales.list(), [productSales]);
@@ -43,6 +52,11 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     () => savings.listContributions(),
     [savings],
   );
+  // Optional: with Trainers off for this gym, there are simply no payouts.
+  const loadCommissions = useCallback(
+    () => forbiddenAsEmpty(trainers.listCommissions()),
+    [trainers],
+  );
 
   const paymentCollection = useCollection<Payment>(loadPayments);
   const saleCollection = useCollection<ProductSale>(loadSales);
@@ -50,6 +64,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
   const expenseCollection = useCollection<Expense>(loadExpenses);
   const clientCollection = useCollection<Client>(loadClients);
   const savingsCollection = useCollection<SavingsContribution>(loadSavings);
+  const commissionCollection = useCollection<Commission>(loadCommissions);
 
   const parts = [
     paymentCollection,
@@ -58,6 +73,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     expenseCollection,
     clientCollection,
     savingsCollection,
+    commissionCollection,
   ];
   const state: LoadState = parts.some((part) => part.state === "error")
     ? "error"
@@ -76,6 +92,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
     expenseCollection.reload,
     clientCollection.reload,
     savingsCollection.reload,
+    commissionCollection.reload,
   ]);
 
   return {
@@ -86,6 +103,7 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
       expenses: expenseCollection.items,
       clients: clientCollection.items,
       savings: savingsCollection.items,
+      commissions: commissionCollection.items,
     },
     state,
     error:
@@ -94,8 +112,10 @@ export function useFinancialRecords(): UseFinancialRecordsResult {
       passCollection.error ??
       expenseCollection.error ??
       clientCollection.error ??
-      savingsCollection.error,
+      savingsCollection.error ??
+      commissionCollection.error,
     reload,
+    refreshCommissions: commissionCollection.refresh,
     gate: {
       ...paymentCollection,
       state,

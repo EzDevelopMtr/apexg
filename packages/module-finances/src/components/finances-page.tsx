@@ -56,7 +56,7 @@ export default function FinancesPage() {
           <SavingsPanel />
         </Section>
         <Section title="Comisiones de entrenadores">
-          <CommissionsPanel />
+          <CommissionsPanel overview={overview} />
         </Section>
       </div>
     </CollectionGate>

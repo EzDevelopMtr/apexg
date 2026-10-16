@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Trainer, TrainerSectionId } from "@apexg/core";
 import { today, trainerSections } from "@apexg/core";
-import { CollectionGate } from "@apexg/module-kit";
+import { CollectionGate, CommissionPanel } from "@apexg/module-kit";
 import { Modal } from "@apexg/ui";
 import { useVisibleTrainers } from "../hooks/use-available-trainers";
 import {
@@ -11,7 +11,6 @@ import {
   useCommissions,
   useTrainers,
 } from "../hooks/use-trainers";
-import CommissionPanel from "./commission-panel";
 import TrainerForm from "./trainer-form";
 import TrainerList from "./trainer-list";
 

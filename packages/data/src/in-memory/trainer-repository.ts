@@ -4,7 +4,7 @@ import type {
   Trainer,
   TrainerId,
 } from "@apexg/core";
-import { toTrainerId } from "@apexg/core";
+import { toTrainerId, today } from "@apexg/core";
 import type { TrainerRepository } from "../repositories";
 import { RecordNotFoundError } from "../repositories";
 import { InMemoryStore, newId } from "./in-memory-store";
@@ -69,6 +69,7 @@ export class InMemoryTrainerRepository implements TrainerRepository {
       await this.#commissions.save({
         ...commission,
         settled: true,
+        settledOn: today(),
         settlementMethod: method,
         settlementReceiptPath: receipt ? "comprobante" : "",
       });

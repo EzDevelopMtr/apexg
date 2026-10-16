@@ -11,6 +11,7 @@ import {
   isPaymentMethod,
   toApiString,
   toClientId,
+  toIsoDate,
   toPaymentId,
   toTrainerId,
 } from "@apexg/core";
@@ -48,6 +49,7 @@ interface ApiCommissionRecord {
   trainerAmount: string;
   commissionDate: string;
   settled: boolean;
+  settledAt: string | null;
   settlementMethod: string | null;
   settlementReceiptPath: string | null;
 }
@@ -102,6 +104,8 @@ function fromCommissionResult(
     amount: fromApiString(row.trainerAmount),
     earnedOn: row.commissionDate as IsoDate,
     settled: row.settled,
+    // TIMESTAMPTZ: the local day, not the first 10 chars of the UTC instant.
+    settledOn: row.settledAt ? toIsoDate(new Date(row.settledAt)) : null,
     settlementMethod:
       row.settlementMethod !== null && isPaymentMethod(row.settlementMethod)
         ? row.settlementMethod

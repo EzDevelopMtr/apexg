@@ -1,6 +1,8 @@
-import type { IsoDate } from "./calendar";
+import type { DateRange, IsoDate } from "./calendar";
+import { isWithin } from "./calendar";
 import type { ClientId } from "./client";
 import type { Money } from "./money";
+import { ZERO, add } from "./money";
 import type { PaymentId, PaymentMethod } from "./payment";
 import { isMissingReceipt } from "./receipt";
 
@@ -42,6 +44,8 @@ export interface Commission {
   readonly earnedOn: IsoDate;
   /** True once the gym has paid it out. */
   readonly settled: boolean;
+  /** The day it was paid out, local. Null while unsettled. */
+  readonly settledOn: IsoDate | null;
   /** How it was paid out. Null while unsettled, or if settled before it was asked. */
   readonly settlementMethod: PaymentMethod | null;
   /**
@@ -75,6 +79,21 @@ export function commissionSettlementProblems(
     problems.push("receiptRequired");
   }
   return problems;
+}
+
+/**
+ * What the gym paid its trainers within the range, by the day it paid.
+ *
+ * An outgoing like any expense: the money left the till, so it lowers the
+ * profit of the day it was paid, not of the day it was earned (RNF-07).
+ */
+export function commissionsPaidOutIn(
+  commissions: readonly Commission[],
+  range: DateRange,
+): Money {
+  return commissions
+    .filter((c) => c.settledOn !== null && isWithin(c.settledOn, range))
+    .reduce<Money>((running, c) => add(running, c.amount), ZERO);
 }
 
 /** The latest payout of a trainer that carries a receipt, to show it again. */

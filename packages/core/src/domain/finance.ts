@@ -7,6 +7,8 @@ import type { Expense } from "./expense";
 import type { Money } from "./money";
 import { ZERO, add, subtract } from "./money";
 import type { Payment } from "./payment";
+import type { Commission } from "./trainer";
+import { commissionsPaidOutIn } from "./trainer";
 import type { ProductSale } from "./product-sale";
 import type { SavingsContribution } from "./savings";
 
@@ -32,12 +34,15 @@ export interface FinancialRecords {
    * es plata comprometida con un destino, no ganancia disponible.
    */
   readonly savings: readonly SavingsContribution[];
+  /** Las pagadas cuentan como egreso el día en que se le pagó al entrenador. */
+  readonly commissions: readonly Commission[];
 }
 
 /** Income against outgoings for a period (RF-31). */
 export interface Balance {
   readonly range: DateRange;
   readonly income: Money;
+  /** Egresos registrados más lo pagado en comisiones a entrenadores. */
   readonly expenses: Money;
   /** Lo apartado a bolsillos en el periodo. Se muestra aparte de `expenses`. */
   readonly savings: Money;
@@ -94,11 +99,9 @@ export function balanceOver(
     ),
     sumIn(records.dayPasses, range, (d) => d.soldOn, (d) => d.amount),
   );
-  const spent = sumIn(
-    records.expenses,
-    range,
-    (e) => e.spentOn,
-    (e) => e.amount,
+  const spent = add(
+    sumIn(records.expenses, range, (e) => e.spentOn, (e) => e.amount),
+    commissionsPaidOutIn(records.commissions, range),
   );
   // Aparte de los egresos, no sumado a ellos: un egreso ya se gastó y un
   // ahorro sigue en caja. Ambos salen de la utilidad, pero quien lee el

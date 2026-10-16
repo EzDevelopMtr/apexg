@@ -13,6 +13,11 @@ export interface Collection<T> {
   readonly state: LoadState;
   readonly error: string | null;
   readonly reload: () => void;
+  /**
+   * Reloads without going back to "loading": what is on screen stays until
+   * the new data arrives. For a change made from that same screen.
+   */
+  readonly refresh: () => void;
   /** Applies a locally-known change without a round trip. */
   readonly apply: (update: (current: readonly T[]) => readonly T[]) => void;
 }
@@ -60,6 +65,10 @@ export function useCollection<T>(
     void run();
   }, [run]);
 
+  const refresh = useCallback(() => {
+    void run();
+  }, [run]);
+
   const apply = useCallback(
     (update: (current: readonly T[]) => readonly T[]) => {
       setItems(update);
@@ -67,7 +76,7 @@ export function useCollection<T>(
     [],
   );
 
-  return { items, state, error, reload, apply };
+  return { items, state, error, reload, refresh, apply };
 }
 
 /** Replaces a record by id, or appends it when it is new. */

@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo } from "react";
 import type {
-  Commission,
   DateRange,
   ExpenseCategory,
   IsoDate,
@@ -41,14 +40,12 @@ import { useFinancialRecords } from "./use-financial-records";
  * filtro mire la semana pasada.
  */
 export function useFinanceOverview(on: IsoDate, range: DateRange) {
-  const { records, gate } = useFinancialRecords();
-  const { expenses, trainers } = useRepositories();
+  const { records, gate, refreshCommissions } = useFinancialRecords();
+  const { expenses } = useRepositories();
   const plans = useMembershipTypeCatalog();
 
   const loadCategories = useCallback(() => expenses.listCategories(), [expenses]);
   const categories = useCollection<ExpenseCategory>(loadCategories);
-  const loadCommissions = useCallback(() => trainers.listCommissions(), [trainers]);
-  const commissions = useCollection<Commission>(loadCommissions);
 
   return useMemo(() => {
     const previous = previousRangeOf(range);
@@ -71,18 +68,23 @@ export function useFinanceOverview(on: IsoDate, range: DateRange) {
       granularity: trendGranularity(range),
       income: incomeBySource(records, range, (id) => planOf(id)?.name ?? "Plan retirado"),
       spending: expensesByCategory(
-        records.expenses,
+        records,
         range,
         previous,
         (id) => categories.items.find((one) => one.id === id)?.name ?? "Sin categoría",
       ),
       owed,
       owedTotal: totalOf(owed),
-      commissionsDue: pendingCommissions(commissions.items),
+      commissionsDue: pendingCommissions(records.commissions),
+      commissions: records.commissions,
+      clients: records.clients,
+      // Pagar una comisión mueve la utilidad: al refrescarlas se recalcula
+      // todo el balance, sin que la página vuelva a "cargando".
+      refreshCommissions,
       outlook: renewalOutlook(records.clients, (id) => planOf(id)?.price, on),
       clientName,
     };
-  }, [records, gate, on, range, plans.items, categories.items, commissions.items]);
+  }, [records, gate, refreshCommissions, on, range, plans.items, categories.items]);
 }
 
 export type FinanceOverview = ReturnType<typeof useFinanceOverview>;

@@ -3,13 +3,19 @@ import { isWithin } from "./calendar";
 import type { Client, ClientId } from "./client";
 import { isExpiringSoon, resolveStatus } from "./client";
 import type { Balance, FinancialRecords } from "./finance";
-import type { Expense } from "./expense";
 import type { MembershipTypeId } from "./membership";
 import type { Money } from "./money";
 import { ZERO, add } from "./money";
 import type { Payment } from "./payment";
 import { cyclesWithBalance } from "./payment";
 import type { Commission } from "./trainer";
+import { commissionsPaidOutIn } from "./trainer";
+
+/**
+ * La barra de lo pagado a entrenadores en el desglose de egresos. No es una
+ * categoría que el admin cree: sale de las comisiones liquidadas.
+ */
+export const COMMISSIONS_KEY = "commissions";
 
 /**
  * Qué parte de cada peso que entra queda como utilidad, en porcentaje.
@@ -97,27 +103,32 @@ export function incomeBySource(
  * dice si es mucho; "servicios $300.000, el mes pasado $180.000" sí.
  */
 export function expensesByCategory(
-  expenses: readonly Expense[],
+  { expenses, commissions }: Pick<FinancialRecords, "expenses" | "commissions">,
   range: DateRange,
   previousRange: DateRange,
   categoryNameOf: (id: string) => string,
 ): readonly Share[] {
-  const current = sumBy(
-    expenses.filter((e) => isWithin(e.spentOn, range)),
-    (e) => e.categoryId,
-    (e) => e.amount,
-  );
-  const previous = sumBy(
-    expenses.filter((e) => isWithin(e.spentOn, previousRange)),
-    (e) => e.categoryId,
-    (e) => e.amount,
-  );
+  const spentIn = (slice: DateRange) => {
+    const byCategory = sumBy(
+      expenses.filter((e) => isWithin(e.spentOn, slice)),
+      (e) => e.categoryId,
+      (e) => e.amount,
+    );
+    const paidOut = commissionsPaidOutIn(commissions, slice);
+    if (paidOut > 0) byCategory.set(COMMISSIONS_KEY, paidOut);
+    return byCategory;
+  };
+  const current = spentIn(range);
+  const previous = spentIn(previousRange);
   const keys = new Set([...current.keys(), ...previous.keys()]);
 
   return [...keys]
     .map((key) => ({
       key,
-      label: categoryNameOf(key),
+      label:
+        key === COMMISSIONS_KEY
+          ? "Comisiones de entrenadores"
+          : categoryNameOf(key),
       amount: current.get(key) ?? ZERO,
       previous: previous.get(key) ?? ZERO,
     }))

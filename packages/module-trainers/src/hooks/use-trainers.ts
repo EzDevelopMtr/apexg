@@ -1,16 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import type {
-  Client,
-  Commission,
-  PaymentMethod,
-  Trainer,
-  TrainerId,
-} from "@apexg/core";
-import { unsettledCommissions } from "@apexg/core";
-import { useCollection, upsertById, useRepositories } from "@apexg/module-kit";
-import type { Collection } from "@apexg/module-kit";
+import type { Client, Commission, Trainer } from "@apexg/core";
+import {
+  useCollection,
+  useCommissionSettlement,
+  upsertById,
+  useRepositories,
+} from "@apexg/module-kit";
+import type { Collection, CommissionSettlement } from "@apexg/module-kit";
 
 export interface UseTrainersResult extends Collection<Trainer> {
   readonly save: (
@@ -39,54 +37,20 @@ export function useTrainers(): UseTrainersResult {
   return { ...collection, save };
 }
 
-export interface UseCommissionsResult extends Collection<Commission> {
-  /**
-   * Marca como pagadas TODAS las comisiones pendientes del entrenador, en un
-   * solo pago con un solo comprobante.
-   *
-   * Por entrenador y no una por una: en el gimnasio al entrenador se le paga
-   * lo acumulado de una vez, y liquidar fila por fila era obligar a la
-   * recepcionista a hacer diez clics para un solo pago.
-   */
-  readonly settleAll: (
-    trainerId: TrainerId,
-    method: PaymentMethod,
-    receipt?: Blob,
-  ) => Promise<void>;
-  /** Where to open the receipt of a settled commission. */
-  readonly receiptUrl: (commission: Commission) => string;
-}
+export interface UseCommissionsResult
+  extends Collection<Commission>,
+    CommissionSettlement {}
 
 /** Commissions earned from personal-training payments (RF-23, §4.4). */
 export function useCommissions(): UseCommissionsResult {
   const { trainers } = useRepositories();
   const load = useCallback(() => trainers.listCommissions(), [trainers]);
   const collection = useCollection<Commission>(load);
-  const { items, reload } = collection;
-
-  const settleAll = useCallback(
-    async (trainerId: TrainerId, method: PaymentMethod, receipt?: Blob) => {
-      // Una sola llamada: el backend liquida todas en una transacción, así
-      // que no queda un lote a medias si algo falla.
-      const ids = unsettledCommissions(items, trainerId).map(
-        (commission) => commission.id,
-      );
-      try {
-        await trainers.settleCommissions(trainerId, ids, method, receipt);
-      } finally {
-        reload();
-      }
-    },
-    [trainers, items, reload],
+  const settlement = useCommissionSettlement(
+    collection.items,
+    collection.reload,
   );
-
-  const receiptUrl = useCallback(
-    (commission: Commission) =>
-      trainers.commissionReceiptUrl(commission.trainerId, commission.id),
-    [trainers],
-  );
-
-  return { ...collection, settleAll, receiptUrl };
+  return { ...collection, ...settlement };
 }
 
 /** Clients, needed to count each trainer's current load (RF-25). */

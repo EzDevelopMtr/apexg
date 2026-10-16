@@ -66,6 +66,7 @@ describe("latestSettlementWithReceipt", () => {
     amount: fromPesos(50_000),
     earnedOn: "2026-09-01" as IsoDate,
     settled: true,
+    settledOn: "2026-09-02" as IsoDate,
     settlementMethod: "transfer",
     settlementReceiptPath: `${id}.jpg`,
     ...overrides,

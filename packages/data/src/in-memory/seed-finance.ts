@@ -80,6 +80,7 @@ export function buildSeedCommissions(): Commission[] {
       amount: fromPesos(50_000),
       earnedOn: day("2026-09-01"),
       settled: false,
+      settledOn: null,
       settlementMethod: null,
       settlementReceiptPath: "",
     },

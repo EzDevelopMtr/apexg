@@ -134,6 +134,7 @@ const REGISTROS: FinancialRecords = {
   ],
   clients: [],
   savings: [],
+  commissions: [],
 };
 
 const NOMBRE_PLAN = (id: MembershipTypeId) =>
@@ -192,7 +193,7 @@ describe("incomeBySource", () => {
 describe("expensesByCategory", () => {
   it("compara cada categoría con el mes anterior, incluida la que este mes no gastó", () => {
     const gastos = expensesByCategory(
-      REGISTROS.expenses,
+      REGISTROS,
       rangeFor("month", HOY),
       rangeFor("month", date("2026-08-10")),
       (id) => id,
@@ -225,6 +226,7 @@ describe("receivables y pendingCommissions", () => {
       amount: fromPesos(pesos),
       earnedOn: HOY,
       settled,
+      settledOn: settled ? HOY : null,
       settlementMethod: null,
       settlementReceiptPath: "",
     });
