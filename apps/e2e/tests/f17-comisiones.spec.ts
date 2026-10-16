@@ -26,15 +26,9 @@ function pesos(texto: string): number {
   return (signo || signoDentro ? -1 : 1) * Number((valor ?? "").replaceAll(".", ""));
 }
 
-/** Un entrenador con un cliente personalizado que ya pagó: le debe $ 100.000. */
-async function entrenadorConComision(page: Page, entrenador: string, cliente: string, sufijo: string) {
-  await crearEntrenador(page, { nombre: entrenador, documento: `43${ID}${sufijo}1` });
-  await crearCliente(page, {
-    nombre: cliente,
-    documento: `43${ID}${sufijo}2`,
-    plan: "Personalizado",
-    entrenador,
-  });
+/** Un cliente personalizado del entrenador que paga $ 200.000: le deja $ 100.000. */
+async function clienteQuePaga(page: Page, entrenador: string, cliente: string, documento: string) {
+  await crearCliente(page, { nombre: cliente, documento, plan: "Personalizado", entrenador });
   await irA(page, RUTAS.cobrar);
   await elegirOpcion(page, "Cliente", cliente);
   await page.getByLabel("Monto (COP)").fill("200000");
@@ -43,6 +37,17 @@ async function entrenadorConComision(page: Page, entrenador: string, cliente: st
   const guardado = esperarPost(page, "/payments");
   await page.getByRole("button", { name: /registrar pago/i }).click();
   expect((await guardado).status()).toBe(201);
+}
+
+/** Un entrenador con un cliente personalizado que ya pagó: le debe $ 100.000. */
+async function entrenadorConComision(page: Page, entrenador: string, cliente: string, sufijo: string) {
+  await crearEntrenador(page, { nombre: entrenador, documento: `43${ID}${sufijo}1` });
+  await clienteQuePaga(page, entrenador, cliente, `43${ID}${sufijo}2`);
+}
+
+/** La cifra de un indicador de Finanzas («Utilidad», «Comisiones por pagar»). */
+async function indicador(page: Page, titulo: string): Promise<number> {
+  return pesos((await page.getByRole("region", { name: titulo, exact: true }).textContent()) ?? "");
 }
 
 test.describe.configure({ mode: "serial" });
@@ -105,5 +110,74 @@ test.describe("F17 · Pagar comisiones al entrenador", () => {
     await expect(egreso).toContainText("$ 100.000");
     await expect(egreso).toContainText("Comisiones de entrenadores");
     await info.attach("comision-en-egresos", { body: await page.screenshot(), contentType: "image/png" });
+  });
+});
+
+// Con varios entrenadores a la vez: A con una comisión, B con dos.
+const ENTRENADOR_A = `E2E Varios A ${ID}`;
+const ENTRENADOR_B = `E2E Varios B ${ID}`;
+let utilidadAntes = 0;
+
+test.describe("F17 · Comisiones de varios entrenadores", () => {
+  test.beforeAll(async ({ browser }) => {
+    // Dos entrenadores y tres clientes con su cobro: no cabe en los 60 s.
+    test.setTimeout(240_000);
+    const page = await browser.newPage();
+    await crearEntrenador(page, { nombre: ENTRENADOR_A, documento: `44${ID}1` });
+    await crearEntrenador(page, { nombre: ENTRENADOR_B, documento: `44${ID}2` });
+    await clienteQuePaga(page, ENTRENADOR_A, `E2E Varios A1 ${ID}`, `44${ID}3`);
+    await clienteQuePaga(page, ENTRENADOR_B, `E2E Varios B1 ${ID}`, `44${ID}4`);
+    await clienteQuePaga(page, ENTRENADOR_B, `E2E Varios B2 ${ID}`, `44${ID}5`);
+    await page.close();
+  });
+
+  caso("CP-154", "Pagarle a un entrenador no toca lo pendiente de otro", async ({ page }, info) => {
+    await irA(page, RUTAS.finanzasPanel);
+    utilidadAntes = await indicador(page, "Utilidad");
+    const porPagarAntes = await indicador(page, "Comisiones por pagar");
+
+    const filaB = page.locator("tr", { hasText: ENTRENADOR_B });
+    await expect(filaB).toContainText("$ 200.000");
+
+    const filaA = page.locator("tr", { hasText: ENTRENADOR_A });
+    await filaA.getByRole("button", { name: new RegExp(`pagar comisiones de ${ENTRENADOR_A}`, "i") }).click();
+    const dialogo = page.getByRole("dialog", { name: /pagar comisiones/i });
+    await expect(dialogo).toContainText("$ 100.000");
+    await dialogo.getByRole("button", { name: /confirmar pago/i }).click();
+    await expect(dialogo).toBeHidden();
+
+    await expect(filaA).toContainText("Al día");
+    // B sigue debiendo sus dos comisiones, con su botón de pagar.
+    await expect(filaB).toContainText("$ 200.000");
+    await expect(filaB.getByRole("button", { name: /pagar/i })).toBeVisible();
+    await expect.poll(() => indicador(page, "Comisiones por pagar")).toBe(porPagarAntes - 100_000);
+    await info.attach("a-pagado-b-pendiente", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+  });
+
+  caso("CP-155", "Dos pagos el mismo día suman en la utilidad y quedan como dos egresos", async ({ page }, info) => {
+    await irA(page, RUTAS.finanzasPanel);
+    const filaB = page.locator("tr", { hasText: ENTRENADOR_B });
+    await filaB.getByRole("button", { name: new RegExp(`pagar comisiones de ${ENTRENADOR_B}`, "i") }).click();
+    const dialogo = page.getByRole("dialog", { name: /pagar comisiones/i });
+    // Las dos comisiones de B en un solo pago.
+    await expect(dialogo).toContainText(`E2E Varios B1 ${ID}`);
+    await expect(dialogo).toContainText(`E2E Varios B2 ${ID}`);
+    await expect(dialogo).toContainText("$ 200.000");
+    await dialogo.getByRole("button", { name: /confirmar pago/i }).click();
+    await expect(dialogo).toBeHidden();
+    await expect(filaB).toContainText("Al día");
+
+    await expect.poll(() => indicador(page, "Utilidad")).toBe(utilidadAntes - 300_000);
+
+    await irA(page, RUTAS.egresosTodos);
+    const egresoA = page.locator("tr", { hasText: `Comisiones de ${ENTRENADOR_A}` });
+    const egresoB = page.locator("tr", { hasText: `Comisiones de ${ENTRENADOR_B}` });
+    await expect(egresoA).toHaveCount(1);
+    await expect(egresoA).toContainText("$ 100.000");
+    await expect(egresoA).toContainText("1 comisión");
+    await expect(egresoB).toHaveCount(1);
+    await expect(egresoB).toContainText("$ 200.000");
+    await expect(egresoB).toContainText("2 comisiones");
+    await info.attach("dos-egresos", { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
   });
 });
