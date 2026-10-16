@@ -73,8 +73,8 @@ describe("buildModulePulse", () => {
     expect(buildModulePulse(records, TODAY).clients).toEqual({ total: 4, expiring: 1, overdue: 1 });
   });
 
-  it("pagos muestra solo lo cobrado hoy, no ventas ni pases", () => {
-    expect(buildModulePulse(records, TODAY).payments).toEqual({ collectedToday: fromPesos(65_000), paymentsToday: 1 });
+  it("pagos muestra lo cobrado hoy en mensualidades y pases, no las ventas", () => {
+    expect(buildModulePulse(records, TODAY).payments).toEqual({ collectedToday: fromPesos(65_000 + 6_000), paymentsToday: 2 });
   });
 
   it("respeta los días de gracia del gimnasio", () => {

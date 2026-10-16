@@ -127,4 +127,19 @@ test.describe("F20 · Pase de día para visitantes", () => {
       contentType: "image/png",
     });
   });
+
+  caso("CP-152", "El pase aparece en Pagos como «Pase de día» y suma al total", async ({ page }, info) => {
+    await irA(page, RUTAS.pagosTodos);
+    await page.getByRole("textbox", { name: "Buscar por cliente" }).fill(EFECTIVO);
+    const fila = page.locator("tr", { hasText: EFECTIVO });
+    await expect(fila).toHaveCount(1);
+    await expect(fila).toContainText("Pase de día");
+    await expect(fila).toContainText("$ 6.000");
+    await expect(page.getByText(/1 pago · Total \$\s6\.000/)).toBeVisible();
+    await info.attach("pase-en-pagos", { body: await page.screenshot(), contentType: "image/png" });
+
+    // Un pase no tiene saldo: no entra en «Con saldo pendiente».
+    await irA(page, RUTAS.pagosPendientes);
+    await expect(page.getByText(EFECTIVO)).toHaveCount(0);
+  });
 });

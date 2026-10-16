@@ -1,7 +1,14 @@
 "use client";
 
 import { useCallback } from "react";
-import type { Client, ClientId, Payment, PaymentId } from "@apexg/core";
+import type {
+  Client,
+  ClientId,
+  DayPass,
+  DayPassId,
+  Payment,
+  PaymentId,
+} from "@apexg/core";
 import { upsertById, useCollection, useRepositories } from "@apexg/module-kit";
 import type { Collection } from "@apexg/module-kit";
 
@@ -37,6 +44,20 @@ export function usePayments(): UsePaymentsResult {
   );
 
   return { ...collection, record, receiptUrl };
+}
+
+/** Every day pass sold, read-only here: they are sold from the daily log. */
+export function useDayPassHistory(): Collection<DayPass> & {
+  readonly receiptUrl: (passId: DayPassId) => string;
+} {
+  const { dayPasses } = useRepositories();
+  const load = useCallback(() => dayPasses.list(), [dayPasses]);
+  const collection = useCollection<DayPass>(load);
+  const receiptUrl = useCallback(
+    (passId: DayPassId) => dayPasses.receiptUrl(passId),
+    [dayPasses],
+  );
+  return { ...collection, receiptUrl };
 }
 
 /** The clients a payment can be attached to, plus the way to renew one. */

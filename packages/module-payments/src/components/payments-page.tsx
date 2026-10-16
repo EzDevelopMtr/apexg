@@ -1,16 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Payment, PaymentSectionId } from "@apexg/core";
+import type { PaymentSectionId } from "@apexg/core";
 import {
   cyclesWithBalance,
+  ledgerOf,
   paymentSections,
   settlementDates,
   today,
 } from "@apexg/core";
 import { CollectionGate } from "@apexg/module-kit";
 import { Modal } from "@apexg/ui";
-import { useClientDirectory, usePayments } from "../hooks/use-payments";
+import {
+  useClientDirectory,
+  useDayPassHistory,
+  usePayments,
+} from "../hooks/use-payments";
 import PaymentForm from "./payment-form";
 import { usePaymentFilter } from "../hooks/use-payment-filter";
 import PaymentFilters from "./payment-filters";
@@ -47,6 +52,7 @@ export default function PaymentsPage({
   const close = () => onNavigate(section.id);
   const payments = usePayments();
   const clients = useClientDirectory();
+  const passes = useDayPassHistory();
   const [referenceDate] = useState(today);
 
   const visible = useMemo(() => {
@@ -58,13 +64,13 @@ export default function PaymentsPage({
         : payments.items;
 
     const { includes } = section.view;
-    return [...scoped]
-      .filter((payment: Payment) => includes(payment, referenceDate))
+    return [...ledgerOf(scoped, passes.items)]
+      .filter((entry) => includes(entry, referenceDate))
       .sort((a, b) => b.paidOn.localeCompare(a.paidOn));
-  }, [payments.items, section, referenceDate]);
+  }, [payments.items, passes.items, section, referenceDate]);
 
   // Sobre lo que ya dejó pasar la sección ("Con saldo pendiente"), no sobre
-  // todos los pagos: los filtros de columna afinan la vista, no la reemplazan.
+  // todo lo cobrado: los filtros de columna afinan la vista, no la reemplazan.
   const filters = usePaymentFilter(visible, clients.items);
   const settlements = useMemo(
     () => settlementDates(payments.items),
@@ -77,13 +83,20 @@ export default function PaymentsPage({
       loadingMessage="Cargando pagos..."
       errorMessage="No pudimos cargar los pagos."
     >
-      <PaymentFilters filters={filters} />
-      <PaymentList
-        payments={filters.visible}
-        clients={clients.items}
-        receiptUrl={payments.receiptUrl}
-        settlements={settlements}
-      />
+      <CollectionGate
+        collection={passes}
+        loadingMessage="Cargando pagos..."
+        errorMessage="No pudimos cargar los pases de día."
+      >
+        <PaymentFilters filters={filters} />
+        <PaymentList
+          entries={filters.visible}
+          clients={clients.items}
+          receiptUrl={payments.receiptUrl}
+          passReceiptUrl={passes.receiptUrl}
+          settlements={settlements}
+        />
+      </CollectionGate>
 
       <Modal open={requested.view.kind === "form"} title={requested.title} onClose={close}>
         <CollectionGate

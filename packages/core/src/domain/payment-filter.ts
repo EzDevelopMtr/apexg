@@ -1,7 +1,8 @@
 import type { IsoDate } from "./calendar";
 import type { Money } from "./money";
 import { ZERO, add } from "./money";
-import type { Payment, PaymentKind, PaymentMethod } from "./payment";
+import type { PaymentKind, PaymentMethod } from "./payment";
+import type { LedgerKind } from "./payment-ledger";
 
 /** Tipo de pago tal como lo agrupa el filtro, en español. */
 export const PAYMENT_KIND_LABELS: Record<PaymentKind, string> = {
@@ -11,6 +12,22 @@ export const PAYMENT_KIND_LABELS: Record<PaymentKind, string> = {
   installment: "Abono",
   finalInstallment: "Abono final",
 };
+
+/** Los tipos que el filtro ofrece: los de un pago y el pase de día. */
+export const LEDGER_KIND_LABELS: Record<LedgerKind, string> = {
+  ...PAYMENT_KIND_LABELS,
+  dayPass: "Pase de día",
+};
+
+/** Lo mínimo que el filtro lee de una fila: la ven igual un pago y un pase. */
+interface Filterable {
+  readonly paidOn: IsoDate;
+  readonly amount: Money;
+  readonly kind: LedgerKind;
+  readonly method: PaymentMethod;
+  readonly recordedBy: string;
+  readonly receiptPath: string;
+}
 
 export type ReceiptFilter = "all" | "with" | "without";
 
@@ -28,7 +45,7 @@ export interface PaymentFilter {
   readonly from: IsoDate | "";
   /** Hasta este día, incluido. `""` = sin límite. */
   readonly to: IsoDate | "";
-  readonly kind: PaymentKind | "all";
+  readonly kind: LedgerKind | "all";
   readonly method: PaymentMethod | "all";
   /** Nombre de quien lo registró. `""` = cualquiera. */
   readonly recordedBy: string;
@@ -58,7 +75,7 @@ function normalize(text: string): string {
 }
 
 function matches(
-  payment: Payment,
+  payment: Filterable,
   filter: PaymentFilter,
   clientName: string,
 ): boolean {
@@ -84,11 +101,11 @@ function matches(
  * guarda el id, y quién lo resuelve —con qué catálogo de clientes— es
  * asunto de la pantalla.
  */
-export function filterPayments(
-  payments: readonly Payment[],
+export function filterPayments<T extends Filterable>(
+  payments: readonly T[],
   filter: PaymentFilter,
-  nameOf: (payment: Payment) => string,
-): readonly Payment[] {
+  nameOf: (payment: T) => string,
+): readonly T[] {
   return payments.filter((payment) => matches(payment, filter, nameOf(payment)));
 }
 
@@ -100,12 +117,14 @@ export function isPaymentFilterActive(filter: PaymentFilter): boolean {
 }
 
 /** Lo que suman los pagos, para el resumen de lo filtrado. */
-export function paymentsTotal(payments: readonly Payment[]): Money {
+export function paymentsTotal(payments: readonly Filterable[]): Money {
   return payments.reduce<Money>((running, one) => add(running, one.amount), ZERO);
 }
 
 /** Quiénes registraron pagos, sin repetir y en orden, para el selector. */
-export function paymentAuthors(payments: readonly Payment[]): readonly string[] {
+export function paymentAuthors(
+  payments: readonly Filterable[],
+): readonly string[] {
   return [...new Set(payments.map((payment) => payment.recordedBy))]
     .filter((name) => name !== "")
     .sort((a, b) => a.localeCompare(b, "es"));

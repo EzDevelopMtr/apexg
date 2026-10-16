@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import type { Client, Payment, PaymentFilter } from "@apexg/core";
+import type { Client, LedgerEntry, PaymentFilter } from "@apexg/core";
 import {
   EMPTY_PAYMENT_FILTER,
   filterPayments,
@@ -9,7 +9,7 @@ import {
   paymentAuthors,
   paymentsTotal,
 } from "@apexg/core";
-import { clientNameOf } from "../components/client-name";
+import { entryNameOf } from "../components/client-name";
 
 /**
  * Los filtros de la tabla de pagos y lo que dejan ver.
@@ -18,7 +18,7 @@ import { clientNameOf } from "../components/client-name";
  * solo pinta los controles y la tabla.
  */
 export function usePaymentFilter(
-  payments: readonly Payment[],
+  payments: readonly LedgerEntry[],
   clients: readonly Client[],
 ) {
   const [filter, setFilter] = useState<PaymentFilter>(EMPTY_PAYMENT_FILTER);
@@ -33,8 +33,8 @@ export function usePaymentFilter(
 
   const visible = useMemo(
     () =>
-      filterPayments(payments, filter, (payment) =>
-        clientNameOf(clients, payment),
+      filterPayments(payments, filter, (entry) =>
+        entryNameOf(clients, entry),
       ),
     [payments, clients, filter],
   );

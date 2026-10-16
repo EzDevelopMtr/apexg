@@ -5,6 +5,7 @@ import { buildDailyLog } from "../domain/finance";
 import type { GymSettings } from "../domain/gym-settings";
 import { DEFAULT_GYM_SETTINGS } from "../domain/gym-settings";
 import type { Money } from "../domain/money";
+import { add } from "../domain/money";
 import type { Payment } from "../domain/payment";
 import type { ProductSale } from "../domain/product-sale";
 import { countClientsBySection } from "./client-sections";
@@ -40,9 +41,13 @@ export function buildModulePulse(
   return {
     dailyLog: { income: day.income, checkIns: records.checkInsToday, newClients: day.newClients.length },
     clients: { total: counts.all ?? 0, expiring: counts.expiring ?? 0, overdue: counts.overdue ?? 0 },
+    // Lo mismo que lista Pagos: mensualidades y pases de día. Las ventas de
+    // productos viven en el apartado diario, no en Pagos.
     payments: {
-      collectedToday: day.incomeFromPayments,
-      paymentsToday: records.payments.filter((payment) => payment.paidOn === on).length,
+      collectedToday: add(day.incomeFromPayments, day.incomeFromDayPasses),
+      paymentsToday:
+        records.payments.filter((payment) => payment.paidOn === on).length +
+        records.dayPasses.filter((pass) => pass.soldOn === on).length,
     },
   };
 }

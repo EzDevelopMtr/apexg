@@ -28,6 +28,7 @@ Rationale: without a fixed glossary, eight modules would independently invent
 | Novedad             | `DailyLogNote`    | An entry within the daily log                                             |
 | Pase de día         | `DayPass`         | One day sold to a visitor with no client record behind it                 |
 | Visitante           | `Visitor`         | Whoever holds a day pass. **Never** a `Client`                            |
+| Fila de Pagos       | `LedgerEntry`     | A row of the Payments list: a membership payment or a day pass            |
 
 ## Client state (SRS §4.2)
 

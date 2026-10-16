@@ -19,6 +19,7 @@ export * from "./domain/payment";
 export * from "./domain/cycle-price";
 export * from "./domain/receipt";
 export * from "./domain/payment-filter";
+export * from "./domain/payment-ledger";
 export * from "./domain/payment-settlement";
 export * from "./domain/trainer";
 export * from "./domain/expense";

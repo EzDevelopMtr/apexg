@@ -3,12 +3,12 @@
 import { Search, X } from "lucide-react";
 import type {
   IsoDate,
-  PaymentKind,
+  LedgerKind,
   PaymentMethod,
   ReceiptFilter,
 } from "@apexg/core";
 import {
-  PAYMENT_KIND_LABELS,
+  LEDGER_KIND_LABELS,
   PAYMENT_METHOD_LABELS,
   formatCOP,
 } from "@apexg/core";
@@ -20,9 +20,9 @@ const ALL = { value: "all", label: "Todos" } as const;
 
 const KIND_OPTIONS: readonly SelectOption[] = [
   ALL,
-  ...(Object.keys(PAYMENT_KIND_LABELS) as PaymentKind[]).map((kind) => ({
+  ...(Object.keys(LEDGER_KIND_LABELS) as LedgerKind[]).map((kind) => ({
     value: kind,
-    label: PAYMENT_KIND_LABELS[kind],
+    label: LEDGER_KIND_LABELS[kind],
   })),
 ];
 
@@ -80,7 +80,7 @@ function ColumnFilters({ filters }: PaymentFiltersProps) {
         value={filter.kind}
         options={KIND_OPTIONS}
         onChange={(event) =>
-          setField("kind", event.target.value as PaymentKind | "all")
+          setField("kind", event.target.value as LedgerKind | "all")
         }
       />
       <Select
