@@ -1,16 +1,17 @@
 import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 
 // Value import: constructor-injected (see the note in access-token.guard.ts).
 import { ClientOverdueSyncService } from '../clients/client-overdue-sync.service.js';
 import { DATABASE } from '../database/database.constants.js';
 import type { Database } from '../database/database.types.js';
-import { clients, expenses, monthlyClosures, payments } from '../database/schema/schema.js';
+import { clients, monthlyClosures } from '../database/schema/schema.js';
 import { assertDefined } from '../shared/assert-defined.util.js';
-import { APP_TIMEZONE, toLocalDate } from '../shared/date.util.js';
-import { fromCents, toCents } from '../shared/money-amount.util.js';
+import { toLocalDate } from '../shared/date.util.js';
+import { fromCents } from '../shared/money-amount.util.js';
 import { PG_UNIQUE_VIOLATION, pgErrorCode } from '../shared/pg-error.util.js';
 
+import { sumIncomeAndExpenses } from './finance-totals.js';
 import type { CreateMonthlyClosureDto } from './create-monthly-closure.dto.js';
 import type {
   BalanceSummary,
@@ -34,7 +35,7 @@ export class FinanceService {
       throw new BadRequestException('"from" no puede ser posterior a "to".');
     }
 
-    const { incomeCents, expensesCents } = await this.sumIncomeAndExpenses(companyId, from, to);
+    const { incomeCents, expensesCents } = await sumIncomeAndExpenses(this.db, companyId, from, to);
     return {
       from,
       to,
@@ -45,16 +46,13 @@ export class FinanceService {
   }
 
   /** RF-32: utilidad del mes y su variación frente al mes calendario anterior. */
-  async getMonthlySummary(
-    companyId: string,
-    year: number,
-    month: number,
-  ): Promise<MonthlySummary> {
-    const current = await this.sumIncomeAndExpenses(companyId, ...monthRange(year, month));
+  async getMonthlySummary(companyId: string, year: number, month: number): Promise<MonthlySummary> {
+    const current = await sumIncomeAndExpenses(this.db, companyId, ...monthRange(year, month));
     const currentProfitCents = current.incomeCents - current.expensesCents;
 
     const { year: previousYear, month: previousMonth } = previousCalendarMonth(year, month);
-    const previous = await this.sumIncomeAndExpenses(
+    const previous = await sumIncomeAndExpenses(
+      this.db,
       companyId,
       ...monthRange(previousYear, previousMonth),
     );
@@ -82,13 +80,18 @@ export class FinanceService {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
-    const current = await this.sumIncomeAndExpenses(companyId, ...monthRange(currentYear, currentMonth));
+    const current = await sumIncomeAndExpenses(
+      this.db,
+      companyId,
+      ...monthRange(currentYear, currentMonth),
+    );
 
     const { year: previousYear, month: previousMonth } = previousCalendarMonth(
       currentYear,
       currentMonth,
     );
-    const previous = await this.sumIncomeAndExpenses(
+    const previous = await sumIncomeAndExpenses(
+      this.db,
       companyId,
       ...monthRange(previousYear, previousMonth),
     );
@@ -146,44 +149,6 @@ export class FinanceService {
       .where(eq(monthlyClosures.companyId, companyId))
       .orderBy(desc(monthlyClosures.year), desc(monthlyClosures.month));
     return rows.map((row) => this.toClosureResult(row));
-  }
-
-  /**
-   * `payments.paid_at` es `TIMESTAMPTZ`: se agrupa por día calendario LOCAL
-   * (`AT TIME ZONE`), no UTC — mismo cuidado que `shared/date.util.ts`, para
-   * no repetir el bug ya corregido en Pagos. `expenses.expense_date` ya es
-   * `DATE` (sin hora), por eso no necesita esa conversión.
-   */
-  private async sumIncomeAndExpenses(
-    companyId: string,
-    from: string,
-    to: string,
-  ): Promise<{ incomeCents: number; expensesCents: number }> {
-    const [incomeRow] = await this.db
-      .select({ total: sql<string>`COALESCE(SUM(${payments.amount}), 0)` })
-      .from(payments)
-      .where(
-        and(
-          eq(payments.companyId, companyId),
-          sql`(${payments.paidAt} AT TIME ZONE ${APP_TIMEZONE})::date BETWEEN ${from} AND ${to}`,
-        ),
-      );
-
-    const [expensesRow] = await this.db
-      .select({ total: sql<string>`COALESCE(SUM(${expenses.amount}), 0)` })
-      .from(expenses)
-      .where(
-        and(
-          eq(expenses.companyId, companyId),
-          gte(expenses.expenseDate, from),
-          lte(expenses.expenseDate, to),
-        ),
-      );
-
-    return {
-      incomeCents: toCents(incomeRow?.total ?? '0'),
-      expensesCents: toCents(expensesRow?.total ?? '0'),
-    };
   }
 
   private toClosureResult(row: MonthlyClosureRow): MonthlyClosureResult {
